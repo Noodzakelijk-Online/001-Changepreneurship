@@ -1,0 +1,605 @@
+import React, { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button.jsx'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
+import { Progress } from '@/components/ui/progress.jsx'
+import { Badge } from '@/components/ui/badge.jsx'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.jsx'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group.jsx'
+import { Label } from '@/components/ui/label.jsx'
+import { Textarea } from '@/components/ui/textarea.jsx'
+import { Slider } from '@/components/ui/slider.jsx'
+import { 
+  Heart, 
+  Target, 
+  Star, 
+  Compass, 
+  Brain, 
+  TrendingUp,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle,
+  AlertCircle,
+  Lightbulb
+} from 'lucide-react'
+import { useAssessment, ENTREPRENEUR_ARCHETYPES } from '../../contexts/AssessmentContext'
+
+const SelfDiscoveryAssessment = () => {
+  const { 
+    assessmentData, 
+    updateResponse, 
+    updateProgress, 
+    completePhase, 
+    calculateArchetype 
+  } = useAssessment()
+  
+  const [currentSection, setCurrentSection] = useState('motivation')
+  const [sectionProgress, setSectionProgress] = useState({})
+  
+  const selfDiscoveryData = assessmentData['self-discovery'] || {}
+  const responses = selfDiscoveryData.responses || {}
+
+  // Assessment sections configuration
+  const sections = [
+    {
+      id: 'motivation',
+      title: 'Core Motivation & Why',
+      description: 'Understand your fundamental drive for entrepreneurship',
+      icon: Heart,
+      duration: '10-15 minutes',
+      questions: motivationQuestions
+    },
+    {
+      id: 'life-impact',
+      title: 'Life Impact Assessment',
+      description: 'How entrepreneurship fits into your life priorities',
+      icon: Target,
+      duration: '15-20 minutes',
+      questions: lifeImpactQuestions
+    },
+    {
+      id: 'values',
+      title: 'Values & Priorities',
+      description: 'Identify core values to guide business decisions',
+      icon: Star,
+      duration: '10-15 minutes',
+      questions: valuesQuestions
+    },
+    {
+      id: 'vision',
+      title: 'Future Vision',
+      description: 'Create a compelling 10-year vision',
+      icon: Compass,
+      duration: '20-25 minutes',
+      questions: visionQuestions
+    },
+    {
+      id: 'confidence',
+      title: 'Belief & Confidence',
+      description: 'Assess confidence and development needs',
+      icon: Brain,
+      duration: '10-15 minutes',
+      questions: confidenceQuestions
+    },
+    {
+      id: 'results',
+      title: 'Your Entrepreneur Archetype',
+      description: 'Discover your entrepreneurial personality type',
+      icon: TrendingUp,
+      duration: '5 minutes',
+      questions: []
+    }
+  ]
+
+  // Calculate overall progress
+  const calculateOverallProgress = () => {
+    const totalSections = sections.length - 1 // Exclude results section
+    const completedSections = Object.values(sectionProgress).filter(progress => progress >= 100).length
+    return Math.round((completedSections / totalSections) * 100)
+  }
+
+  // Calculate section progress
+  const calculateSectionProgress = (sectionId) => {
+    const section = sections.find(s => s.id === sectionId)
+    if (!section || !section.questions) return 0
+    
+    const sectionResponses = responses[sectionId] || {}
+    const answeredQuestions = Object.keys(sectionResponses).length
+    const totalQuestions = section.questions.length
+    
+    return totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 0
+  }
+
+  // Update section progress when responses change
+  useEffect(() => {
+    const newProgress = {}
+    sections.forEach(section => {
+      if (section.questions) {
+        newProgress[section.id] = calculateSectionProgress(section.id)
+      }
+    })
+    setSectionProgress(newProgress)
+    
+    // Update overall progress
+    const overallProgress = calculateOverallProgress()
+    updateProgress('self-discovery', overallProgress)
+    
+    // Complete phase if all sections are done
+    if (overallProgress >= 100 && !selfDiscoveryData.completed) {
+      completePhase('self-discovery')
+      calculateArchetype(responses)
+    }
+  }, [responses])
+
+  const handleResponse = (questionId, answer) => {
+    updateResponse('self-discovery', questionId, answer, currentSection)
+  }
+
+  const nextSection = () => {
+    const currentIndex = sections.findIndex(s => s.id === currentSection)
+    if (currentIndex < sections.length - 1) {
+      setCurrentSection(sections[currentIndex + 1].id)
+    }
+  }
+
+  const previousSection = () => {
+    const currentIndex = sections.findIndex(s => s.id === currentSection)
+    if (currentIndex > 0) {
+      setCurrentSection(sections[currentIndex - 1].id)
+    }
+  }
+
+  const currentSectionData = sections.find(s => s.id === currentSection)
+  const currentSectionIndex = sections.findIndex(s => s.id === currentSection)
+
+  return (
+    <div className="space-y-6">
+      {/* Section Navigation */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+        {sections.map((section, index) => {
+          const Icon = section.icon
+          const progress = sectionProgress[section.id] || 0
+          const isActive = section.id === currentSection
+          const isCompleted = progress >= 100
+          const isAccessible = index <= currentSectionIndex || isCompleted
+
+          return (
+            <Card 
+              key={section.id}
+              className={`cursor-pointer transition-all duration-200 ${
+                isActive ? 'ring-2 ring-primary' : ''
+              } ${!isAccessible ? 'opacity-50' : 'hover:shadow-md'}`}
+              onClick={() => isAccessible && setCurrentSection(section.id)}
+            >
+              <CardContent className="p-3 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <Icon className="h-5 w-5 text-primary" />
+                  {isCompleted && <CheckCircle className="h-4 w-4 text-green-500 ml-1" />}
+                </div>
+                <h4 className="text-xs font-medium mb-1">{section.title}</h4>
+                <Progress value={progress} className="h-1" />
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
+
+      {/* Current Section Content */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {React.createElement(currentSectionData.icon, { className: "h-6 w-6 text-primary" })}
+              <div>
+                <CardTitle>{currentSectionData.title}</CardTitle>
+                <CardDescription>{currentSectionData.description}</CardDescription>
+              </div>
+            </div>
+            <Badge variant="outline">{currentSectionData.duration}</Badge>
+          </div>
+          <Progress value={sectionProgress[currentSection] || 0} className="mt-4" />
+        </CardHeader>
+        <CardContent>
+          {currentSection === 'results' ? (
+            <ArchetypeResults archetype={selfDiscoveryData.archetype} insights={selfDiscoveryData.insights} />
+          ) : (
+            <SectionQuestions 
+              section={currentSectionData}
+              responses={responses[currentSection] || {}}
+              onResponse={handleResponse}
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-between">
+        <Button 
+          variant="outline" 
+          onClick={previousSection}
+          disabled={currentSectionIndex === 0}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Previous
+        </Button>
+        <Button 
+          onClick={nextSection}
+          disabled={currentSectionIndex === sections.length - 1}
+        >
+          Next
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// Section Questions Component
+const SectionQuestions = ({ section, responses, onResponse }) => {
+  if (!section.questions || section.questions.length === 0) {
+    return <div className="text-center text-muted-foreground">No questions available for this section.</div>
+  }
+
+  return (
+    <div className="space-y-8">
+      {section.questions.map((question, index) => (
+        <QuestionCard 
+          key={question.id}
+          question={question}
+          response={responses[question.id]}
+          onResponse={(answer) => onResponse(question.id, answer)}
+          questionNumber={index + 1}
+          totalQuestions={section.questions.length}
+        />
+      ))}
+    </div>
+  )
+}
+
+// Individual Question Card Component
+const QuestionCard = ({ question, response, onResponse, questionNumber, totalQuestions }) => {
+  const renderQuestionInput = () => {
+    switch (question.type) {
+      case 'multiple-choice':
+        return (
+          <RadioGroup value={response || ''} onValueChange={onResponse}>
+            {question.options.map((option) => (
+              <div key={option.value} className="flex items-center space-x-2">
+                <RadioGroupItem value={option.value} id={option.value} />
+                <Label htmlFor={option.value} className="flex-1 cursor-pointer">
+                  <div>
+                    <div className="font-medium">{option.label}</div>
+                    {option.description && (
+                      <div className="text-sm text-muted-foreground">{option.description}</div>
+                    )}
+                  </div>
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        )
+
+      case 'scale':
+        return (
+          <div className="space-y-4">
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>{question.scaleLabels?.min || 'Low'}</span>
+              <span>{question.scaleLabels?.max || 'High'}</span>
+            </div>
+            <Slider
+              value={[response || question.scaleRange?.min || 1]}
+              onValueChange={(value) => onResponse(value[0])}
+              min={question.scaleRange?.min || 1}
+              max={question.scaleRange?.max || 10}
+              step={1}
+              className="w-full"
+            />
+            <div className="text-center text-sm font-medium">
+              Current value: {response || question.scaleRange?.min || 1}
+            </div>
+          </div>
+        )
+
+      case 'textarea':
+        return (
+          <Textarea
+            value={response || ''}
+            onChange={(e) => onResponse(e.target.value)}
+            placeholder={question.placeholder || 'Enter your response...'}
+            rows={4}
+            className="w-full"
+          />
+        )
+
+      case 'ranking':
+        return (
+          <RankingInput 
+            options={question.options}
+            value={response || []}
+            onChange={onResponse}
+          />
+        )
+
+      default:
+        return <div className="text-muted-foreground">Unsupported question type</div>
+    }
+  }
+
+  return (
+    <Card className="border-l-4 border-l-primary">
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="secondary">Question {questionNumber} of {totalQuestions}</Badge>
+              {question.required && <Badge variant="destructive">Required</Badge>}
+            </div>
+            <CardTitle className="text-lg">{question.question}</CardTitle>
+            {question.description && (
+              <CardDescription className="mt-2">{question.description}</CardDescription>
+            )}
+          </div>
+          {response && <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {renderQuestionInput()}
+        {question.helpText && (
+          <div className="mt-4 p-3 bg-muted rounded-md">
+            <div className="flex items-start gap-2">
+              <Lightbulb className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-muted-foreground">{question.helpText}</p>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// Ranking Input Component
+const RankingInput = ({ options, value, onChange }) => {
+  const [rankings, setRankings] = useState(value || [])
+
+  const handleRankChange = (optionValue, rank) => {
+    const newRankings = [...rankings]
+    const existingIndex = newRankings.findIndex(r => r.value === optionValue)
+    
+    if (existingIndex >= 0) {
+      newRankings[existingIndex].rank = rank
+    } else {
+      newRankings.push({ value: optionValue, rank })
+    }
+    
+    setRankings(newRankings)
+    onChange(newRankings)
+  }
+
+  return (
+    <div className="space-y-3">
+      {options.map((option) => {
+        const currentRank = rankings.find(r => r.value === option.value)?.rank || ''
+        return (
+          <div key={option.value} className="flex items-center gap-3">
+            <select
+              value={currentRank}
+              onChange={(e) => handleRankChange(option.value, parseInt(e.target.value))}
+              className="w-16 px-2 py-1 border rounded"
+            >
+              <option value="">-</option>
+              {options.map((_, index) => (
+                <option key={index + 1} value={index + 1}>{index + 1}</option>
+              ))}
+            </select>
+            <Label className="flex-1">{option.label}</Label>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// Archetype Results Component
+const ArchetypeResults = ({ archetype, insights }) => {
+  if (!archetype || !insights) {
+    return (
+      <div className="text-center py-8">
+        <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Complete Assessment to See Results</h3>
+        <p className="text-muted-foreground">
+          Finish all sections to discover your entrepreneur archetype and get personalized insights.
+        </p>
+      </div>
+    )
+  }
+
+  const archetypeData = ENTREPRENEUR_ARCHETYPES[archetype]
+
+  return (
+    <div className="space-y-6">
+      {/* Main Archetype Card */}
+      <Card className="border-2 border-primary">
+        <CardHeader className="text-center">
+          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <TrendingUp className="h-8 w-8 text-primary" />
+          </div>
+          <CardTitle className="text-2xl">{archetypeData.name}</CardTitle>
+          <CardDescription className="text-lg italic">
+            "{archetypeData.description}"
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-semibold mb-3">Key Traits</h4>
+              <ul className="space-y-2">
+                {archetypeData.traits.map((trait, index) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span className="text-sm">{trait}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-3">Business Focus</h4>
+              <p className="text-sm text-muted-foreground mb-4">{archetypeData.businessFocus}</p>
+              <h4 className="font-semibold mb-3">Time Horizon</h4>
+              <p className="text-sm text-muted-foreground">{archetypeData.timeHorizon}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recommendations */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Recommended Business Types</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {archetypeData.examples.map((example, index) => (
+                <li key={index} className="flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4 text-primary" />
+                  <span className="text-sm">{example}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Next Steps</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {insights.recommendations?.nextSteps?.map((step, index) => (
+                <li key={index} className="flex items-center gap-2">
+                  <ArrowRight className="h-4 w-4 text-primary" />
+                  <span className="text-sm">{step}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Archetype Scores */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Your Archetype Scores</CardTitle>
+          <CardDescription>
+            See how you scored across all entrepreneur types
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {Object.entries(insights.scores || {}).map(([type, score]) => (
+              <div key={type} className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium">
+                    {ENTREPRENEUR_ARCHETYPES[type]?.name || type}
+                  </span>
+                  <span className="text-sm text-muted-foreground">{score}/10</span>
+                </div>
+                <Progress value={(score / 10) * 100} className="h-2" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Question definitions would be imported from separate files
+// For now, I'll define placeholder questions
+const motivationQuestions = [
+  {
+    id: 'primary-motivation',
+    question: 'What is the main reason you want to start your own business?',
+    type: 'multiple-choice',
+    required: true,
+    options: [
+      { value: 'transform-world', label: 'Create something that changes the world', description: 'Build transformative solutions for the future' },
+      { value: 'solve-problems', label: 'Solve real problems I see everywhere', description: 'Fix immediate problems with practical solutions' },
+      { value: 'lifestyle-freedom', label: 'Have the lifestyle and freedom I want', description: 'Personal freedom and lifestyle alignment' },
+      { value: 'financial-security', label: 'Build financial security for my family', description: 'Stable income and asset building' },
+      { value: 'social-impact', label: 'Make a positive difference in the world', description: 'Social or environmental impact' },
+      { value: 'seize-opportunities', label: 'Capture market opportunities I see', description: 'Seize opportunities for profit' }
+    ]
+  },
+  {
+    id: 'success-vision',
+    question: 'When you imagine your business being successful, what does that look like?',
+    type: 'textarea',
+    required: true,
+    placeholder: 'Describe your vision of success in detail...',
+    helpText: 'Think about team size, daily life, impact, working hours, and what success means to you personally.'
+  },
+  {
+    id: 'risk-tolerance',
+    question: 'How comfortable are you with taking risks?',
+    type: 'scale',
+    required: true,
+    scaleRange: { min: 1, max: 10 },
+    scaleLabels: { min: 'Very Risk-Averse', max: 'High Risk Tolerance' },
+    helpText: 'Consider both financial and personal risks involved in starting a business.'
+  }
+]
+
+const lifeImpactQuestions = [
+  {
+    id: 'life-satisfaction',
+    question: 'Rate your current satisfaction in different life areas',
+    type: 'multiple-scale',
+    required: true,
+    areas: ['Health', 'Money', 'Family', 'Friends', 'Career', 'Growth', 'Recreation', 'Environment'],
+    scaleRange: { min: 1, max: 10 }
+  }
+]
+
+const valuesQuestions = [
+  {
+    id: 'top-values',
+    question: 'Rank these values in order of importance to you',
+    type: 'ranking',
+    required: true,
+    options: [
+      { value: 'financial-success', label: 'Financial Success' },
+      { value: 'personal-freedom', label: 'Personal Freedom' },
+      { value: 'family-time', label: 'Family Time' },
+      { value: 'making-difference', label: 'Making a Difference' },
+      { value: 'recognition', label: 'Recognition' },
+      { value: 'learning', label: 'Learning' },
+      { value: 'security', label: 'Security' },
+      { value: 'adventure', label: 'Adventure' }
+    ]
+  }
+]
+
+const visionQuestions = [
+  {
+    id: 'ten-year-vision',
+    question: 'Describe your ideal life 10 years from now',
+    type: 'textarea',
+    required: true,
+    placeholder: 'Paint a detailed picture of your future self...',
+    helpText: 'Include your age, how you feel, your identity, contributions, achievements, and relationships.'
+  }
+]
+
+const confidenceQuestions = [
+  {
+    id: 'vision-confidence',
+    question: 'How confident are you that you can achieve your 10-year vision?',
+    type: 'scale',
+    required: true,
+    scaleRange: { min: 1, max: 10 },
+    scaleLabels: { min: 'Not Confident', max: 'Very Confident' }
+  }
+]
+
+export default SelfDiscoveryAssessment
+
