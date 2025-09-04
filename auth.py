@@ -52,9 +52,10 @@ def register():
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
+        # Strip whitespace from inputs
         username = data.get('username', '').strip()
         email = data.get('email', '').strip().lower()
-        password = data.get('password', '')
+        password = data.get('password', '').strip()
         
         # Validation
         if not username or not email or not password:
@@ -114,14 +115,15 @@ def register():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """Login user"""
+    """Login user with username or email"""
     try:
         data = request.get_json()
         
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
-        username_or_email = data.get('username', '').strip()
+        username_or_email = data.get('username') or data.get('email') or ''
+        username_or_email = username_or_email.strip()
         password = data.get('password', '')
         
         if not username_or_email or not password:
@@ -246,4 +248,3 @@ def get_profile():
     except Exception as e:
         current_app.logger.error(f"Profile retrieval error: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
-

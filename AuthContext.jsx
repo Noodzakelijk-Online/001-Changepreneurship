@@ -1,196 +1,166 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import apiService from "../services/api";
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
 
-const API_BASE_URL = 'https://5000-i0dlqt7t67jcvprs9lflc-e0f5bbcf.manusvm.computer/api';
+// Development bypass mode - set to false to use real authentication
+const BYPASS_AUTH = false;
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [sessionToken, setSessionToken] = useState(null);
+  const [user, setUser] = useState(
+    BYPASS_AUTH
+      ? {
+          id: "demo-user",
+          username: "demo",
+          email: "demo@changepreneurship.com",
+        }
+      : null
+  );
+  const [isAuthenticated, setIsAuthenticated] = useState(BYPASS_AUTH);
+  const [isLoading, setIsLoading] = useState(!BYPASS_AUTH);
 
   // Initialize authentication state
   useEffect(() => {
-    const initAuth = async () => {
-      const token = localStorage.getItem('sessionToken');
-      if (token) {
-        try {
-          const response = await fetch(`${API_BASE_URL}/auth/verify`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setUser(data.user);
-            setSessionToken(token);
-            setIsAuthenticated(true);
-          } else {
-            // Invalid token, remove it
-            localStorage.removeItem('sessionToken');
-          }
-        } catch (error) {
-          console.error('Auth verification error:', error);
-          localStorage.removeItem('sessionToken');
-        }
-      }
+    if (BYPASS_AUTH) {
       setIsLoading(false);
+      return;
+    }
+
+    const initAuth = async () => {
+      try {
+        if (apiService.isAuthenticated()) {
+          const data = await apiService.verifySession();
+          setUser(data.user);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.warn("Session verification failed:", error.message);
+        apiService.clearSession();
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     initAuth();
   }, []);
-
   const register = async (userData) => {
+    if (BYPASS_AUTH) {
+      return { success: true, data: { user: user } };
+    }
+
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userData)
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setUser(data.user);
-        setSessionToken(data.session_token);
-        setIsAuthenticated(true);
-        localStorage.setItem('sessionToken', data.session_token);
-        return { success: true, data };
-      } else {
-        return { success: false, error: data.error };
-      }
+      const data = await apiService.register(userData);
+      setUser(data.user);
+      setIsAuthenticated(true);
+      return { success: true, data };
     } catch (error) {
-      console.error('Registration error:', error);
-      return { success: false, error: 'Network error occurred' };
+      console.error("Registration error:", error.message);
+      return { success: false, error: error.message };
     }
   };
 
   const login = async (credentials) => {
+    if (BYPASS_AUTH) {
+      return { success: true, data: { user: user } };
+    }
+
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(credentials)
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setUser(data.user);
-        setSessionToken(data.session_token);
-        setIsAuthenticated(true);
-        localStorage.setItem('sessionToken', data.session_token);
-        return { success: true, data };
-      } else {
-        return { success: false, error: data.error };
-      }
+      const data = await apiService.login(credentials);
+      setUser(data.user);
+      setIsAuthenticated(true);
+      return { success: true, data };
     } catch (error) {
-      console.error('Login error:', error);
-      return { success: false, error: 'Network error occurred' };
+      console.error("Login error:", error.message);
+      return { success: false, error: error.message };
     }
   };
 
   const logout = async () => {
+    if (BYPASS_AUTH) {
+      return;
+    }
+
     try {
-      if (sessionToken) {
-        await fetch(`${API_BASE_URL}/auth/logout`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${sessionToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
-      }
+      await apiService.logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error.message);
     } finally {
       setUser(null);
-      setSessionToken(null);
       setIsAuthenticated(false);
-      localStorage.removeItem('sessionToken');
     }
   };
 
   const getProfile = async () => {
-    if (!sessionToken) return { success: false, error: 'Not authenticated' };
+    if (BYPASS_AUTH) {
+      return { success: true, data: { user: user } };
+    }
+
+    if (!apiService.isAuthenticated()) {
+      return { success: false, error: "Not authenticated" };
+    }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/profile`, {
-        headers: {
-          'Authorization': `Bearer ${sessionToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        return { success: true, data };
-      } else {
-        return { success: false, error: data.error };
-      }
+      const data = await apiService.getProfile();
+      setUser(data.user);
+      return { success: true, data };
     } catch (error) {
-      console.error('Profile fetch error:', error);
-      return { success: false, error: 'Network error occurred' };
+      console.error("Profile fetch error:", error.message);
+      return { success: false, error: error.message };
     }
   };
 
   const apiCall = async (endpoint, options = {}) => {
-    if (!sessionToken) {
-      throw new Error('Not authenticated');
+    if (BYPASS_AUTH) {
+      // In bypass mode, return mock successful responses
+      return new Response(JSON.stringify({ success: true, data: {} }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (!apiService.isAuthenticated()) {
+      throw new Error("Not authenticated");
     }
 
     const config = {
-      headers: {
-        'Authorization': `Bearer ${sessionToken}`,
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
-      ...options
+      headers: apiService.getHeaders(),
+      ...options,
     };
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-    
+    const response = await fetch(
+      `${apiService.getApiBaseUrl()}${endpoint}`,
+      config
+    );
+
     if (response.status === 401) {
       // Token expired or invalid
       await logout();
-      throw new Error('Session expired');
+      throw new Error("Session expired");
     }
 
-    return response;
+    return apiService.handleResponse(response);
   };
 
   const value = {
     user,
     isAuthenticated,
     isLoading,
-    sessionToken,
+    sessionToken: apiService.getSessionToken(),
     register,
     login,
     logout,
     getProfile,
-    apiCall
+    apiCall,
+    apiService, // Expose apiService for direct access
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
