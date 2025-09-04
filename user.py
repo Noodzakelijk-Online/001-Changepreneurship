@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from src.models.user import User, db
+from src.models.assessment import User, db
 
 user_bp = Blueprint('user', __name__)
 
@@ -10,9 +10,16 @@ def get_users():
 
 @user_bp.route('/users', methods=['POST'])
 def create_user():
-    
     data = request.json
-    user = User(username=data['username'], email=data['email'])
+    
+    # Handle password requirement for comprehensive User model
+    password_hash = data.get('password_hash', 'temp_hash_for_testing')
+    
+    user = User(
+        username=data['username'], 
+        email=data['email'],
+        password_hash=password_hash
+    )
     db.session.add(user)
     db.session.commit()
     return jsonify(user.to_dict()), 201
