@@ -1,0 +1,806 @@
+/* Data Connection Dashboard Styles */
+.data-connection-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: white;
+  padding: 2rem;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-content h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-content p {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 2rem;
+  max-width: 600px;
+}
+
+.connection-stats {
+  display: flex;
+  gap: 2rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ff6b35;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+}
+
+.privacy-controls-header {
+  display: flex;
+  align-items: center;
+}
+
+.privacy-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.privacy-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.privacy-button .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.accounts-section h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.accounts-section p {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+
+.accounts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.account-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.account-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.account-card.connected {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.account-card.connecting {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.account-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.account-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.account-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.status-icon {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  top: -5px;
+  right: -5px;
+}
+
+.status-icon.connecting {
+  color: #f59e0b;
+  animation: pulse 2s infinite;
+}
+
+.status-icon.connected {
+  color: #10b981;
+}
+
+.status-icon.error {
+  color: #ef4444;
+}
+
+.account-info h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: white;
+}
+
+.account-category {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: capitalize;
+}
+
+.tier-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+}
+
+.account-description {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.account-metrics {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.metric {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.metric-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.analysis-progress {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.progress-text {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.progress-percentage {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ff6b35;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b35, #f7931e);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.account-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.connect-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.connect-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.connect-button.connecting {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  cursor: not-allowed;
+}
+
+.connect-button .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.connected-actions {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.connected-indicator {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10b981;
+  border-radius: 8px;
+  color: #10b981;
+  font-weight: 600;
+  cursor: default;
+}
+
+.connected-indicator .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.disconnect-button {
+  padding: 0.75rem;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  color: #ef4444;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.disconnect-button:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.disconnect-button .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.insights-section {
+  margin-top: 2rem;
+}
+
+.insights-section h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.insights-section p {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.insight-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.insight-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.insight-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.insight-icon {
+  padding: 0.75rem;
+  background: rgba(255, 107, 53, 0.2);
+  border-radius: 12px;
+  color: #ff6b35;
+}
+
+.insight-icon .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.insight-info {
+  flex: 1;
+}
+
+.insight-info h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: white;
+}
+
+.insight-source {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.confidence-badge {
+  padding: 0.25rem 0.75rem;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10b981;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #10b981;
+  white-space: nowrap;
+}
+
+.insight-description {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+.insight-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.apply-insight-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.apply-insight-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.insight-details-button {
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.insight-details-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.insight-details-button .icon,
+.apply-insight-button .icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Modal Styles */
+.account-modal-overlay,
+.privacy-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.account-modal,
+.privacy-modal {
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: white;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color 0.3s ease;
+}
+
+.close-button:hover {
+  color: white;
+}
+
+.modal-content,
+.privacy-content {
+  padding: 1.5rem;
+}
+
+.account-details {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.large-icon {
+  width: 48px;
+  height: 48px;
+  color: #ff6b35;
+  margin-bottom: 1rem;
+}
+
+.account-details h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.account-details p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+}
+
+.data-types,
+.expected-insights {
+  margin-bottom: 1.5rem;
+}
+
+.data-types h5,
+.expected-insights h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: white;
+}
+
+.data-types ul,
+.expected-insights ul {
+  list-style: none;
+  padding: 0;
+}
+
+.data-types li,
+.expected-insights li {
+  padding: 0.5rem 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.data-types li:last-child,
+.expected-insights li:last-child {
+  border-bottom: none;
+}
+
+.privacy-info {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.privacy-info .icon {
+  width: 20px;
+  height: 20px;
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.privacy-info h5 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.privacy-info p {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.4;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cancel-button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.connect-modal-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.connect-modal-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.connect-modal-button .icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Privacy Modal Specific Styles */
+.privacy-section {
+  margin-bottom: 1.5rem;
+}
+
+.privacy-section h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: white;
+}
+
+.privacy-section select {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  font-size: 0.95rem;
+}
+
+.privacy-section select option {
+  background: #1a1a2e;
+  color: white;
+}
+
+.privacy-guarantees {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+}
+
+.privacy-guarantees h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #10b981;
+}
+
+.privacy-guarantees ul {
+  list-style: none;
+  padding: 0;
+}
+
+.privacy-guarantees li {
+  padding: 0.25rem 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+}
+
+.save-privacy-button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.save-privacy-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spinning {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinning {
+  animation: spinning 1s linear infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .data-connection-dashboard {
+    padding: 1rem;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .connection-stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .accounts-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .insights-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .account-modal,
+  .privacy-modal {
+    margin: 1rem;
+    max-width: none;
+  }
+}
+
