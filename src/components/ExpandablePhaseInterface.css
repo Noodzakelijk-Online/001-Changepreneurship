@@ -1,0 +1,589 @@
+/* Expandable Phase Interface Styles */
+.expandable-phase-interface {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: white;
+  padding: 2rem;
+}
+
+.interface-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.interface-header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #ff6b35, #f7931e, #3b82f6, #10b981);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.interface-header p {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.phases-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+
+.phase-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.phase-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.phase-card.expanded {
+  border-color: var(--phase-color);
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    var(--phase-color-light) 100%
+  );
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+}
+
+.phase-header {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.phase-card.expanded .phase-header {
+  background: linear-gradient(135deg, 
+    var(--phase-color) 0%, 
+    var(--phase-color-dark) 100%
+  );
+  color: white;
+}
+
+.phase-card.expanded .phase-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.1) 50%, 
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.phase-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--phase-color);
+  color: white;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-right: 1rem;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.phase-card.expanded .phase-number {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.phase-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  margin-right: 1rem;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.phase-card.expanded .phase-icon {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.phase-icon .icon {
+  width: 20px;
+  height: 20px;
+  color: var(--phase-color);
+}
+
+.phase-card.expanded .phase-icon .icon {
+  color: white;
+}
+
+.phase-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.phase-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.phase-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+}
+
+.phase-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.status-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.status-icon.completed {
+  color: #10b981;
+}
+
+.status-icon.in-progress {
+  color: #f59e0b;
+}
+
+.status-icon.not-started {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.phase-description {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.phase-card.expanded .phase-description {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.phase-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2rem;
+}
+
+.phase-meta-info {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.phase-card.expanded .phase-meta-info {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.phase-progress {
+  min-width: 200px;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.progress-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.phase-card.expanded .progress-label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.progress-percentage {
+  font-weight: 600;
+  color: var(--phase-color);
+}
+
+.phase-card.expanded .progress-percentage {
+  color: white;
+}
+
+.progress-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar .progress-fill {
+  background: var(--phase-color);
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.phase-card.expanded .progress-bar {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.phase-card.expanded .progress-bar .progress-fill {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.expand-indicator {
+  margin-left: 1rem;
+  flex-shrink: 0;
+}
+
+.chevron {
+  width: 24px;
+  height: 24px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease;
+}
+
+.chevron.expanded {
+  transform: rotate(0deg);
+}
+
+.phase-card.expanded .chevron {
+  color: white;
+}
+
+.phase-expanded-content {
+  position: relative;
+  background: linear-gradient(180deg, 
+    var(--phase-color) 0%, 
+    var(--phase-color-dark) 100%
+  );
+  animation: expandDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes expandDown {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 2000px;
+    opacity: 1;
+  }
+}
+
+.expansion-flow {
+  height: 20px;
+  background: linear-gradient(180deg, 
+    transparent 0%, 
+    var(--phase-color) 100%
+  );
+  position: relative;
+}
+
+.expansion-flow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.phase-content-wrapper {
+  padding: 2rem;
+  background: var(--phase-color);
+  color: white;
+  min-height: 600px;
+}
+
+.phase-content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.phase-content-info h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.phase-content-info p {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 1rem;
+}
+
+.phase-meta {
+  display: flex;
+  gap: 2rem;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.phase-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.collapse-button,
+.reset-button {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.collapse-button:hover,
+.reset-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.phase-component {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.overall-progress {
+  margin-top: 3rem;
+}
+
+.overall-progress .card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  color: white;
+}
+
+.overall-progress .card-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.overall-progress .card-title {
+  color: white;
+  font-size: 1.5rem;
+}
+
+.overall-progress .card-description {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.overall-stats {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 120px;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ff6b35;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+}
+
+.phase-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.phase-overview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.phase-overview-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.phase-name {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.phase-progress-text {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+}
+
+.phase-overview-progress {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.phase-overview-progress .progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .expandable-phase-interface {
+    padding: 1rem;
+  }
+  
+  .interface-header h1 {
+    font-size: 2rem;
+  }
+  
+  .phase-header {
+    padding: 1rem;
+  }
+  
+  .phase-details {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .phase-meta-info {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .phase-content-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .phase-actions {
+    flex-direction: column;
+  }
+  
+  .overall-stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .phase-content-wrapper {
+    padding: 1rem;
+  }
+}
+
+/* Status-specific styles */
+.phase-card.completed {
+  border-color: #10b981;
+}
+
+.phase-card.completed .phase-number {
+  background: #10b981;
+}
+
+.phase-card.in-progress {
+  border-color: #f59e0b;
+}
+
+.phase-card.in-progress .phase-number {
+  background: #f59e0b;
+}
+
+.phase-card.not-started .phase-number {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Custom scrollbar for expanded content */
+.phase-expanded-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.phase-expanded-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.phase-expanded-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.phase-expanded-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
