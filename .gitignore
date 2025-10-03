@@ -1,2 +1,27 @@
-*.db
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+instance/
+*.log
+.pytest_cache/
+.cache/
 
+
+# Database
+changepreneurship-backend/src/database/*.db
+
+# Node.js
+changepreneurship-enhanced/node_modules/
+changepreneurship-enhanced/build/
+
+# Environment
+.env
+*.env
+
+# OS / Editor
+.DS_Store
+.vscode/
+.idea/
