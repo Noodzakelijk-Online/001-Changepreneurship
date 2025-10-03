@@ -1,0 +1,1352 @@
+[
+  {
+    "id": 1,
+    "title": "Opportunity-Obsessed Mindset",
+    "short_summary": "Continuously scan the environment for unmet needs and market gaps rather than falling in love with solutions.",
+    "categories": [
+      "opportunity_recognition",
+      "market_analysis",
+      "strategic_thinking"
+    ],
+    "business_stage": [
+      "ideation",
+      "validation"
+    ],
+    "actionable_steps": [
+      "Conduct weekly market scanning sessions to identify emerging trends",
+      "Interview 10 potential customers monthly to understand their pain points",
+      "Create an opportunity evaluation framework with clear criteria",
+      "Differentiate between good ideas and viable, scalable opportunities"
+    ],
+    "common_risks": [
+      "Falling in love with your first idea without validation",
+      "Confusing a good idea with a market opportunity",
+      "Ignoring market size and scalability potential"
+    ],
+    "source": "New Venture Creation by Jeffry Timmons"
+  },
+  {
+    "id": 2,
+    "title": "Build-Measure-Learn Feedback Loop",
+    "short_summary": "Minimize time through continuous cycles of building, measuring customer response, and learning from data.",
+    "categories": [
+      "lean_startup",
+      "product_development",
+      "customer_validation"
+    ],
+    "business_stage": [
+      "validation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Define clear hypotheses before building anything",
+      "Create the simplest MVP that tests your core assumptions",
+      "Use actionable metrics tied to your hypotheses, not vanity metrics",
+      "Analyze data to decide whether to pivot or persevere"
+    ],
+    "common_risks": [
+      "Building features customers don't want",
+      "Measuring vanity metrics instead of actionable ones",
+      "Taking too long between learning cycles"
+    ],
+    "source": "The Lean Startup by Eric Ries"
+  },
+  {
+    "id": 3,
+    "title": "Blue Ocean Strategy",
+    "short_summary": "Create uncontested market space by making competition irrelevant through value innovation.",
+    "categories": [
+      "strategy",
+      "differentiation",
+      "market_creation"
+    ],
+    "business_stage": [
+      "ideation",
+      "strategy",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Map your industry's current value curve",
+      "Identify factors to eliminate, reduce, raise, and create",
+      "Focus on non-customers to understand unmet needs",
+      "Challenge long-held industry assumptions"
+    ],
+    "common_risks": [
+      "Trying to compete in red oceans with established players",
+      "Focusing only on existing customers",
+      "Accepting industry limitations as permanent"
+    ],
+    "source": "Blue Ocean Strategy by W. Chan Kim and Renée Mauborgne"
+  },
+  {
+    "id": 4,
+    "title": "Customer Development Process",
+    "short_summary": "Search for a repeatable business model through systematic customer discovery and validation before scaling.",
+    "categories": [
+      "customer_development",
+      "validation",
+      "market_research"
+    ],
+    "business_stage": [
+      "ideation",
+      "validation",
+      "early_stage"
+    ],
+    "actionable_steps": [
+      "Get out of the building and talk to potential customers",
+      "Test business model hypotheses through customer interviews",
+      "Find a repeatable and scalable sales process",
+      "Transition from learning mode to execution mode only after validation"
+    ],
+    "common_risks": [
+      "Assuming you know what customers want",
+      "Building before validating market demand",
+      "Scaling before finding product-market fit"
+    ],
+    "source": "The Four Steps to the Epiphany by Steve Blank"
+  },
+  {
+    "id": 5,
+    "title": "Crossing the Chasm Strategy",
+    "short_summary": "Focus on dominating a specific niche market before expanding to mainstream customers.",
+    "categories": [
+      "market_strategy",
+      "customer_segmentation",
+      "scaling"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Identify a specific beachhead market where you can be the leader",
+      "Develop a complete solution for your niche market",
+      "Focus all resources on dominating the beachhead",
+      "Use your position of strength to expand to adjacent markets"
+    ],
+    "common_risks": [
+      "Trying to sell to everyone at once",
+      "Providing incomplete solutions to mainstream customers",
+      "Expanding too early before dominating your niche"
+    ],
+    "source": "Crossing the Chasm by Geoffrey A. Moore"
+  },
+  {
+    "id": 6,
+    "title": "Business Model Canvas Thinking",
+    "short_summary": "Visualize and iterate your entire business model on a single page to see connections and test variations.",
+    "categories": [
+      "business_model",
+      "strategy",
+      "planning"
+    ],
+    "business_stage": [
+      "ideation",
+      "validation",
+      "early_stage"
+    ],
+    "actionable_steps": [
+      "Map out all nine building blocks of your business model",
+      "Use the canvas to test different business model variations",
+      "Communicate your business model clearly to stakeholders",
+      "Iterate and pivot the canvas based on learning"
+    ],
+    "common_risks": [
+      "Creating a static business plan instead of iterating",
+      "Focusing on one building block while ignoring others",
+      "Not testing business model assumptions"
+    ],
+    "source": "Business Model Generation by Alexander Osterwalder & Yves Pigneur"
+  },
+  {
+    "id": 7,
+    "title": "First Mover Advantage",
+    "short_summary": "It's better to be first in a category than to be better; create new categories you can lead.",
+    "categories": [
+      "marketing",
+      "positioning",
+      "competitive_strategy"
+    ],
+    "business_stage": [
+      "ideation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Create a new category where you can be first",
+      "Own a unique word or concept in customers' minds",
+      "Focus on perception rather than just product features",
+      "Position against the category, not just competitors"
+    ],
+    "common_risks": [
+      "Competing head-on with established market leaders",
+      "Focusing on features instead of perception",
+      "Trying to be everything to everyone"
+    ],
+    "source": "The 22 Immutable Laws of Marketing by Al Ries & Jack Trout"
+  },
+  {
+    "id": 8,
+    "title": "Six Principles of Influence",
+    "short_summary": "Use reciprocation, consistency, social proof, liking, authority, and scarcity to ethically persuade customers.",
+    "categories": [
+      "sales",
+      "marketing",
+      "psychology"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Give something of value to trigger reciprocation",
+      "Use testimonials and case studies for social proof",
+      "Build genuine relationships to increase likability",
+      "Create appropriate scarcity to increase perceived value"
+    ],
+    "common_risks": [
+      "Using manipulation instead of ethical influence",
+      "Overusing scarcity tactics",
+      "Focusing on features instead of benefits"
+    ],
+    "source": "Influence: The Psychology of Persuasion by Robert Cialdini"
+  },
+  {
+    "id": 9,
+    "title": "Five Dysfunctions Team Building",
+    "short_summary": "Build trust, master conflict, achieve commitment, embrace accountability, and focus on results.",
+    "categories": [
+      "team_building",
+      "leadership",
+      "organizational_culture"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Build trust by being vulnerable as a leader",
+      "Encourage healthy conflict and debate",
+      "Ensure clarity and commitment to decisions",
+      "Create a culture where accountability is expected",
+      "Focus the team on collective results over individual goals"
+    ],
+    "common_risks": [
+      "Avoiding difficult conversations",
+      "Preserving artificial harmony",
+      "Lack of clarity in decision-making"
+    ],
+    "source": "The Five Dysfunctions of a Team by Patrick Lencioni"
+  },
+  {
+    "id": 10,
+    "title": "Situational Leadership Adaptation",
+    "short_summary": "Adapt your leadership style based on the development level and needs of each team member.",
+    "categories": [
+      "leadership",
+      "management",
+      "team_development"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Diagnose the competence and commitment level of each team member",
+      "Match your leadership style to their development level",
+      "Communicate your approach and get agreement",
+      "Adjust your style as team members develop"
+    ],
+    "common_risks": [
+      "Using one leadership style for everyone",
+      "Not adapting as people develop",
+      "Micromanaging experienced team members"
+    ],
+    "source": "Situational Leadership by Paul Hersey & Ken Blanchard"
+  },
+  {
+    "id": 11,
+    "title": "Venture Capital Fundraising Process",
+    "short_summary": "Systematically prepare, find right investors, build relationships, negotiate terms, and close deals.",
+    "categories": [
+      "fundraising",
+      "venture_capital",
+      "finance"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Prepare solid business plan, pitch deck, and financial understanding",
+      "Find investors who match your stage, industry, and geography",
+      "Build relationships through warm introductions before needing money",
+      "Understand and negotiate all term sheet terms carefully"
+    ],
+    "common_risks": [
+      "Approaching investors without proper preparation",
+      "Not understanding term sheet implications",
+      "Focusing only on valuation instead of strategic value"
+    ],
+    "source": "Venture Deals by Brad Feld & Jason Mendelson"
+  },
+  {
+    "id": 12,
+    "title": "Hook Model for Habit Formation",
+    "short_summary": "Build habit-forming products using triggers, actions, variable rewards, and user investment.",
+    "categories": [
+      "product_design",
+      "user_engagement",
+      "behavioral_psychology"
+    ],
+    "business_stage": [
+      "validation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Identify internal and external triggers that prompt usage",
+      "Make the desired action as simple as possible",
+      "Provide variable rewards that satisfy user needs",
+      "Get users to invest time, data, or effort in your product"
+    ],
+    "common_risks": [
+      "Creating addictive rather than beneficial habits",
+      "Making actions too complex",
+      "Providing predictable instead of variable rewards"
+    ],
+    "source": "Hooked: How to Build Habit-Forming Products by Nir Eyal"
+  },
+  {
+    "id": 13,
+    "title": "Product Discovery Framework",
+    "short_summary": "Discover what to build through deep customer understanding, ideation, prototyping, and testing.",
+    "categories": [
+      "product_management",
+      "customer_research",
+      "innovation"
+    ],
+    "business_stage": [
+      "validation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Frame the problem you're trying to solve clearly",
+      "Generate a wide range of solution ideas",
+      "Create low-fidelity prototypes of promising concepts",
+      "Test prototypes with customers to validate ideas"
+    ],
+    "common_risks": [
+      "Building features customers don't want",
+      "Falling in love with your first solution",
+      "Not testing ideas early enough"
+    ],
+    "source": "Inspired: How to Create Tech Products Customers Love by Marty Cagan"
+  },
+  {
+    "id": 14,
+    "title": "E-Myth Business Systematization",
+    "short_summary": "Work on your business, not in it, by creating systems that allow the business to run without you.",
+    "categories": [
+      "operations",
+      "systems",
+      "scalability"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Define your primary aim and strategic objective",
+      "Create an organizational chart even if you're the only employee",
+      "Document all processes and procedures",
+      "Build systems that can operate without your constant involvement"
+    ],
+    "common_risks": [
+      "Getting trapped working in the business instead of on it",
+      "Not documenting processes",
+      "Creating a job for yourself instead of a business"
+    ],
+    "source": "The E-Myth Revisited by Michael E. Gerber"
+  },
+  {
+    "id": 15,
+    "title": "Good to Great Transformation",
+    "short_summary": "Build Level 5 leadership, get right people, confront brutal facts, and find your Hedgehog Concept.",
+    "categories": [
+      "leadership",
+      "strategy",
+      "organizational_excellence"
+    ],
+    "business_stage": [
+      "growth",
+      "scaling",
+      "maturity"
+    ],
+    "actionable_steps": [
+      "Develop Level 5 leadership combining humility with professional will",
+      "Get the right people on the bus before deciding where to go",
+      "Confront the brutal facts while maintaining faith",
+      "Find the intersection of passion, capability, and economic engine"
+    ],
+    "common_risks": [
+      "Focusing on charismatic leadership instead of results",
+      "Hiring based on skills alone without cultural fit",
+      "Avoiding difficult truths about your business"
+    ],
+    "source": "Good to Great by Jim Collins"
+  },
+  {
+    "id": 16,
+    "title": "Four Disciplines of Execution",
+    "short_summary": "Focus on wildly important goals, act on lead measures, keep compelling scoreboards, create accountability cadence.",
+    "categories": [
+      "execution",
+      "goal_setting",
+      "performance_management"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Identify 1-2 wildly important goals with greatest impact",
+      "Focus on lead measures that drive your lag measures",
+      "Create simple, visible scoreboards showing win/lose status",
+      "Hold regular accountability meetings to review progress"
+    ],
+    "common_risks": [
+      "Trying to focus on too many goals at once",
+      "Measuring lag indicators instead of lead measures",
+      "Not maintaining regular accountability"
+    ],
+    "source": "The 4 Disciplines of Execution by Chris McChesney, Sean Covey, & Jim Huling"
+  },
+  {
+    "id": 17,
+    "title": "Platform Business Model",
+    "short_summary": "Create value by facilitating exchanges between external producers and consumers through network effects.",
+    "categories": [
+      "business_model",
+      "platform_strategy",
+      "network_effects"
+    ],
+    "business_stage": [
+      "ideation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Design for network effects where each user adds value",
+      "Focus on ecosystem governance and user experience",
+      "Invest in data analytics to improve matching and recommendations",
+      "Think ecosystem creation, not just product development"
+    ],
+    "common_risks": [
+      "Trying to control too much of the ecosystem",
+      "Not solving the chicken-and-egg problem",
+      "Underestimating the importance of governance"
+    ],
+    "source": "Platform Revolution by Geoffrey Parker, Marshall Van Alstyne, and Sangeet Paul Choudary"
+  },
+  {
+    "id": 18,
+    "title": "Jobs-to-be-Done Framework",
+    "short_summary": "Understand the functional, emotional, and social jobs customers hire your product to do.",
+    "categories": [
+      "customer_research",
+      "product_strategy",
+      "innovation"
+    ],
+    "business_stage": [
+      "ideation",
+      "validation",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Identify the functional job customers are trying to accomplish",
+      "Understand the emotional and social dimensions of the job",
+      "Look for non-consumption situations where no solution exists",
+      "Design the whole experience around the job to be done"
+    ],
+    "common_risks": [
+      "Focusing on customer demographics instead of jobs",
+      "Only considering functional aspects of the job",
+      "Ignoring the context in which the job arises"
+    ],
+    "source": "Competing Against Luck by Clayton Christensen"
+  },
+  {
+    "id": 19,
+    "title": "Blitzscaling Strategy",
+    "short_summary": "Prioritize speed over efficiency to achieve first-scaler advantage in winner-take-all markets.",
+    "categories": [
+      "scaling",
+      "growth_strategy",
+      "competitive_advantage"
+    ],
+    "business_stage": [
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Identify large markets that can support massive scale",
+      "Build efficient distribution channels that can scale",
+      "Focus on high gross margins that improve with scale",
+      "Embrace controlled chaos while scaling rapidly"
+    ],
+    "common_risks": [
+      "Blitzscaling in markets that don't support it",
+      "Ignoring unit economics while scaling",
+      "Not building organizational capabilities to handle growth"
+    ],
+    "source": "Blitzscaling by Reid Hoffman"
+  },
+  {
+    "id": 20,
+    "title": "Exponential Organization Design",
+    "short_summary": "Leverage external resources, algorithms, and communities to achieve disproportionate impact relative to size.",
+    "categories": [
+      "organizational_design",
+      "technology",
+      "scalability"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Use staff on demand instead of hiring full-time employees",
+      "Leverage communities and crowds for innovation",
+      "Implement algorithms for decision-making and automation",
+      "Create real-time dashboards for data-driven management"
+    ],
+    "common_risks": [
+      "Trying to own everything instead of leveraging external resources",
+      "Not investing in the right technology infrastructure",
+      "Losing control over quality when using external resources"
+    ],
+    "source": "Exponential Organizations by Salim Ismail"
+  },
+  {
+    "id": 21,
+    "title": "Traction Channel Testing",
+    "short_summary": "Systematically test multiple marketing channels to find the most effective ways to acquire customers.",
+    "categories": [
+      "marketing",
+      "customer_acquisition",
+      "growth"
+    ],
+    "business_stage": [
+      "validation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Test multiple traction channels simultaneously",
+      "Focus on one channel at a time once you find promising ones",
+      "Measure results carefully to identify most effective channels",
+      "Don't put all your marketing efforts in one channel"
+    ],
+    "common_risks": [
+      "Focusing on only one marketing channel",
+      "Not measuring channel effectiveness properly",
+      "Giving up on channels too quickly"
+    ],
+    "source": "Traction by Gabriel Weinberg and Justin Mares"
+  },
+  {
+    "id": 22,
+    "title": "Growth Hacking Methodology",
+    "short_summary": "Build growth into your product through rapid experimentation across marketing and product development.",
+    "categories": [
+      "growth",
+      "marketing",
+      "product_development"
+    ],
+    "business_stage": [
+      "validation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Ensure product-market fit before focusing on growth",
+      "Build viral mechanics into the product itself",
+      "Run continuous experiments to optimize growth metrics",
+      "Focus on retention to reduce customer churn"
+    ],
+    "common_risks": [
+      "Focusing on growth before achieving product-market fit",
+      "Adding growth features as an afterthought",
+      "Optimizing for vanity metrics instead of meaningful growth"
+    ],
+    "source": "Growth Hacker Marketing by Ryan Holiday"
+  },
+  {
+    "id": 23,
+    "title": "OKR Goal Setting Framework",
+    "short_summary": "Set ambitious, transparent objectives with measurable key results to align and track organizational progress.",
+    "categories": [
+      "goal_setting",
+      "performance_management",
+      "organizational_alignment"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Set ambitious objectives that inspire teams",
+      "Define measurable key results for each objective",
+      "Make OKRs transparent across the organization",
+      "Review and update progress regularly"
+    ],
+    "common_risks": [
+      "Setting too many objectives",
+      "Making key results too easy to achieve",
+      "Not reviewing progress frequently enough"
+    ],
+    "source": "Measure What Matters by John Doerr"
+  },
+  {
+    "id": 24,
+    "title": "Radical Candor Communication",
+    "short_summary": "Challenge directly while caring personally to give feedback that helps people grow.",
+    "categories": [
+      "leadership",
+      "communication",
+      "feedback"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Build genuine relationships before giving feedback",
+      "Be direct and honest about performance issues",
+      "Show that you care about the person as a human being",
+      "Create a culture where feedback flows in all directions"
+    ],
+    "common_risks": [
+      "Being too nice and not addressing problems",
+      "Being direct without showing you care",
+      "Not building trust before giving feedback"
+    ],
+    "source": "Radical Candor by Kim Scott"
+  },
+  {
+    "id": 25,
+    "title": "High Output Management",
+    "short_summary": "Maximize your leverage as a manager by focusing on activities that multiply your team's output.",
+    "categories": [
+      "management",
+      "productivity",
+      "leadership"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Focus on high-leverage activities that multiply output",
+      "Conduct regular one-on-ones with direct reports",
+      "Invest in training and developing your team",
+      "Measure what matters most for your business"
+    ],
+    "common_risks": [
+      "Spending time on low-leverage activities",
+      "Not investing enough in people development",
+      "Measuring the wrong metrics"
+    ],
+    "source": "High Output Management by Andy Grove"
+  },
+  {
+    "id": 26,
+    "title": "Unit Economics Mastery",
+    "short_summary": "Understand and optimize the direct revenues and costs associated with your business model per unit.",
+    "categories": [
+      "finance",
+      "metrics",
+      "business_model"
+    ],
+    "business_stage": [
+      "validation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Calculate customer acquisition cost (CAC) accurately",
+      "Measure customer lifetime value (LTV) across cohorts",
+      "Optimize for healthy LTV/CAC ratios (3:1 or better)",
+      "Track payback period for customer acquisition"
+    ],
+    "common_risks": [
+      "Not understanding your true unit economics",
+      "Focusing on growth without profitable unit economics",
+      "Not tracking cohort performance over time"
+    ],
+    "source": "The Hard Thing About Hard Things by Ben Horowitz"
+  },
+  {
+    "id": 27,
+    "title": "Bootstrapping Strategy",
+    "short_summary": "Build a sustainable business with minimal capital by focusing on revenue generation and reinvestment.",
+    "categories": [
+      "finance",
+      "bootstrapping",
+      "lean_operations"
+    ],
+    "business_stage": [
+      "ideation",
+      "validation",
+      "early_stage"
+    ],
+    "actionable_steps": [
+      "Focus on generating positive cash flow quickly",
+      "Start with bottom-up forecasting based on realistic customer numbers",
+      "Ship products early and iterate based on customer feedback",
+      "Reinvest profits back into the business for growth"
+    ],
+    "common_risks": [
+      "Trying to scale too quickly without cash flow",
+      "Not focusing enough on revenue generation",
+      "Spending money on non-essential items"
+    ],
+    "source": "The $100 Startup by Chris Guillebeau"
+  },
+  {
+    "id": 28,
+    "title": "Disruptive Innovation Strategy",
+    "short_summary": "Create new markets by offering simpler, more convenient, and affordable alternatives to existing solutions.",
+    "categories": [
+      "innovation",
+      "strategy",
+      "market_disruption"
+    ],
+    "business_stage": [
+      "ideation",
+      "validation",
+      "early_stage"
+    ],
+    "actionable_steps": [
+      "Identify overserved customers who pay for more than they need",
+      "Develop simpler solutions that are easier to use",
+      "Start with the least demanding customers and improve over time",
+      "Focus on non-consumption markets where no solution exists"
+    ],
+    "common_risks": [
+      "Trying to compete directly with established players",
+      "Making products too complex from the start",
+      "Ignoring the needs of mainstream customers"
+    ],
+    "source": "The Innovator's Dilemma by Clayton M. Christensen"
+  },
+  {
+    "id": 29,
+    "title": "Network Effects Strategy",
+    "short_summary": "Build products that become more valuable as more people use them, creating powerful competitive moats.",
+    "categories": [
+      "strategy",
+      "network_effects",
+      "competitive_advantage"
+    ],
+    "business_stage": [
+      "ideation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Design network effects into your product from the beginning",
+      "Focus on creating dense networks in small markets first",
+      "Solve the cold start problem with creative strategies",
+      "Leverage data network effects to improve your product"
+    ],
+    "common_risks": [
+      "Not designing for network effects from the start",
+      "Trying to build sparse networks in large markets",
+      "Not solving the chicken-and-egg problem"
+    ],
+    "source": "Network Effects Bible by NFX"
+  },
+  {
+    "id": 30,
+    "title": "Subscription Business Model",
+    "short_summary": "Build recurring revenue relationships by focusing on customer success and continuous value delivery.",
+    "categories": [
+      "business_model",
+      "customer_success",
+      "recurring_revenue"
+    ],
+    "business_stage": [
+      "validation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Focus on building long-term customer relationships",
+      "Invest heavily in customer success and retention",
+      "Align pricing with customer value and usage",
+      "Continuously innovate and improve your offering"
+    ],
+    "common_risks": [
+      "Focusing on acquisition instead of retention",
+      "Not investing enough in customer success",
+      "Pricing that doesn't align with customer value"
+    ],
+    "source": "Subscribed by Tien Tzuo"
+  },
+  {
+    "id": 31,
+    "title": "Antifragile Business Building",
+    "short_summary": "Build systems that get stronger from stress and volatility rather than just surviving them.",
+    "categories": [
+      "resilience",
+      "risk_management",
+      "adaptability"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Build optionality into your business model",
+      "Create redundancy in critical systems",
+      "Decentralize to avoid single points of failure",
+      "Ensure decision-makers have skin in the game"
+    ],
+    "common_risks": [
+      "Building fragile systems that break under stress",
+      "Not preparing for unexpected events",
+      "Creating single points of failure"
+    ],
+    "source": "Antifragile by Nassim Nicholas Taleb"
+  },
+  {
+    "id": 32,
+    "title": "AI-First Business Strategy",
+    "short_summary": "Build artificial intelligence into the core of your business model and competitive advantage.",
+    "categories": [
+      "technology",
+      "artificial_intelligence",
+      "competitive_advantage"
+    ],
+    "business_stage": [
+      "ideation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Develop a systematic approach to data collection and usage",
+      "Build products that improve automatically with more data",
+      "Invest in AI talent and capabilities",
+      "Ensure AI systems are ethical and transparent"
+    ],
+    "common_risks": [
+      "Adding AI as an afterthought instead of core strategy",
+      "Not having enough quality data to train AI systems",
+      "Ignoring ethical implications of AI decisions"
+    ],
+    "source": "The AI-First Company by Ash Fontana"
+  },
+  {
+    "id": 33,
+    "title": "Remote-First Organization",
+    "short_summary": "Design company culture and processes for distributed teams to access global talent and reduce costs.",
+    "categories": [
+      "organizational_design",
+      "remote_work",
+      "culture"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Design processes for asynchronous communication",
+      "Create a strong documentation culture",
+      "Focus on results rather than hours worked",
+      "Use digital-first processes for all business operations"
+    ],
+    "common_risks": [
+      "Not adapting management style for remote work",
+      "Poor communication leading to misalignment",
+      "Not investing in the right collaboration tools"
+    ],
+    "source": "Remote: Office Not Required by Jason Fried and David Heinemeier Hansson"
+  },
+  {
+    "id": 34,
+    "title": "Sustainable Business Model",
+    "short_summary": "Create long-term value for customers, society, and environment while generating profit.",
+    "categories": [
+      "sustainability",
+      "stakeholder_capitalism",
+      "long_term_thinking"
+    ],
+    "business_stage": [
+      "ideation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Measure success by profit, people, and planet",
+      "Consider interests of all stakeholders, not just shareholders",
+      "Design circular business models that eliminate waste",
+      "Track social and environmental impact alongside financial metrics"
+    ],
+    "common_risks": [
+      "Focusing only on short-term financial returns",
+      "Not considering environmental and social impact",
+      "Greenwashing instead of genuine sustainability"
+    ],
+    "source": "The Sustainable Business Model by Florian Lüdeke-Freund"
+  },
+  {
+    "id": 35,
+    "title": "Design Thinking Process",
+    "short_summary": "Use human-centered approach to innovation by empathizing, defining, ideating, prototyping, and testing.",
+    "categories": [
+      "innovation",
+      "design",
+      "customer_research"
+    ],
+    "business_stage": [
+      "ideation",
+      "validation",
+      "early_stage"
+    ],
+    "actionable_steps": [
+      "Empathize with users by observing and engaging with them",
+      "Define core problems based on user insights",
+      "Generate wide range of creative solution ideas",
+      "Build prototypes to test and refine concepts"
+    ],
+    "common_risks": [
+      "Skipping the empathy phase and making assumptions",
+      "Not defining problems clearly before ideating",
+      "Falling in love with first ideas without testing"
+    ],
+    "source": "Change by Design by Tim Brown"
+  },
+  {
+    "id": 36,
+    "title": "AIDA Marketing Framework",
+    "short_summary": "Guide customers through Attention, Interest, Desire, and Action stages in your marketing communications.",
+    "categories": [
+      "marketing",
+      "sales",
+      "customer_journey"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Grab attention with compelling headlines or visuals",
+      "Build interest by explaining benefits and value",
+      "Create desire by appealing to emotions and unique benefits",
+      "Drive action with clear calls-to-action and easy next steps"
+    ],
+    "common_risks": [
+      "Focusing on features instead of benefits",
+      "Not making the call-to-action clear enough",
+      "Skipping stages in the customer journey"
+    ],
+    "source": "E. St. Elmo Lewis"
+  },
+  {
+    "id": 37,
+    "title": "Challenger Sale Methodology",
+    "short_summary": "Teach customers new insights, tailor messages to their needs, and take control of complex sales processes.",
+    "categories": [
+      "sales",
+      "b2b_sales",
+      "customer_education"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Teach customers something new and valuable about their business",
+      "Tailor your message to specific customer needs and concerns",
+      "Take control of the sales process and push customers out of comfort zones",
+      "Focus on business impact rather than product features"
+    ],
+    "common_risks": [
+      "Being too passive in the sales process",
+      "Not providing enough educational value",
+      "Using generic pitches instead of tailored messages"
+    ],
+    "source": "The Challenger Sale by Matthew Dixon & Brent Adamson"
+  },
+  {
+    "id": 38,
+    "title": "Design Sprint Methodology",
+    "short_summary": "Answer critical business questions through five-day process of mapping, sketching, deciding, prototyping, and testing.",
+    "categories": [
+      "product_development",
+      "innovation",
+      "rapid_prototyping"
+    ],
+    "business_stage": [
+      "validation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Map the customer journey and identify key challenges",
+      "Sketch multiple solution approaches individually",
+      "Decide on the best solution to prototype",
+      "Build a realistic prototype in one day",
+      "Test the prototype with real customers"
+    ],
+    "common_risks": [
+      "Not including the right people in the sprint",
+      "Building prototypes that are too complex",
+      "Not testing with real target customers"
+    ],
+    "source": "Sprint: How to Solve Big Problems and Test New Ideas in Just Five Days by Jake Knapp"
+  },
+  {
+    "id": 39,
+    "title": "OODA Loop Decision Making",
+    "short_summary": "Make faster decisions than competitors by observing, orienting, deciding, and acting in continuous cycles.",
+    "categories": [
+      "decision_making",
+      "strategy",
+      "competitive_advantage"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Observe the situation and gather relevant information",
+      "Orient yourself by analyzing information and creating mental models",
+      "Decide on the best course of action",
+      "Act quickly on your decisions and start the cycle again"
+    ],
+    "common_risks": [
+      "Taking too long to make decisions",
+      "Not gathering enough information before deciding",
+      "Not acting quickly enough on decisions"
+    ],
+    "source": "John Boyd"
+  },
+  {
+    "id": 40,
+    "title": "Working Backwards Process",
+    "short_summary": "Start with desired customer experience and work backward to define product requirements and business model.",
+    "categories": [
+      "product_development",
+      "customer_focus",
+      "planning"
+    ],
+    "business_stage": [
+      "ideation",
+      "validation",
+      "early_stage"
+    ],
+    "actionable_steps": [
+      "Write a press release for your product launch",
+      "Create FAQ document addressing customer concerns",
+      "Define customer experience before building features",
+      "Work backward from customer value to technical requirements"
+    ],
+    "common_risks": [
+      "Starting with technical capabilities instead of customer needs",
+      "Not clearly defining the customer experience",
+      "Building features that don't deliver customer value"
+    ],
+    "source": "Working Backwards by Colin Bryar and Bill Carr"
+  },
+  {
+    "id": 41,
+    "title": "No Rules Rules Culture",
+    "short_summary": "Build high-performance culture through talent density, candid feedback, and removing controls.",
+    "categories": [
+      "culture",
+      "management",
+      "performance"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Hire only high-performance employees",
+      "Encourage frequent, candid feedback in all directions",
+      "Remove unnecessary policies and controls",
+      "Pay top of market to attract and retain best talent"
+    ],
+    "common_risks": [
+      "Not maintaining high talent density",
+      "Giving feedback without building trust first",
+      "Removing controls without proper context"
+    ],
+    "source": "No Rules Rules by Reed Hastings"
+  },
+  {
+    "id": 42,
+    "title": "Cold Start Problem Solution",
+    "short_summary": "Launch network products by building atomic networks, reaching tipping points, and achieving escape velocity.",
+    "categories": [
+      "network_effects",
+      "product_launch",
+      "growth"
+    ],
+    "business_stage": [
+      "validation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Identify the smallest viable network for your product",
+      "Focus on attracting the 'hard side' of your network first",
+      "Use strategies like invite-only or subsidization to reach tipping point",
+      "Scale growth through engagement, acquisition, and economic network effects"
+    ],
+    "common_risks": [
+      "Trying to launch with too large a network",
+      "Not solving the chicken-and-egg problem",
+      "Focusing on quantity over quality of network participants"
+    ],
+    "source": "The Cold Start Problem by Andrew Chen"
+  },
+  {
+    "id": 43,
+    "title": "Nudge Choice Architecture",
+    "short_summary": "Influence customer behavior through thoughtful design of choices without restricting freedom.",
+    "categories": [
+      "behavioral_economics",
+      "user_experience",
+      "psychology"
+    ],
+    "business_stage": [
+      "validation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Design default options that benefit users",
+      "Use social proof to encourage desired behaviors",
+      "Simplify complex processes to reduce friction",
+      "Make beneficial choices easier and more prominent"
+    ],
+    "common_risks": [
+      "Using nudges to manipulate rather than help users",
+      "Not considering ethical implications of choice architecture",
+      "Making nudges too obvious or heavy-handed"
+    ],
+    "source": "Nudge by Richard Thaler and Cass Sunstein"
+  },
+  {
+    "id": 44,
+    "title": "Behavioral Economics Application",
+    "short_summary": "Apply insights about human irrationality to improve product design and business decisions.",
+    "categories": [
+      "behavioral_economics",
+      "psychology",
+      "decision_making"
+    ],
+    "business_stage": [
+      "validation",
+      "early_stage",
+      "growth"
+    ],
+    "actionable_steps": [
+      "Understand that customers are predictably irrational",
+      "Use mental accounting principles in pricing and positioning",
+      "Design commitment devices to help customers achieve goals",
+      "Apply social proof and authority principles in marketing"
+    ],
+    "common_risks": [
+      "Assuming customers make rational decisions",
+      "Not considering emotional factors in decision-making",
+      "Using behavioral insights to manipulate rather than help"
+    ],
+    "source": "Misbehaving by Richard H. Thaler"
+  },
+  {
+    "id": 45,
+    "title": "Made to Stick Communication",
+    "short_summary": "Make ideas memorable using simplicity, unexpectedness, concreteness, credibility, emotions, and stories.",
+    "categories": [
+      "communication",
+      "marketing",
+      "storytelling"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Find the core of your message and keep it simple",
+      "Use unexpected elements to grab and hold attention",
+      "Make abstract concepts concrete with examples",
+      "Tell stories that illustrate your key points"
+    ],
+    "common_risks": [
+      "Making messages too complex or abstract",
+      "Not using stories to illustrate points",
+      "Focusing on features instead of benefits"
+    ],
+    "source": "Made to Stick by Chip Heath & Dan Heath"
+  },
+  {
+    "id": 46,
+    "title": "Base of Pyramid Strategy",
+    "short_summary": "Create value by serving low-income markets with affordable, accessible, and culturally appropriate solutions.",
+    "categories": [
+      "social_entrepreneurship",
+      "emerging_markets",
+      "inclusive_business"
+    ],
+    "business_stage": [
+      "ideation",
+      "validation",
+      "early_stage"
+    ],
+    "actionable_steps": [
+      "Design products that are affordable for low-income consumers",
+      "Create distribution channels that reach underserved markets",
+      "Ensure products are culturally appropriate and acceptable",
+      "Partner with local organizations who understand the market"
+    ],
+    "common_risks": [
+      "Not understanding the unique needs of low-income markets",
+      "Trying to adapt existing products instead of designing new ones",
+      "Not building sustainable business models for these markets"
+    ],
+    "source": "The Fortune at the Bottom of the Pyramid by C.K. Prahalad"
+  },
+  {
+    "id": 47,
+    "title": "Social Entrepreneurship Model",
+    "short_summary": "Use business principles to solve social problems with sustainable, scalable solutions.",
+    "categories": [
+      "social_entrepreneurship",
+      "impact",
+      "sustainability"
+    ],
+    "business_stage": [
+      "ideation",
+      "validation",
+      "early_stage"
+    ],
+    "actionable_steps": [
+      "Define clear theory of change for social impact",
+      "Develop sustainable business model for funding operations",
+      "Measure social impact alongside financial performance",
+      "Build scalable solutions that can be replicated"
+    ],
+    "common_risks": [
+      "Focusing on social mission without sustainable business model",
+      "Not measuring social impact effectively",
+      "Creating solutions that can't scale"
+    ],
+    "source": "How to Change the World by David Bornstein"
+  },
+  {
+    "id": 48,
+    "title": "Circular Economy Design",
+    "short_summary": "Design products and business models that eliminate waste through closed-loop material flows.",
+    "categories": [
+      "sustainability",
+      "design",
+      "environmental_impact"
+    ],
+    "business_stage": [
+      "ideation",
+      "validation",
+      "early_stage"
+    ],
+    "actionable_steps": [
+      "Design products for disassembly and recycling",
+      "Use renewable energy to power operations",
+      "Create business models where waste becomes input",
+      "Collaborate across industries to create closed-loop systems"
+    ],
+    "common_risks": [
+      "Not considering full lifecycle impact of products",
+      "Focusing on recycling instead of waste elimination",
+      "Not collaborating with other companies in the value chain"
+    ],
+    "source": "Cradle to Cradle by Michael Braungart and William McDonough"
+  },
+  {
+    "id": 49,
+    "title": "Open Innovation Strategy",
+    "short_summary": "Combine internal and external ideas and paths to market to accelerate innovation.",
+    "categories": [
+      "innovation",
+      "partnerships",
+      "collaboration"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Bring external ideas into your company through partnerships",
+      "Allow internal ideas to go to market through external channels",
+      "Create innovation ecosystems with partners and suppliers",
+      "Don't assume all good ideas come from within your company"
+    ],
+    "common_risks": [
+      "Not invented here syndrome",
+      "Not protecting intellectual property properly",
+      "Not managing external partnerships effectively"
+    ],
+    "source": "Open Innovation by Henry Chesbrough"
+  },
+  {
+    "id": 50,
+    "title": "API Economy Strategy",
+    "short_summary": "Create ecosystems of partners and developers who extend your core offerings through APIs.",
+    "categories": [
+      "platform_strategy",
+      "technology",
+      "ecosystem"
+    ],
+    "business_stage": [
+      "early_stage",
+      "growth",
+      "scaling"
+    ],
+    "actionable_steps": [
+      "Design APIs that are easy to use and well-documented",
+      "Build community of developers who create complementary products",
+      "Create win-win monetization models for API usage",
+      "Establish governance rules and policies for API ecosystem"
+    ],
+    "common_risks": [
+      "Not investing enough in developer experience",
+      "Not creating clear monetization models",
+      "Poor API governance leading to ecosystem problems"
+    ],
+    "source": "Platform Revolution (Extended Analysis)"
+  }
+]
