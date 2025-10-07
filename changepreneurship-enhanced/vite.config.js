@@ -19,6 +19,14 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5174,
-    allowedHosts: 'all'
+    allowedHosts: 'all',
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+        // remove /api prefix is NOT desired; keep pathRewrite absent so backend sees /api/...
+      }
+    }
   }
 })

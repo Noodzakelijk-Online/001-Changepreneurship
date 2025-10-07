@@ -46,6 +46,7 @@ const DragDropRanking = ({
   const [unrankedItems, setUnrankedItems] = useState([]); // array of { value, label }
   const [dragged, setDragged] = useState(null); // { value, source: 'ranked'|'unranked' }
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [isKeyboardMode, setIsKeyboardMode] = useState(false);
 
   // Initial sync/when props change, but only if different
   useEffect(() => {
@@ -101,9 +102,9 @@ const DragDropRanking = ({
   };
 
   const lastOverRef = useRef(-1);
+  // Original gap logic kept for empty list drop, but we prefer swap-on-hover.
   const onDragOverRankedGap = (e, index) => {
     e.preventDefault();
-    // only update highlight if the index changes (save render)
     if (lastOverRef.current !== index) {
       lastOverRef.current = index;
       setDragOverIndex(index);
@@ -191,6 +192,44 @@ const DragDropRanking = ({
     emit(next);
   };
 
+  // Swap-on-hover while dragging ranked item over another ranked item
+  const onDragOverRankedItem = (e, overItemValue) => {
+    e.preventDefault();
+    if (!dragged) return;
+    const toIdx = rankings.findIndex(r => r.value === overItemValue);
+    if (toIdx === -1) return;
+    // If dragging from unranked: insert if not already ranked
+    if (dragged.source === 'unranked') {
+      if (rankings.some(r => r.value === dragged.value)) return; // already inserted
+      if (maxRankings && rankings.length >= maxRankings) return;
+      const next = [...rankings];
+      next.splice(toIdx, 0, { value: dragged.value, label: dragged.label });
+      setRankings(next);
+      setUnrankedItems(prev => prev.filter(u => u.value !== dragged.value));
+      emit(next);
+      // Convert dragged marker to ranked so subsequent hover swaps work
+      setDragged({ ...dragged, source: 'ranked' });
+      return;
+    }
+    // If dragging within ranked: perform swap (as before)
+    if (dragged.source === 'ranked') {
+      const fromIdx = rankings.findIndex(r => r.value === dragged.value);
+      if (fromIdx === -1 || fromIdx === toIdx) return;
+      const next = [...rankings];
+      const temp = next[fromIdx];
+      next[fromIdx] = next[toIdx];
+      next[toIdx] = temp;
+      setRankings(next);
+      emit(next);
+    }
+  };
+
+  // Keyboard accessible reorder (focus item then arrow up/down)
+  const onKeyDownRankedItem = (e, index) => {
+    if (e.key === 'ArrowUp') { e.preventDefault(); moveItem(index, 'up'); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); moveItem(index, 'down'); }
+  };
+
   const addToRanking = (option) => {
     if (maxRankings && rankings.length >= maxRankings) return;
     if (rankings.some((r) => r.value === option.value)) return;
@@ -223,10 +262,11 @@ const DragDropRanking = ({
       <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
         <div className="font-medium mb-1">How to rank:</div>
         <ul className="space-y-1">
-          <li>• Drag an item from the “Available Options” list to “Your Ranking”</li>
-          <li>• Use arrow buttons or drag to reorder</li>
-          <li>• Drag back down to remove from ranking</li>
-          {maxRankings && <li>• Max {maxRankings} items</li>}
+          <li>• Drag directly from Available Options into the list above</li>
+          <li>• While dragging over a ranked item it will auto-place / swap</li>
+          <li>• Drag a ranked item back down to remove it</li>
+          <li>• Arrow keys move focused ranked item up/down</li>
+          {maxRankings && <li>• Maximum {maxRankings} items</li>}
         </ul>
       </div>
 
@@ -253,43 +293,33 @@ const DragDropRanking = ({
           <div className="space-y-2">
             {rankings.map((item, index) => (
               <div key={item.value}>
-                {/* Gap above item */}
-                <div
-                  className={`h-2 transition-all ${
-                    dragOverIndex === index ? "bg-primary/20 rounded" : ""
-                  }`}
-                  onDragOver={(e) => onDragOverRankedGap(e, index)}
-                  onDragLeave={onDragLeaveRankedGap}
-                  onDrop={(e) => onDropToRanked(e, index)}
-                />
-
                 <Card
-                  className={`cursor-move transition-all ${
-                    dragged?.value === item.value ? "opacity-50 scale-95" : ""
-                  }`}
+                  className={`group relative cursor-move transition-all border border-border/60 hover:border-primary/50 hover:bg-muted/30 focus-within:ring-2 focus-within:ring-primary/40 rounded-lg ${dragged?.value === item.value ? "opacity-50 scale-95" : ""}`}
                   draggable
                   onDragStart={(e) => onDragStart(e, item, "ranked")}
+                  onDragOver={(e) => onDragOverRankedItem(e, item.value)}
+                  tabIndex={0}
+                  onFocus={() => setIsKeyboardMode(true)}
+                  onBlur={() => setIsKeyboardMode(false)}
+                  onKeyDown={(e) => onKeyDownRankedItem(e, index)}
                 >
                   <CardContent className="p-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          className="w-8 h-8 rounded-full flex items-center justify-center p-0"
-                          variant="secondary"
-                        >
+                      <div className="flex items-center gap-2 select-none">
+                        <Badge className="w-7 h-7 rounded-full flex items-center justify-center p-0 text-xs font-semibold bg-primary/15 text-primary border border-primary/30">
                           {index + 1}
                         </Badge>
-                        <GripVertical className="h-4 w-4 text-muted-foreground" />
+                        <GripVertical className="h-4 w-4 text-muted-foreground group-hover:text-primary/80 transition-colors" />
                       </div>
-
-                      <div className="flex-1 font-medium">{item.label}</div>
-
-                      <div className="flex items-center gap-1">
+                      <div className="flex-1 font-medium tracking-tight text-sm">
+                        {item.label}
+                      </div>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                         <button
                           type="button"
                           onClick={() => moveItem(index, "up")}
                           disabled={index === 0}
-                          className="p-1 hover:bg-muted rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-1 hover:bg-muted rounded disabled:opacity-40 disabled:cursor-not-allowed"
                           aria-label="Move up"
                         >
                           <ArrowUp className="h-3 w-3" />
@@ -298,7 +328,7 @@ const DragDropRanking = ({
                           type="button"
                           onClick={() => moveItem(index, "down")}
                           disabled={index === rankings.length - 1}
-                          className="p-1 hover:bg-muted rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-1 hover:bg-muted rounded disabled:opacity-40 disabled:cursor-not-allowed"
                           aria-label="Move down"
                         >
                           <ArrowDown className="h-3 w-3" />
@@ -315,18 +345,6 @@ const DragDropRanking = ({
                     </div>
                   </CardContent>
                 </Card>
-
-                {/* Gap after the last item */}
-                {index === rankings.length - 1 && (
-                  <div
-                    className={`h-2 transition-all ${
-                      dragOverIndex === index + 1 ? "bg-primary/20 rounded" : ""
-                    }`}
-                    onDragOver={(e) => onDragOverRankedGap(e, index + 1)}
-                    onDragLeave={onDragLeaveRankedGap}
-                    onDrop={(e) => onDropToRanked(e, index + 1)}
-                  />
-                )}
               </div>
             ))}
           </div>
@@ -345,24 +363,14 @@ const DragDropRanking = ({
             {unrankedItems.map((option) => (
               <Card
                 key={option.value}
-                className="cursor-move hover:bg-muted/50 transition-colors"
+                className="cursor-move hover:border-primary/40 hover:bg-muted/40 transition-all border border-border/60 rounded-lg group"
                 draggable
                 onDragStart={(e) => onDragStart(e, option, "unranked")}
               >
                 <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <GripVertical className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{option.label}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => addToRanking(option)}
-                      disabled={!!maxRankings && rankings.length >= maxRankings}
-                      className="text-sm text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Add to ranking
-                    </button>
+                  <div className="flex items-center gap-2">
+                    <GripVertical className="h-4 w-4 text-muted-foreground group-hover:text-primary/80 transition-colors" />
+                    <span className="font-medium text-sm tracking-tight select-none">{option.label}</span>
                   </div>
                 </CardContent>
               </Card>

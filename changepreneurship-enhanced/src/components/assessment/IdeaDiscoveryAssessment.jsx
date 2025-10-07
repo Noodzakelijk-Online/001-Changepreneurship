@@ -27,6 +27,7 @@ import {
   DollarSign
 } from 'lucide-react'
 import { useAssessment } from '../../contexts/AssessmentContext'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select.jsx'
 
 const IdeaDiscoveryAssessment = () => {
   const {
@@ -446,20 +447,24 @@ const RankingInput = ({ options, value, onChange }) => {
   return (
     <div className="space-y-3">
       {options.map((option) => {
-        const currentRank = rankings.find(r => r.value === option.value)?.rank || ''
+        const currentRank = rankings.find(r => r.value === option.value)?.rank
         return (
           <div key={option.value} className="flex items-center gap-3">
-            <select
-              value={currentRank}
-              onChange={(e) => handleRankChange(option.value, parseInt(e.target.value))}
-              className="w-16 px-2 py-1 border rounded"
+            <Select
+              value={currentRank ? String(currentRank) : ''}
+              onValueChange={(val) => handleRankChange(option.value, parseInt(val))}
             >
-              <option value="">-</option>
-              {options.map((_, index) => (
-                <option key={index + 1} value={index + 1}>{index + 1}</option>
-              ))}
-            </select>
-            <Label className="flex-1">{option.label}</Label>
+              <SelectTrigger className="w-20 h-8 bg-background/60">
+                <SelectValue placeholder="-" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">-</SelectItem>
+                {options.map((_, index) => (
+                  <SelectItem key={index + 1} value={String(index + 1)}>{index + 1}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Label className="flex-1 text-sm leading-snug">{option.label}</Label>
           </div>
         )
       })}
