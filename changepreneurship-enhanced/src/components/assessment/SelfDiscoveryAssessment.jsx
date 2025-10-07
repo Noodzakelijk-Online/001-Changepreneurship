@@ -9,12 +9,7 @@ import {
 } from "@/components/ui/card.jsx";
 import { Progress } from "@/components/ui/progress.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs.jsx";
+// Tabs removed for custom card navigation style
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.jsx";
 import { Label } from "@/components/ui/label.jsx";
 import { Textarea } from "@/components/ui/textarea.jsx";
@@ -385,43 +380,43 @@ const SelfDiscoveryAssessment = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* Section Navigation */}
-            <Tabs value={currentSection} onValueChange={setCurrentSection}>
-              <TabsList className="grid grid-cols-6 w-full">
-                {sections.map((section) => {
-                  const IconComponent = section.icon;
-                  const isCompleted = sectionProgress[section.id] === 100;
-                  return (
-                    <TabsTrigger
-                      key={section.id}
-                      value={section.id}
-                      className="flex flex-col items-center gap-1 p-2"
-                      title={section.title}
-                    >
-                      <IconComponent
-                        className={`h-4 w-4 ${
-                          isCompleted ? "text-green-500" : ""
-                        }`}
-                      />
-                      <span
-                        className="text-xs text-center leading-tight max-w-[6rem]"
-                        style={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                        }}
-                      >
+            {/* Section Navigation - custom card tiles */}
+            <div className="grid grid-cols-6 gap-3">
+              {sections.map((section) => {
+                const IconComponent = section.icon;
+                const isCompleted = sectionProgress[section.id] === 100;
+                const isActive = currentSection === section.id;
+                const progressValue = sectionProgress[section.id] || 0;
+                return (
+                  <button
+                    key={section.id}
+                    type="button"
+                    onClick={() => setCurrentSection(section.id)}
+                    className={`relative group rounded-md border flex flex-col items-center justify-between px-2 py-3 transition-all h-full focus:outline-none focus:ring-2 focus:ring-primary/40 ` +
+                      `${isActive ? 'border-primary/70 bg-primary/5 shadow-sm' : 'border-border/60 hover:border-primary/40 hover:bg-muted/40'} ` +
+                      `${isCompleted && !isActive ? 'border-green-600/50' : ''}`}
+                    title={section.title}
+                  >
+                    <div className="flex flex-col items-center gap-1">
+                      <IconComponent className={`h-4 w-4 ${isCompleted ? 'text-green-500' : ''}`} />
+                      <span className="text-[10px] font-medium tracking-tight text-center leading-tight line-clamp-2">
                         {section.navLabel || section.title}
                       </span>
-                      {isCompleted && (
-                        <CheckCircle className="h-3 w-3 text-green-500" />
-                      )}
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-            </Tabs>
+                    </div>
+                    {/* Mini progress bar */}
+                    <div className="w-full h-1 mt-2 rounded bg-border/50 overflow-hidden">
+                      <div
+                        className={`h-full transition-all ${isCompleted ? 'bg-green-500' : 'bg-primary/60'}`}
+                        style={{ width: `${Math.min(progressValue,100)}%` }}
+                      />
+                    </div>
+                    {isCompleted && (
+                      <CheckCircle className="h-3 w-3 text-green-500 absolute top-1 right-1" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
             {/* Overall Progress */}
             <div className="flex items-center justify-between">

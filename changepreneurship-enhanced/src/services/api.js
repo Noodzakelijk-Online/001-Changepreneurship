@@ -7,9 +7,10 @@ const RAW_BASE =
   typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL
     ? import.meta.env.VITE_API_BASE_URL.trim()
     : '';
+// If no explicit base provided, use relative /api so the Vite dev proxy (vite.config.js) can forward to backend.
 const API_BASE_URL = RAW_BASE
   ? RAW_BASE.replace(/\/+$/, '')
-  : 'http://localhost:5000/api';
+  : '/api';
 
 const SESSION_TOKEN_KEY =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SESSION_STORAGE_KEY) ||

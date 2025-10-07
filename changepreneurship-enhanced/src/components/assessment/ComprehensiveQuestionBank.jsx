@@ -634,3 +634,62 @@ export const BUSINESS_PILLARS_QUESTIONS = {
   ]
 }
 
+
+// Dummy questions for missing phases
+export const PRODUCT_CONCEPT_TESTING_QUESTIONS = [
+  {
+    id: 'pct-1',
+    question: 'How will you validate your product concept?',
+    type: 'textarea',
+    required: true
+  },
+  {
+    id: 'pct-2',
+    question: 'Who are your test users?',
+    type: 'text'
+  },
+  {
+    id: 'pct-3',
+    question: 'What feedback mechanisms will you use?',
+    type: 'textarea'
+  }
+];
+
+export const BUSINESS_DEVELOPMENT_QUESTIONS = [
+  {
+    id: 'bd-1',
+    question: 'What are your key growth strategies?',
+    type: 'textarea',
+    required: true
+  },
+  {
+    id: 'bd-2',
+    question: 'How will you allocate resources?',
+    type: 'textarea'
+  },
+  {
+    id: 'bd-3',
+    question: 'What partnerships are essential?',
+    type: 'textarea'
+  }
+];
+
+export const BUSINESS_PROTOTYPE_TESTING_QUESTIONS = [
+  {
+    id: 'bpt-1',
+    question: 'How will you test your business model in the market?',
+    type: 'textarea',
+    required: true
+  },
+  {
+    id: 'bpt-2',
+    question: 'What metrics will you track?',
+    type: 'text'
+  },
+  {
+    id: 'bpt-3',
+    question: 'What is your timeline for prototype validation?',
+    type: 'text'
+  }
+];
+

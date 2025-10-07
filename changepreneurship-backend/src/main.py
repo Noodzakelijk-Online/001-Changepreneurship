@@ -50,8 +50,12 @@ app.register_blueprint(value_zone_bp, url_prefix="/api/value-zone")
 app.register_blueprint(ai_adoption_bp, url_prefix="/api/ai-adoption")
 app.register_blueprint(enhanced_assessment_bp, url_prefix="/api/enhanced-assessment")
 
-db_path = os.path.join(os.path.dirname(__file__), "database", "app.db")
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+else:
+    db_path = os.path.join(os.path.dirname(__file__), "database", "app.db")
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -76,3 +80,7 @@ def serve(path):
         return send_from_directory(static_folder_path, "index.html")
 
     return "index.html not found", 404
+
+@app.get('/api/health')
+def health():
+    return {"status": "ok"}
