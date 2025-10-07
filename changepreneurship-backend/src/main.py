@@ -24,8 +24,14 @@ app = Flask(
 
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "changepreneurship-secret-key-2024-secure")
 
-DEFAULT_ORIGINS = "http://localhost:5173,https://changepreneurship-1.onrender.com"
+DEFAULT_ORIGINS = "http://localhost:5173,http://localhost:5174,https://changepreneurship-1.onrender.com"
 ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", DEFAULT_ORIGINS).split(",") if o.strip()]
+# Ensure both common Vite dev ports are present (5173 & 5174)
+if "http://localhost:5173" in ALLOWED_ORIGINS and "http://localhost:5174" not in ALLOWED_ORIGINS:
+    ALLOWED_ORIGINS.append("http://localhost:5174")
+if "http://localhost:5174" in ALLOWED_ORIGINS and "http://localhost:5173" not in ALLOWED_ORIGINS:
+    ALLOWED_ORIGINS.append("http://localhost:5173")
+print(f"[Startup] CORS ALLOWED_ORIGINS => {ALLOWED_ORIGINS}")
 
 CORS(
     app,
