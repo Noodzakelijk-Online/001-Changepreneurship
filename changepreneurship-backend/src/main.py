@@ -26,11 +26,14 @@ app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "changepreneurship-secre
 
 DEFAULT_ORIGINS = "http://localhost:5173,http://localhost:5174,https://changepreneurship-1.onrender.com"
 ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", DEFAULT_ORIGINS).split(",") if o.strip()]
-# Ensure both common Vite dev ports are present (5173 & 5174)
-if "http://localhost:5173" in ALLOWED_ORIGINS and "http://localhost:5174" not in ALLOWED_ORIGINS:
-    ALLOWED_ORIGINS.append("http://localhost:5174")
-if "http://localhost:5174" in ALLOWED_ORIGINS and "http://localhost:5173" not in ALLOWED_ORIGINS:
-    ALLOWED_ORIGINS.append("http://localhost:5173")
+
+# Ensure common Vite dev ports are present when any one is configured. We sometimes auto-bump to 5175 if 5173/5174 are busy.
+DEV_VITE_PORTS = ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"]
+if any(p in ALLOWED_ORIGINS for p in DEV_VITE_PORTS):
+    for p in DEV_VITE_PORTS:
+        if p not in ALLOWED_ORIGINS:
+            ALLOWED_ORIGINS.append(p)
+
 print(f"[Startup] CORS ALLOWED_ORIGINS => {ALLOWED_ORIGINS}")
 
 CORS(

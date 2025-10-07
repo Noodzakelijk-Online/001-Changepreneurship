@@ -336,6 +336,40 @@ const SelfDiscoveryAssessment = () => {
     return Math.round((completedSections / totalSections) * 100);
   };
 
+  // Auto-calculate archetype when all core sections are completed and user views results
+  useEffect(() => {
+    const allCompleted = sections
+      .filter((s) => s.id !== 'results')
+      .every((s) => sectionProgress[s.id] === 100);
+
+    if (
+      allCompleted &&
+      currentSection === 'results' &&
+      !selfDiscoveryData.archetype
+    ) {
+      // Transform stored responses to the shape expected by calculateArchetype
+      const formatted = {
+        motivation: {
+          primaryMotivation: responses.motivation?.['primary-motivation'],
+          riskTolerance: responses.motivation?.['risk-tolerance'],
+        },
+        values: {
+          topValues: (responses.values?.['top-values'] || []).map((v) => v.value || v),
+        },
+        vision: {
+          // No direct time horizon question in current set; left null for now
+          timeHorizon: null,
+        },
+      };
+      try {
+        calculateArchetype(formatted);
+      } catch (e) {
+        // Fail silently; archetype calculation is non-blocking for navigation
+        console.warn('Archetype calculation failed:', e);
+      }
+    }
+  }, [sectionProgress, currentSection, selfDiscoveryData.archetype, responses, calculateArchetype, sections]);
+
   return (
     <div className="space-y-6">
       {/* Data Import Banner */}

@@ -64,7 +64,7 @@ import NavBar from "./components/NavBar";
 import PhasePage from "./pages/PhasePage.jsx";
 
 const AssessmentPage = () => {
-  const { assessmentData, updatePhase } = useAssessment();
+  const { assessmentData, updatePhase, currentPhase } = useAssessment();
   const [selectedPhase, setSelectedPhase] = useState(null);
 
   // Check for URL parameters to set initial phase
@@ -164,6 +164,14 @@ const AssessmentPage = () => {
       component: BusinessPrototypeTesting,
     },
   ];
+
+  // Keep local selectedPhase in sync with global context currentPhase (e.g. when a child component calls updatePhase("idea_discovery"))
+  useEffect(() => {
+    if (currentPhase !== selectedPhase) {
+      // Allow null to return to phase list
+      setSelectedPhase(currentPhase);
+    }
+  }, [currentPhase, selectedPhase]);
 
   const currentPhaseIndex = phases.findIndex((p) => p.id === selectedPhase);
   const currentPhaseData = phases[currentPhaseIndex];
