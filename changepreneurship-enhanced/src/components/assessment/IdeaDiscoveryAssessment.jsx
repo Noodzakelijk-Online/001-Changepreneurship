@@ -451,14 +451,14 @@ const RankingInput = ({ options, value, onChange }) => {
         return (
           <div key={option.value} className="flex items-center gap-3">
             <Select
-              value={currentRank ? String(currentRank) : ''}
+              // Radix Select requires a non-empty value; use undefined when unset so placeholder renders
+              value={currentRank ? String(currentRank) : undefined}
               onValueChange={(val) => handleRankChange(option.value, parseInt(val))}
             >
               <SelectTrigger className="w-20 h-8 bg-background/60">
                 <SelectValue placeholder="-" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">-</SelectItem>
                 {options.map((_, index) => (
                   <SelectItem key={index + 1} value={String(index + 1)}>{index + 1}</SelectItem>
                 ))}
