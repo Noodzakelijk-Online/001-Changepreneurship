@@ -53,6 +53,10 @@ This package contains the complete, production-ready Changepreneurship platform 
 - **Progress Tracking** across all 7 phases
 - **Authentication Bypass Mode** for testing (configurable)
 - **Responsive Design** works on all devices
+- **Redis-backed Caching** for session tokens and principles dataset
+- **PostgreSQL-ready** with automated Alembic migrations on container start
+- **Healthcheck Endpoints & Docker Healthchecks** for observability
+- **SPA Routing via BrowserRouter + nginx fallback** in production container
 
 ## 🛠️ **Setup Instructions**
 
@@ -204,10 +208,34 @@ In `/changepreneurship-enhanced/src/services/api.js`:
 
 ### **Production Deployment:**
 
-- **Heroku** - Use included Procfile
-- **AWS/GCP** - Deploy Flask app with static files
-- **Vercel/Netlify** - Frontend only (requires separate backend)
-- **Docker** - Containerized deployment (Dockerfile included)
+- **Docker / docker-compose** (recommended) – orchestrates PostgreSQL, Redis, backend (gunicorn), and frontend (nginx)
+- **Heroku / Render** – Use gunicorn + auto migrations (adapt entrypoint)
+- **AWS/GCP** – Container images or managed services
+- **Vercel/Netlify** – Frontend only (configure `VITE_API_BASE` to backend URL)
+
+### **Docker Quick Start**
+
+```
+cp .env.example .env   # Adjust secrets as needed
+docker compose up --build
+```
+
+Services:
+* Backend API: http://localhost:5000 (health: /api/health)
+* Frontend SPA: http://localhost:5173
+* PostgreSQL: localhost:5433 (internal service name: postgres)
+* Redis: localhost:6380
+
+Automations:
+* wait_for_db + Alembic upgrade runs before gunicorn starts
+* Healthchecks ensure dependency readiness sequencing
+
+Caching Layers:
+* Sessions: Redis keys `session:<token>` (30 day TTL)
+* Principles queries: Redis keys `json:principles:...` (1–5 min TTL depending on query)
+
+SPA Routing:
+* Frontend uses BrowserRouter; nginx config (`nginx.conf`) handles `try_files` fallback to index.html.
 
 ## 📝 **File Structure**
 
@@ -278,8 +306,8 @@ changepreneurship-final-package/
 This is a complete, production-ready entrepreneurship assessment platform with comprehensive documentation and setup instructions. All components have been tested and verified to work correctly.
 
 **Platform Status**: ✅ Fully Operational
-**Last Updated**: August 2025
-**Version**: 2.0 (Complete Database Integration)
+**Last Updated**: October 2025
+**Version**: 2.1 (Docker, Redis Caching, Healthchecks)
 
 ---
 

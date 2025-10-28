@@ -2,6 +2,7 @@
 Principles API Routes
 """
 from flask import Blueprint, request, jsonify
+from src.utils.redis_client import get_cached_json, cache_json
 from src.services.principles_service import PrinciplesService
 
 principles_bp = Blueprint('principles', __name__)
@@ -27,25 +28,46 @@ def get_principles():
         if limit < 1 or limit > 50:
             limit = 5
 
-        # Handle search query
+        cache_key_parts = []
+        if search:
+            cache_key_parts.append(f"search={search}")
+        if category:
+            cache_key_parts.append(f"cat={category}")
+        if stage:
+            cache_key_parts.append(f"stage={stage}")
+        cache_key_parts.append(f"limit={limit}")
+        cache_key = "principles:" + ("|".join(cache_key_parts) if cache_key_parts else "all")
+
+        # Attempt cache lookup only for simple GET (avoid caching if search present with very short term?)
+        cached = get_cached_json(cache_key)
+        if cached is not None:
+            return jsonify({'success': True, 'data': cached, 'count': len(cached), 'cached': True})
+
+        # Compute fresh data
         if search:
             principles = principles_service.search_principles(search, limit)
-        # Handle category and stage filters
         elif category or stage:
             principles = principles_service.get_principles_by_category_and_stage(
                 category=category,
                 stage=stage,
                 limit=limit
             )
-        # Return all principles if no filters
         else:
             all_principles = principles_service.get_all_principles()
             principles = all_principles[:limit]
 
+        # Cache result (short TTL for search results, longer for static queries)
+        try:
+            ttl = 60 if search else 300  # 1 min for search variants, 5 min for others
+            cache_json(cache_key, principles, ttl_seconds=ttl)
+        except Exception:
+            pass
+
         return jsonify({
             'success': True,
             'data': principles,
-            'count': len(principles)
+            'count': len(principles),
+            'cached': False
         })
 
     except Exception as e:
