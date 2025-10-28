@@ -15,6 +15,8 @@ class PrinciplesService:
             principles_file = os.path.join(base_dir, "data", "principles.json")
         self.principles_file = principles_file
         self._principles = None
+        # Increment this if the underlying JSON structure / semantics change so cache keys can include version.
+        self.cache_version = "v1"
         self._load_principles()
 
     def _load_principles(self):

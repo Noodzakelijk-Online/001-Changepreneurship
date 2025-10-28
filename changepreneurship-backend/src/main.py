@@ -69,6 +69,28 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 migrate = Migrate(app, db)
 
+# Auto-create only for SQLite (dev convenience). Avoid for Postgres to prevent duplicate objects.
+with app.app_context():
+    try:
+        engine_name = db.engine.url.get_backend_name()
+        if engine_name == 'sqlite':
+            from sqlalchemy import inspect
+            inspector = inspect(db.engine)
+            tables = inspector.get_table_names()
+            if not tables:
+                print("[Startup] (SQLite) No DB tables detected; creating all...")
+                db.create_all()
+            else:
+                expected = {"user", "entrepreneur_profile", "user_session"}
+                missing = expected.difference(tables)
+                if missing:
+                    print(f"[Startup] (SQLite) Missing tables {missing}; creating...")
+                    db.create_all()
+        else:
+            print(f"[Startup] Skipping create_all for non-SQLite backend '{engine_name}' (use migrations)")
+    except Exception as e:
+        print(f"[Startup] DB init check failed: {e}")
+
 @app.route("/api/<path:any_path>", methods=["OPTIONS"])
 def cors_preflight(any_path):
     return ("", 204)

@@ -6,13 +6,13 @@ import UserProfile from './UserProfile'
 import { Button } from '@/components/ui/button.jsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
 import { Badge } from '@/components/ui/badge.jsx'
-import { 
-  User, 
-  Lightbulb, 
-  Search, 
-  Building, 
-  ArrowRight, 
-  CheckCircle, 
+import {
+  User,
+  Lightbulb,
+  Search,
+  Building,
+  ArrowRight,
+  CheckCircle,
   Star,
   TrendingUp,
   Users,
@@ -21,6 +21,7 @@ import {
   Shield,
   Brain
 } from 'lucide-react'
+import { PHASES, phaseIdToSlug } from '@/lib/assessmentPhases.js'
 
 const LandingPage = () => {
   const { isAuthenticated } = useAuth()
@@ -35,64 +36,30 @@ const LandingPage = () => {
     setAuthMode(mode)
     setAuthModalOpen(true)
   }
-  const features = [
-    {
-      icon: User,
-      title: 'Self-Discovery Assessment',
-      description: 'Understand your entrepreneurial personality and discover your unique archetype',
-      duration: '60-90 minutes',
-      color: 'from-orange-500 to-red-600',
-      phase: 'Foundation & Strategy'
-    },
-    {
-      icon: Lightbulb,
-      title: 'Idea Discovery',
-      description: 'Transform your insights into concrete, validated business opportunities',
-      duration: '90-120 minutes',
-      color: 'from-blue-500 to-purple-600',
-      phase: 'Foundation & Strategy'
-    },
-    {
-      icon: Search,
-      title: 'Market Research',
-      description: 'Validate assumptions and understand competitive dynamics in your market',
-      duration: '2-3 weeks',
-      color: 'from-green-500 to-teal-600',
-      phase: 'Foundation & Strategy'
-    },
-    {
-      icon: Building,
-      title: 'Business Pillars Planning',
-      description: 'Define foundational pillars and create your strategic business plan',
-      duration: '1-2 weeks',
-      color: 'from-purple-500 to-pink-600',
-      phase: 'Foundation & Strategy'
-    },
-    {
-      icon: Target,
-      title: 'Product Concept Testing',
-      description: 'Test market acceptability and validate pricing strategies',
-      duration: '3-4 days',
-      color: 'from-indigo-500 to-purple-600',
-      phase: 'Implementation & Testing'
-    },
-    {
-      icon: TrendingUp,
-      title: 'Business Development',
-      description: 'Strategic decision-making and resource-opportunity alignment',
-      duration: '1-2 weeks',
-      color: 'from-emerald-500 to-teal-600',
-      phase: 'Implementation & Testing'
-    },
-    {
-      icon: Zap,
-      title: 'Business Prototype Testing',
-      description: 'Complete business model validation through real-world testing',
-      duration: '2-4 weeks',
-      color: 'from-rose-500 to-pink-600',
-      phase: 'Implementation & Testing'
+  // Merge static icon/color styling with central PHASES metadata
+  const phaseVisual = {
+    self_discovery: { icon: User, color: 'from-orange-500 to-red-600', landingTitle: 'Self-Discovery Assessment' },
+    idea_discovery: { icon: Lightbulb, color: 'from-blue-500 to-purple-600' },
+    market_research: { icon: Search, color: 'from-green-500 to-teal-600' },
+    business_pillars: { icon: Building, color: 'from-purple-500 to-pink-600', landingTitle: 'Business Pillars Planning' },
+    product_concept_testing: { icon: Target, color: 'from-indigo-500 to-purple-600' },
+    business_development: { icon: TrendingUp, color: 'from-emerald-500 to-teal-600' },
+    business_prototype_testing: { icon: Zap, color: 'from-rose-500 to-pink-600' }
+  }
+
+  const features = PHASES.map((p) => {
+    const visual = phaseVisual[p.id] || {}
+    return {
+      id: p.id,
+      slug: p.slug,
+      icon: visual.icon || User,
+      title: visual.landingTitle || p.title,
+      description: '', // original long descriptions could be restored or centralized later
+      duration: p.duration,
+      color: visual.color || 'from-primary to-accent',
+      phase: p.category
     }
-  ]
+  })
 
   const benefits = [
     {
@@ -234,8 +201,32 @@ const LandingPage = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {features.map((feature, index) => {
               const Icon = feature.icon
-              return (
-                <Card key={index} className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+              const targetPath = `/assessment/${feature.slug}`
+              const card = (
+                <Card
+                  key={index}
+                  className="relative overflow-hidden group hover:shadow-lg transition-all duration-300 cursor-pointer"
+                  onClick={(e) => {
+                    if (!isAuthenticated) {
+                      setAuthMode('register')
+                      setAuthModalOpen(true)
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      if (!isAuthenticated) {
+                        setAuthMode('register')
+                        setAuthModalOpen(true)
+                      } else {
+                        // let outer Link handle navigation if present
+                      }
+                    }
+                  }}
+                  aria-label={`Open ${feature.title} assessment`}
+                >
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
                   <CardHeader className="relative">
                     <div className="flex items-center justify-between mb-4">
@@ -251,17 +242,26 @@ const LandingPage = () => {
                         </Badge>
                       </div>
                     </div>
-                    <CardTitle className="text-lg">{feature.title}</CardTitle>
+                    <CardTitle className="text-lg flex items-center justify-between gap-2">
+                      <span>{feature.title}</span>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </CardTitle>
                     <CardDescription className="text-sm">{feature.description}</CardDescription>
                   </CardHeader>
                   <CardContent className="relative">
                     <div className="flex items-center justify-between">
                       <Badge variant="secondary" className="text-xs">{feature.duration}</Badge>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">{isAuthenticated ? 'Open' : 'Sign in to access'}</span>
                     </div>
                   </CardContent>
                 </Card>
               )
+              // If authenticated, wrap in Link for SPA navigation; otherwise clickable card opens modal
+              return isAuthenticated ? (
+                <Link key={index} to={targetPath} className="block focus:outline-none focus:ring-2 focus:ring-primary rounded-lg">
+                  {card}
+                </Link>
+              ) : card
             })}
           </div>
         </div>

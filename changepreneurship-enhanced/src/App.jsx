@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useRef as useDoubleRef } from "react";
 import {
-  HashRouter as Router,
+  BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
+  useParams
 } from "react-router-dom";
+import { slugToPhaseId } from './lib/assessmentPhases.js';
 import { Button } from "@/components/ui/button.jsx";
 import {
   Card,
@@ -46,13 +48,14 @@ import {
 } from "./contexts/AssessmentContext";
 
 // Components
-import SelfDiscoveryAssessment from "./components/assessment/SelfDiscoveryAssessment";
-import IdeaDiscoveryAssessment from "./components/assessment/IdeaDiscoveryAssessment";
-import MarketResearchTools from "./components/assessment/MarketResearchTools";
-import BusinessPillarsPlanning from "./components/assessment/BusinessPillarsPlanning";
-import ProductConceptTesting from "./components/assessment/ProductConceptTesting";
-import BusinessDevelopmentDecisionMaking from "./components/assessment/BusinessDevelopmentDecisionMaking";
-import BusinessPrototypeTesting from "./components/assessment/BusinessPrototypeTesting";
+import ReactLazy from 'react';
+const SelfDiscoveryAssessment = React.lazy(() => import('./components/assessment/SelfDiscoveryAssessment'));
+const IdeaDiscoveryAssessment = React.lazy(() => import('./components/assessment/IdeaDiscoveryAssessment'));
+const MarketResearchTools = React.lazy(() => import('./components/assessment/MarketResearchTools'));
+const BusinessPillarsPlanning = React.lazy(() => import('./components/assessment/BusinessPillarsPlanning'));
+const ProductConceptTesting = React.lazy(() => import('./components/assessment/ProductConceptTesting'));
+const BusinessDevelopmentDecisionMaking = React.lazy(() => import('./components/assessment/BusinessDevelopmentDecisionMaking'));
+const BusinessPrototypeTesting = React.lazy(() => import('./components/assessment/BusinessPrototypeTesting'));
 import AIRecommendationsSimple from "./components/AIRecommendationsSimple";
 import LandingPage from "./components/LandingPage";
 import UserDashboard from "./components/dashboard/UserDashboard";
@@ -63,32 +66,53 @@ import AssessmentHistory from "./components/AssessmentHistory";
 import NavBar from "./components/NavBar";
 import PhasePage from "./pages/PhasePage.jsx";
 
+// slugToPhaseId now imported from central mapping
+
 const AssessmentPage = () => {
   const { assessmentData, updatePhase, currentPhase } = useAssessment();
   const [selectedPhase, setSelectedPhase] = useState(null);
+  const params = typeof useParams === 'function' ? useParams() : {};
+  const slugPhaseId = slugToPhaseId(params?.slug);
+  const unknownSlug = params?.slug && !slugPhaseId;
 
-  // Check for URL parameters to set initial phase
+  const initRef = useRef(false);
   useEffect(() => {
+    if (initRef.current) return; // only run once
+    initRef.current = true;
+    if (slugPhaseId) {
+      setSelectedPhase(slugPhaseId);
+      updatePhase(slugPhaseId);
+      localStorage.setItem('cp_selected_phase', slugPhaseId);
+      return;
+    }
     const urlParams = new URLSearchParams(window.location.search);
     const phaseParam = urlParams.get("phase");
     if (phaseParam) {
       const phaseNumber = parseInt(phaseParam);
-      if (phaseNumber >= 1 && phaseNumber <= 7) {
-        const phaseIds = [
-          "self_discovery",
-          "idea_discovery",
-          "market_research",
-          "business_pillars",
-          "product_concept_testing",
-          "business_development",
-          "business_prototype_testing",
-        ];
+      const phaseIds = [
+        "self_discovery",
+        "idea_discovery",
+        "market_research",
+        "business_pillars",
+        "product_concept_testing",
+        "business_development",
+        "business_prototype_testing",
+      ];
+      if (phaseNumber >= 1 && phaseNumber <= phaseIds.length) {
         const phaseId = phaseIds[phaseNumber - 1];
         setSelectedPhase(phaseId);
         updatePhase(phaseId);
+        localStorage.setItem('cp_selected_phase', phaseId);
+        return;
       }
     }
-  }, [updatePhase]);
+    const stored = localStorage.getItem('cp_selected_phase');
+    if (stored) {
+      setSelectedPhase(stored);
+      updatePhase(stored);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const phases = [
     {
@@ -165,27 +189,36 @@ const AssessmentPage = () => {
     },
   ];
 
-  // Keep local selectedPhase in sync with global context currentPhase (e.g. when a child component calls updatePhase("idea_discovery"))
+  // Sync only when context changes explicitly and not during initial mount
   useEffect(() => {
-    if (currentPhase !== selectedPhase) {
-      // Allow null to return to phase list
+    if (initRef.current && currentPhase !== selectedPhase) {
       setSelectedPhase(currentPhase);
     }
-  }, [currentPhase, selectedPhase]);
+  }, [currentPhase]);
 
   const currentPhaseIndex = phases.findIndex((p) => p.id === selectedPhase);
   const currentPhaseData = phases[currentPhaseIndex];
   const CurrentComponent = currentPhaseData?.component;
+  const phaseHeadingRef = useRef(null);
 
   const handlePhaseSelect = (phaseId) => {
     setSelectedPhase(phaseId);
     updatePhase(phaseId);
+    localStorage.setItem('cp_selected_phase', phaseId);
   };
 
   const handleBackToPhases = () => {
     setSelectedPhase(null);
     updatePhase(null);
+    localStorage.removeItem('cp_selected_phase');
   };
+
+  // Focus phase heading when a phase is selected
+  useEffect(() => {
+    if (CurrentComponent && phaseHeadingRef.current) {
+      phaseHeadingRef.current.focus();
+    }
+  }, [CurrentComponent, selectedPhase]);
 
   const calculateProgress = () => {
     const completedPhases = phases.filter(
@@ -197,6 +230,11 @@ const AssessmentPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
+        {unknownSlug && (
+          <div className="mb-4 p-4 border border-destructive/30 bg-destructive/10 rounded text-sm">
+            Unknown assessment segment "{params.slug}". <button className="underline" onClick={() => { setSelectedPhase(null); window.location.hash = '#/assessment'; }}>Return to all phases</button>
+          </div>
+        )}
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent">
@@ -292,10 +330,8 @@ const AssessmentPage = () => {
             </Button>
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  {currentPhaseData && (
-                    <currentPhaseData.icon className="h-5 w-5" />
-                  )}
+                <CardTitle ref={phaseHeadingRef} tabIndex="-1" className="flex items-center gap-2 focus:outline-none">
+                  {currentPhaseData?.icon ? (() => { const IconComp = currentPhaseData.icon; return <IconComp className="h-5 w-5" />; })() : null}
                   {currentPhaseData?.title}
                 </CardTitle>
                 <CardDescription>{currentPhaseData?.description}</CardDescription>
@@ -306,7 +342,13 @@ const AssessmentPage = () => {
                   </span>
                 </div>
               </CardHeader>
-              <CardContent>{CurrentComponent && <CurrentComponent />}</CardContent>
+              <CardContent>
+                {CurrentComponent && (
+                  <React.Suspense fallback={<div className="animate-pulse text-sm text-muted-foreground">Loading assessment...</div>}>
+                    <CurrentComponent />
+                  </React.Suspense>
+                )}
+              </CardContent>
             </Card>
           </>
         )}
@@ -316,6 +358,26 @@ const AssessmentPage = () => {
 };
 
 function App() {
+  // Simple error boundary wrapper (hook-based fallback)
+  const [routeError, setRouteError] = useState(null);
+  const ErrorBoundary = ({ children }) => {
+    if (routeError) {
+      return (
+        <div className="p-8 text-center">
+          <h2 className="text-xl font-semibold mb-4">Something went wrong</h2>
+          <p className="text-muted-foreground mb-4">{routeError.message}</p>
+          <button
+            className="px-4 py-2 rounded bg-primary text-primary-foreground"
+            onClick={() => { setRouteError(null); window.location.hash = '#/assessment'; }}
+          >
+            Back to Assessments
+          </button>
+        </div>
+      );
+    }
+    return children;
+  };
+
   return (
     <AuthProvider>
       <AssessmentProvider>
@@ -324,9 +386,11 @@ function App() {
             <div className="App">
               <NavBar />
               <main className="pt-16">
-                <Routes>
+                <ErrorBoundary>
+                  <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/assessment" element={<AssessmentPage />} />
+                  <Route path="/assessment/:slug" element={<AssessmentPage />} />
                   <Route
                     path="/ai-recommendations"
                     element={<AIRecommendationsSimple />}
@@ -346,7 +410,8 @@ function App() {
                   />
                   <Route path="/:code" element={<QuestionNavigator />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
+                  </Routes>
+                </ErrorBoundary>
               </main>
             </div>
           </Router>

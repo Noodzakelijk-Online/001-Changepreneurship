@@ -5,6 +5,7 @@ import secrets
 import re
 
 from src.models.assessment import db, User, UserSession, EntrepreneurProfile
+from src.utils.redis_client import cache_session, get_session_user
 from src.utils.auth import verify_session_token
 
 auth_bp = Blueprint('auth', __name__)
@@ -31,6 +32,8 @@ def create_user_session(user_id, expires_in_days=30):
     session = UserSession(user_id=user_id, session_token=session_token, expires_at=expires_at)
     db.session.add(session)
     db.session.commit()
+    # Attempt to also cache in Redis (best-effort)
+    cache_session(session_token, user_id, ttl_seconds=expires_in_days * 24 * 3600)
     return session
 
 # Handle CORS preflight explicitly (safe even with flask-cors enabled)
@@ -139,6 +142,17 @@ def login():
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
     try:
+        # Fast path via Redis (optional)
+        auth_header = request.headers.get('Authorization', '')
+        token = None
+        if auth_header.startswith('Bearer '):
+            token = auth_header.split(' ', 1)[1].strip()
+        if token:
+            cached_user_id = get_session_user(token)
+            if cached_user_id:
+                user = User.query.get(cached_user_id)
+                if user:
+                    return jsonify({'message': 'Logout successful (cached)'})
         user, session, error, status_code = verify_session_token()
         if error:
             return jsonify(error), status_code
@@ -156,6 +170,22 @@ def logout():
 @auth_bp.route('/verify', methods=['GET'])
 def verify_session():
     try:
+        # Try cached verification first
+        auth_header = request.headers.get('Authorization', '')
+        token = None
+        if auth_header.startswith('Bearer '):
+            token = auth_header.split(' ', 1)[1].strip()
+        if token:
+            cached_user_id = get_session_user(token)
+            if cached_user_id:
+                user = User.query.get(cached_user_id)
+                session = None
+                if user:
+                    return jsonify({
+                        'valid': True,
+                        'user': user.to_dict(),
+                        'session': {'from_cache': True}
+                    }), 200
         user, session, error, status_code = verify_session_token()
         if error:
             return jsonify(error), status_code
