@@ -237,6 +237,61 @@ Caching Layers:
 SPA Routing:
 * Frontend uses BrowserRouter; nginx config (`nginx.conf`) handles `try_files` fallback to index.html.
 
+### ▶️ Running WITHOUT Docker (Parity Notes)
+
+You can run the backend and frontend locally without containers. Behavior is equivalent provided you follow these steps:
+
+1. Choose your database:
+	* SQLite (default): No action needed. On first run the backend will auto-create tables (only for SQLite) and you can ignore migrations for quick prototyping.
+	* PostgreSQL (recommended): Set `DATABASE_URL` and run the migration bootstrap script BEFORE starting the dev server.
+
+2. Environment variables (create `.env` or export in shell):
+	* `DATABASE_URL=postgresql+psycopg://user:pass@localhost:5432/cp_db`
+	* `SECRET_KEY=your-dev-secret`
+	* `ALLOWED_ORIGINS=http://localhost:5173`
+	* (Optional) `REDIS_URL=redis://localhost:6379/0` for session + principles caching.
+
+3. Start services:
+	* Postgres: Ensure the database exists (e.g. `createdb cp_db`).
+	* Redis (optional but recommended): `redis-server` (or Docker `redis:alpine`).
+
+4. Install backend deps & run migration bootstrap (this replicates container entrypoint logic):
+	```powershell
+	cd changepreneurship-backend
+	python -m venv .venv; .venv\Scripts\Activate.ps1
+	pip install -r requirements.txt
+	# Idempotent bootstrap (stamps legacy schema or upgrades normally)
+	python migrate_upgrade.py
+	# Run dev server
+	python run_dev.py
+	```
+	If you prefer classic Flask-Migrate workflow on a fresh Postgres DB you can instead do:
+	```powershell
+	flask --app src.main db upgrade
+	python run_dev.py
+	```
+
+5. Frontend:
+	```powershell
+	cd changepreneurship-enhanced
+	pnpm install  # or npm install
+	pnpm run dev  # http://localhost:5173
+	```
+
+6. API base URL configuration:
+	* If the frontend expects a different base, set `VITE_API_BASE=http://localhost:5000` when running `pnpm run dev`.
+
+7. Registration & migrations safety:
+	* Re-running `python migrate_upgrade.py` is safe; it detects if `alembic_version` exists and only performs a normal upgrade.
+	* For a legacy DB created before Alembic (tables but no `alembic_version`), the script stamps the base revision then patches differences (e.g. enlarging `password_hash`) and marks head.
+
+8. Troubleshooting:
+	* Password length errors -> ensure latest migration head applied (`python migrate_upgrade.py`).
+	* Duplicate table errors -> confirm you are not invoking `db.create_all()` on Postgres (code already skips it). Remove any manual create scripts.
+	* Connection refused -> check `DATABASE_URL`, Postgres running, and firewall/port 5432.
+
+Summary: Outside Docker the only extra step vs. containers is to call `python migrate_upgrade.py` manually (the Docker entrypoint does this automatically). All other runtime behavior (CORS, caching, routes, migrations) is identical.
+
 ## 📝 **File Structure**
 
 ```
