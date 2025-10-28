@@ -57,6 +57,9 @@ const ProductConceptTesting = React.lazy(() => import('./components/assessment/P
 const BusinessDevelopmentDecisionMaking = React.lazy(() => import('./components/assessment/BusinessDevelopmentDecisionMaking'));
 const BusinessPrototypeTesting = React.lazy(() => import('./components/assessment/BusinessPrototypeTesting'));
 import AIRecommendationsSimple from "./components/AIRecommendationsSimple";
+import AIRecommendationsReal from "./components/AIRecommendationsReal";
+import ExecutiveSummaryDashboard from "./components/ExecutiveSummaryDashboard";
+import AIInsightsHub from "./components/AIInsightsHub";
 import LandingPage from "./components/LandingPage";
 import UserDashboard from "./components/dashboard/UserDashboard";
 import AdaptiveDemo from "./components/AdaptiveDemo";
@@ -395,7 +398,10 @@ function App() {
                     path="/ai-recommendations"
                     element={<AIRecommendationsSimple />}
                   />
+                  <Route path="/ai-insights" element={<AIInsightsHub />} />
+                  <Route path="/ai-insights/recommendations" element={<AIRecommendationsReal />} />
                   <Route path="/user-dashboard" element={<UserDashboard />} />
+                  <Route path="/dashboard/executive-summary" element={<ExecutiveSummaryDashboard />} />
                   <Route path="/adaptive-demo" element={<AdaptiveDemo />} />
                   <Route path="/simple-adaptive" element={<SimpleAdaptiveDemo />} />
                   <Route path="/profile" element={<ProfileSettings />} />
