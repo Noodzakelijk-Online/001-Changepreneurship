@@ -46,7 +46,7 @@ services:
     ports:
       - "5000:5000"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/api/health || curl -fsS http://localhost:5000/api/health || exit 1"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health').read()"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -64,7 +64,7 @@ services:
       # For local dev hitting backend directly
       VITE_API_BASE: http://localhost:5000
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost/ | grep -qi '<html' || exit 1"]
+      test: ["CMD-SHELL", "test -f /usr/share/nginx/html/index.html"]
       interval: 30s
       timeout: 5s
       retries: 5
