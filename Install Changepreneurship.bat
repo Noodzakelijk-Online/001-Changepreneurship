@@ -159,6 +159,13 @@ echo [OK] Frontend is ready
 
 :OpenBrowser
 echo.
+echo Creating test user...
+echo.
+
+:: Create Sarah Chen test user via API
+powershell -Command "try { $response = Invoke-RestMethod -Uri 'http://localhost:5000/api/dashboard/complete-user/create' -Method POST -ContentType 'application/json' -TimeoutSec 10; if ($response.success) { Write-Host '[OK] Test user created: sarah_chen_founder' -ForegroundColor Green } else { Write-Host '[INFO] Test user may already exist' -ForegroundColor Yellow } } catch { Write-Host '[INFO] Could not create test user (will be available after restart)' -ForegroundColor Yellow }"
+
+echo.
 echo Opening browser...
 start %FRONTEND_URL%
 
@@ -171,6 +178,11 @@ echo Services:
 echo   Frontend:  http://localhost:5173
 echo   Backend:   http://localhost:5000
 echo   API:       http://localhost:5000/api/health
+echo.
+echo Test User (Demo Account):
+echo   Username:  sarah_chen_founder
+echo   Password:  test123
+echo   (100%% completion across all assessments)
 echo.
 echo Useful commands (run from %INSTALL_PATH%):
 echo   docker compose logs -f      - View logs
