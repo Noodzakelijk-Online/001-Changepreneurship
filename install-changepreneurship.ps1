@@ -227,7 +227,7 @@ while ($elapsed -lt $maxWaitSeconds) {
         }
     }
     
-    Write-Host "  [$elapsed/$maxWaitSeconds s] Running: $runningCount/$totalCount, Healthy: $healthyCount/$totalCount" -ForegroundColor Gray
+    Write-Host "  [$elapsed / $maxWaitSeconds seconds] Running: $runningCount/$totalCount, Healthy: $healthyCount/$totalCount" -ForegroundColor Gray
     
     if ($healthyCount -eq $totalCount -and $runningCount -eq $totalCount) {
         $allHealthy = $true
@@ -261,7 +261,7 @@ while ($frontendWait -lt $maxFrontendWait) {
     }
     Start-Sleep -Seconds 2
     $frontendWait += 2
-    Write-Host "  Waiting for frontend... ($frontendWait/$maxFrontendWait s)" -ForegroundColor Gray
+    Write-Host "  Waiting for frontend... ($frontendWait / $maxFrontendWait seconds)" -ForegroundColor Gray
 }
 
 if ($frontendReady) {
@@ -275,11 +275,12 @@ Start-Sleep -Seconds 2
 Start-Process $FrontendUrl
 Write-Success "Browser opened at $FrontendUrl"
 
-Write-Host "`n" -NoNewline
-Write-Host "═══════════════════════════════════════════════════════" -ForegroundColor Green
+Write-Host ""
+Write-Host "=======================================================" -ForegroundColor Green
 Write-Host "  🎉 Changepreneurship Platform is running!" -ForegroundColor Green
-Write-Host "═══════════════════════════════════════════════════════" -ForegroundColor Green
-Write-Host "`nServices:" -ForegroundColor White
+Write-Host "=======================================================" -ForegroundColor Green
+Write-Host ""
+Write-Host "Services:" -ForegroundColor White
 Write-Host "  Frontend:  " -NoNewline -ForegroundColor Gray
 Write-Host "http://localhost:5173" -ForegroundColor Cyan
 Write-Host "  Backend:   " -NoNewline -ForegroundColor Gray
@@ -287,7 +288,8 @@ Write-Host "http://localhost:5000" -ForegroundColor Cyan
 Write-Host "  API Docs:  " -NoNewline -ForegroundColor Gray
 Write-Host "http://localhost:5000/api/health" -ForegroundColor Cyan
 
-Write-Host "`nUseful commands:" -ForegroundColor White
+Write-Host ""
+Write-Host "Useful commands:" -ForegroundColor White
 Write-Host "  View logs:      " -NoNewline -ForegroundColor Gray
 Write-Host "docker compose logs -f" -ForegroundColor Yellow
 Write-Host "  Stop services:  " -NoNewline -ForegroundColor Gray
@@ -297,6 +299,7 @@ Write-Host "docker compose restart" -ForegroundColor Yellow
 Write-Host "  Check status:   " -NoNewline -ForegroundColor Gray
 Write-Host "docker compose ps" -ForegroundColor Yellow
 
-Write-Host "`nInstallation directory: " -NoNewline -ForegroundColor Gray
+Write-Host ""
+Write-Host "Installation directory: " -NoNewline -ForegroundColor Gray
 Write-Host $InstallPath -ForegroundColor White
-Write-Host "`n"
+Write-Host ""
