@@ -2,34 +2,22 @@
 
 ## 🪟 Windows Users
 
-### Before You Start - ONE TIME ONLY!
-
-Open **PowerShell as Administrator** and run:
-
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-Type `Y` and press Enter when prompted.
-
-> ℹ️ This is a one-time security setting to allow script execution.
-
 ### Installation Steps
 
 1. **Install Prerequisites**:
    - [Docker Desktop](https://www.docker.com/products/docker-desktop) - Install and start it
    - [Git for Windows](https://git-scm.com/download/win) - Install with defaults
 
-2. **Download the installer**:
-   - Download `install-changepreneurship.ps1` from this repository
-   - Right-click the file → **Run with PowerShell**
-   - Click **Yes** when asked for Administrator permission
+2. **Run the installer**:
+   - **Right-click** `Install Changepreneurship.bat`
+   - Select **"Run as administrator"**
+   - Click **Yes** when asked for permission
 
 3. **Wait for installation** (3-5 minutes on first run)
 
 4. **Browser will open automatically** at http://localhost:5173
 
-**That's it!** The script handles everything automatically.
+**That's it!** No additional configuration needed!
 
 ---
 

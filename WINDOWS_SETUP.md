@@ -15,31 +15,26 @@ Before running the installation script, you need:
 
 ## 🚀 One-Time Setup (First Time Only)
 
-**IMPORTANT**: Before running the installation script for the first time, you must enable PowerShell script execution.
+**No special setup required!** Just make sure Docker Desktop and Git are installed.
 
-Open **PowerShell as Administrator** (right-click PowerShell → Run as Administrator) and run:
-
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-When prompted, type `Y` and press Enter.
-
-> **What does this do?** This allows PowerShell to run scripts that you've downloaded or created. It's a one-time security setting.
+The installer automatically handles PowerShell execution policy using `-ExecutionPolicy Bypass`.
 
 ## 📥 Installation
 
-### Option 1: Download and Run
+### Easy Installation (Recommended)
 
-1. Download `install-changepreneurship.ps1` from the repository
-2. Right-click the file → **Run with PowerShell**
-3. If prompted for Administrator access, click **Yes**
+1. Download or clone this repository
+2. **Right-click** `Install Changepreneurship.bat`
+3. Select **"Run as administrator"**
+4. Wait for installation to complete
+5. Browser opens automatically
 
-### Option 2: Clone Repository First
+### Alternative: Using PowerShell Directly
 
-If you already have the repository:
+If you prefer PowerShell:
 
 ```powershell
+# Run as Administrator
 cd path\to\001-Changepreneurship
 .\install-changepreneurship.ps1
 ```
@@ -123,11 +118,18 @@ docker compose down -v
 
 ## ❌ Troubleshooting
 
+### "Administrator Rights Required" message
+
+The batch file detected you need admin rights:
+1. **Right-click** `Install Changepreneurship.bat`
+2. Select **"Run as administrator"**
+3. Click **Yes** when prompted
+
 ### "Running scripts is disabled on this system"
 
-Run this command as Administrator:
+This shouldn't happen with the `.bat` installer. If you see this while running `.ps1` directly:
 ```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+PowerShell -ExecutionPolicy Bypass -File install-changepreneurship.ps1
 ```
 
 ### "Docker daemon is not running"
