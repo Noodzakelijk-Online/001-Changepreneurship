@@ -77,6 +77,21 @@ Once installation is complete:
 - **Backend API**: http://localhost:5000
 - **Health Check**: http://localhost:5000/api/health
 
+### 🧪 Creating Test User
+
+To demonstrate the platform with full data, create the Sarah Chen test user:
+
+**Double-click** `Create Test User.bat` or run:
+```powershell
+curl -X POST http://localhost:5000/api/dashboard/complete-user/create
+```
+
+Then login with:
+- **Username**: `sarah_chen_founder`
+- **Password**: `test123`
+
+This user has 100% completion across all 7 assessments with realistic business data.
+
 ## 🛠️ Useful Commands
 
 After installation, navigate to the installation directory:
