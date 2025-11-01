@@ -21,6 +21,32 @@
 
 ---
 
+### 🧪 Creating Test User (Optional)
+
+After installation, you can create a fully-populated test user (Sarah Chen) with 100% assessment completion:
+
+**Option 1: Using the batch file**
+- Double-click `Create Test User.bat`
+
+**Option 2: Using PowerShell**
+```powershell
+.\create-test-user.ps1
+```
+
+**Option 3: Using API directly**
+```powershell
+curl -X POST http://localhost:5000/api/dashboard/complete-user/create
+```
+
+**Login credentials:**
+- Username: `sarah_chen_founder`
+- Email: `sarah.chen@techvision.io`
+- Password: `test123`
+
+This test user has complete data across all 7 assessments and demonstrates the full platform capabilities.
+
+---
+
 ### 📖 Full Documentation
 
 For detailed setup, troubleshooting, and manual installation, see [WINDOWS_SETUP.md](WINDOWS_SETUP.md)
