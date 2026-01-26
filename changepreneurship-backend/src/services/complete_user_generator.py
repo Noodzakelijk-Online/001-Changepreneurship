@@ -41,7 +41,7 @@ class CompleteUserGenerator:
                 self.session.add(test_user)
                 self.session.commit()
                 user_id = test_user.id
-                print(f"✅ Created user: {username} (ID: {user_id})")
+                print(f"[OK] Created user: {username} (ID: {user_id})")
             
             # Create all assessments with 100% completion
             self._create_all_assessments(user_id)
@@ -49,7 +49,7 @@ class CompleteUserGenerator:
             return user_id
             
         except Exception as e:
-            print(f"❌ Error creating complete user: {str(e)}")
+            print(f"[ERROR] Error creating complete user: {str(e)}")
             self.session.rollback()
             return None
     
@@ -177,7 +177,7 @@ class CompleteUserGenerator:
         ]
         
         self._create_responses(assessment.id, responses)
-        print(f"✅ Self Discovery Assessment: 100% ({len(responses)} responses)")
+        print(f"[OK] Self Discovery Assessment: 100% ({len(responses)} responses)")
     
     def _create_idea_discovery(self, user_id):
         """
@@ -263,7 +263,7 @@ class CompleteUserGenerator:
         ]
         
         self._create_responses(assessment.id, responses)
-        print(f"✅ Idea Discovery Assessment: 100% ({len(responses)} responses)")
+        print(f"[OK] Idea Discovery Assessment: 100% ({len(responses)} responses)")
     
     def _create_market_research(self, user_id):
         """
@@ -321,7 +321,7 @@ class CompleteUserGenerator:
         ]
         
         self._create_responses(assessment.id, responses)
-        print(f"✅ Market Research: 100% ({len(responses)} responses)")
+        print(f"[OK] Market Research: 100% ({len(responses)} responses)")
     
     def _create_business_pillars(self, user_id):
         """
@@ -400,7 +400,7 @@ class CompleteUserGenerator:
         ]
         
         self._create_responses(assessment.id, responses)
-        print(f"✅ Business Pillars Planning: 100% ({len(responses)} responses)")
+        print(f"[OK] Business Pillars Planning: 100% ({len(responses)} responses)")
     
     def _create_product_concept(self, user_id):
         """
@@ -451,7 +451,7 @@ class CompleteUserGenerator:
         ]
         
         self._create_responses(assessment.id, responses)
-        print(f"✅ Product Concept Testing: 100% ({len(responses)} responses)")
+        print(f"[OK] Product Concept Testing: 100% ({len(responses)} responses)")
     
     def _create_business_development(self, user_id):
         """
@@ -509,7 +509,7 @@ class CompleteUserGenerator:
         ]
         
         self._create_responses(assessment.id, responses)
-        print(f"✅ Business Development: 100% ({len(responses)} responses)")
+        print(f"[OK] Business Development: 100% ({len(responses)} responses)")
     
     def _create_prototype_testing(self, user_id):
         """
@@ -567,7 +567,7 @@ class CompleteUserGenerator:
         ]
         
         self._create_responses(assessment.id, responses)
-        print(f"✅ Business Prototype Testing: 100% ({len(responses)} responses)")
+        print(f"[OK] Business Prototype Testing: 100% ({len(responses)} responses)")
     
     def _get_or_create_assessment(self, user_id, phase_name, progress):
         """
@@ -602,6 +602,13 @@ class CompleteUserGenerator:
                 progress_percentage=progress
             )
             self.session.add(assessment)
+        # Keep boolean completion fields consistent so UI can reflect finished phases
+        if progress >= 100:
+            assessment.is_completed = True
+            assessment.completed_at = assessment.completed_at or datetime.utcnow()
+        else:
+            assessment.is_completed = False
+            assessment.completed_at = None
         
         self.session.commit()
         return assessment
@@ -639,7 +646,7 @@ class CompleteUserGenerator:
         try:
             user = self.session.query(User).filter_by(id=user_id).first()
             if not user:
-                print(f"❌ User {user_id} not found")
+                print(f"[ERROR] User {user_id} not found")
                 return None
             
             export_data = {
@@ -677,9 +684,9 @@ class CompleteUserGenerator:
             with open(filename, 'w', encoding='utf-8') as f:
                 json.dump(export_data, f, indent=2, ensure_ascii=False)
             
-            print(f"✅ Exported to {filename}")
+            print(f"[OK] Exported to {filename}")
             return export_data
             
         except Exception as e:
-            print(f"❌ Export error: {str(e)}")
+            print(f"[ERROR] Export error: {str(e)}")
             return None

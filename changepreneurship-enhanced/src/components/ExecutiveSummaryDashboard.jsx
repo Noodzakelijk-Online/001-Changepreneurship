@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
 import { Badge } from '@/components/ui/badge.jsx'
 import { Button } from '@/components/ui/button.jsx'
@@ -15,6 +15,10 @@ import {
   ChevronRight
 } from 'lucide-react'
 import apiService from '../services/api.js'
+import SmartEmptyState from '@/components/ai/SmartEmptyState.jsx'
+import ConsensusInsights from '@/components/ConsensusInsights.jsx'
+import useAiReadiness from '@/hooks/useAiReadiness.js'
+import { resolveAiEmptyScenario, AI_READINESS_STAGES } from '@/lib/aiEmptyScenarios.js'
 
 const ExecutiveSummaryDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null)
@@ -22,6 +26,13 @@ const ExecutiveSummaryDashboard = () => {
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
+  const { readinessStage, stats = {} } = useAiReadiness()
+
+  const readinessMetrics = useMemo(() => ([
+    { label: 'Overall progress', value: `${stats.totalProgress ?? 0}%` },
+    { label: 'Phases completed', value: `${stats.completedPhases ?? 0}/7` },
+    { label: 'Responses logged', value: stats.answeredQuestions ?? 0 }
+  ]), [stats])
 
   // Fetch dashboard data
   const fetchDashboardData = async () => {
@@ -157,6 +168,31 @@ const ExecutiveSummaryDashboard = () => {
               </div>
             </CardContent>
           </Card>
+          <div className="mt-6">
+            <SmartEmptyState
+                scenario={resolveAiEmptyScenario('executiveSummary', AI_READINESS_STAGES.POLISHED)}
+              metrics={readinessMetrics}
+              onRetry={fetchDashboardData}
+            />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+    const shouldShowEmptyState =
+      !dashboardData?.sub_elements?.length ||
+      [AI_READINESS_STAGES.BLANK, AI_READINESS_STAGES.COLLECTING].includes(readinessStage)
+
+  if (shouldShowEmptyState) {
+    return (
+      <div className="min-h-screen bg-background dark p-6">
+        <div className="max-w-4xl mx-auto">
+          <SmartEmptyState
+            scenario={resolveAiEmptyScenario('executiveSummary', readinessStage)}
+            metrics={readinessMetrics}
+            onRetry={fetchDashboardData}
+          />
         </div>
       </div>
     )
@@ -314,6 +350,16 @@ const ExecutiveSummaryDashboard = () => {
 
           {/* Main Content Area */}
           <div className="lg:col-span-3 space-y-6">
+            
+            {/* Multi-Model Consensus Insights */}
+            {dashboardData?.ai_insights?.narrative && (
+              <ConsensusInsights 
+                narrative={dashboardData.ai_insights.narrative}
+                consensus={dashboardData.ai_insights.consensus}
+                onRegenerate={refreshDashboard}
+              />
+            )}
+
             {currentSubElement && (
               <>
                 {/* Element Header */}
