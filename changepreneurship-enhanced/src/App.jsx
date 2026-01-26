@@ -56,14 +56,9 @@ const BusinessPillarsPlanning = React.lazy(() => import('./components/assessment
 const ProductConceptTesting = React.lazy(() => import('./components/assessment/ProductConceptTesting'));
 const BusinessDevelopmentDecisionMaking = React.lazy(() => import('./components/assessment/BusinessDevelopmentDecisionMaking'));
 const BusinessPrototypeTesting = React.lazy(() => import('./components/assessment/BusinessPrototypeTesting'));
-import AIRecommendationsSimple from "./components/AIRecommendationsSimple";
-import AIRecommendationsReal from "./components/AIRecommendationsReal";
 import ExecutiveSummaryDashboard from "./components/ExecutiveSummaryDashboard";
-import AIInsightsHub from "./components/AIInsightsHub";
 import LandingPage from "./components/LandingPage";
 import UserDashboard from "./components/dashboard/UserDashboard";
-import AdaptiveDemo from "./components/AdaptiveDemo";
-import SimpleAdaptiveDemo from "./components/SimpleAdaptiveDemo";
 import ProfileSettings from "./components/ProfileSettings";
 import AssessmentHistory from "./components/AssessmentHistory";
 import NavBar from "./components/NavBar";
@@ -394,16 +389,18 @@ function App() {
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/assessment" element={<AssessmentPage />} />
                   <Route path="/assessment/:slug" element={<AssessmentPage />} />
-                  <Route
-                    path="/ai-recommendations"
-                    element={<AIRecommendationsSimple />}
-                  />
-                  <Route path="/ai-insights" element={<AIInsightsHub />} />
-                  <Route path="/ai-insights/recommendations" element={<AIRecommendationsReal />} />
-                  <Route path="/user-dashboard" element={<UserDashboard />} />
-                  <Route path="/dashboard/executive-summary" element={<ExecutiveSummaryDashboard />} />
-                  <Route path="/adaptive-demo" element={<AdaptiveDemo />} />
-                  <Route path="/simple-adaptive" element={<SimpleAdaptiveDemo />} />
+                  
+                  {/* Main Dashboards */}
+                  <Route path="/dashboard" element={<UserDashboard />} />
+                  <Route path="/ai-insights" element={<ExecutiveSummaryDashboard />} />
+                  
+                  {/* Legacy redirects - maintain backward compatibility */}
+                  <Route path="/user-dashboard" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard/executive-summary" element={<Navigate to="/ai-insights" replace />} />
+                  <Route path="/ai-recommendations" element={<Navigate to="/ai-insights" replace />} />
+                  <Route path="/ai-insights/recommendations" element={<Navigate to="/ai-insights" replace />} />
+                  
+                  {/* User settings */}
                   <Route path="/profile" element={<ProfileSettings />} />
                   <Route path="/assessment-history" element={<AssessmentHistory />} />
                   <Route

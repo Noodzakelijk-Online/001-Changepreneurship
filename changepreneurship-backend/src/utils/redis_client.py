@@ -1,20 +1,34 @@
 import os
 import json
-import redis
+import logging
+
+logger = logging.getLogger(__name__)
 
 _redis_client = None
 
 def get_redis():
+    """Legacy function name for backwards compatibility."""
+    return get_redis_client()
+
+def get_redis_client():
+    """Get Redis client instance if available, otherwise return None."""
     global _redis_client
     if _redis_client is None:
         url = os.environ.get("REDIS_URL")
         if not url:
+            logger.debug("[Redis] REDIS_URL not set, skipping Redis connection")
             return None
         try:
+            import redis
             _redis_client = redis.Redis.from_url(url, decode_responses=True)
             # simple ping test
             _redis_client.ping()
-        except Exception:
+            logger.info(f"[Redis] Connected to {url}")
+        except ImportError:
+            logger.warning("[Redis] redis package not installed (pip install redis)")
+            _redis_client = None
+        except Exception as e:
+            logger.warning(f"[Redis] Connection failed: {e}")
             _redis_client = None
     return _redis_client
 

@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Brain, Target, TrendingUp, AlertCircle, CheckCircle, ArrowRight, Award, Shield } from 'lucide-react';
+import SmartEmptyState from '@/components/ai/SmartEmptyState.jsx';
+import useAiReadiness from '@/hooks/useAiReadiness.js';
+import { resolveAiEmptyScenario, AI_READINESS_STAGES } from '@/lib/aiEmptyScenarios.js';
 import './AIRecommendationsReal.css';
 
 const AIRecommendationsReal = () => {
@@ -9,6 +12,13 @@ const AIRecommendationsReal = () => {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const { readinessStage, stats = {} } = useAiReadiness();
+
+  const readinessMetrics = useMemo(() => ([
+    { label: 'Overall progress', value: `${stats.totalProgress ?? 0}%` },
+    { label: 'Phases completed', value: `${stats.completedPhases ?? 0}/7` },
+    { label: 'Responses logged', value: stats.answeredQuestions ?? 0 }
+  ]), [stats]);
 
   useEffect(() => {
     fetchRecommendations();
@@ -35,6 +45,19 @@ const AIRecommendationsReal = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const renderSmartEmptyState = (stageOverride) => {
+    const scenario = resolveAiEmptyScenario('recommendationsOverview', stageOverride || readinessStage);
+    if (!scenario) return null;
+
+    return (
+      <SmartEmptyState
+        scenario={scenario}
+        metrics={readinessMetrics}
+        onRetry={stageOverride === AI_READINESS_STAGES.POLISHED ? fetchRecommendations : undefined}
+      />
+    );
   };
 
   const getProbabilityColor = (score) => {
@@ -67,7 +90,7 @@ const AIRecommendationsReal = () => {
 
   if (error) {
     return (
-      <div className="ai-recommendations-real">
+      <div className="ai-recommendations-real space-y-6">
         <div className="error-state">
           <AlertCircle size={48} />
           <h3>Unable to Load Recommendations</h3>
@@ -76,12 +99,17 @@ const AIRecommendationsReal = () => {
             Try Again
           </button>
         </div>
+        {renderSmartEmptyState(AI_READINESS_STAGES.POLISHED)}
       </div>
     );
   }
 
   if (!data) {
-    return null;
+    return (
+      <div className="ai-recommendations-real">
+        {renderSmartEmptyState()}
+      </div>
+    );
   }
 
   const { founder_profile, success_probability, strengths, gaps, recommendations, next_steps, risks, ai_confidence } = data;
@@ -249,41 +277,39 @@ const AIRecommendationsReal = () => {
         {activeTab === 'recommendations' && (
           <div className="recommendations-tab">
             <div className="recommendations-list">
-              {recommendations.length > 0 ? (
-                recommendations.map((rec, index) => (
-                  <div key={index} className="recommendation-card">
-                    <div className="recommendation-header">
-                      <div className="rec-title-section">
-                        <span className="rec-category">{rec.category}</span>
-                        <h3>{rec.title}</h3>
+                {recommendations.length > 0 ? (
+                  recommendations.map((rec, index) => (
+                    <div key={index} className="recommendation-card">
+                      <div className="recommendation-header">
+                        <div className="rec-title-section">
+                          <span className="rec-category">{rec.category}</span>
+                          <h3>{rec.title}</h3>
+                        </div>
+                        <div className="rec-meta">
+                          <span className={`priority-badge ${getPriorityBadge(rec.priority)}`}>
+                            {rec.priority}
+                          </span>
+                          <span className="timeframe">{rec.timeframe}</span>
+                        </div>
                       </div>
-                      <div className="rec-meta">
-                        <span className={`priority-badge ${getPriorityBadge(rec.priority)}`}>
-                          {rec.priority}
-                        </span>
-                        <span className="timeframe">{rec.timeframe}</span>
-                      </div>
+                      <p className="rec-description">{rec.description}</p>
+                      {rec.resources && rec.resources.length > 0 && (
+                        <div className="rec-resources">
+                          <strong>Resources:</strong>
+                          <ul>
+                            {rec.resources.map((resource, idx) => (
+                              <li key={idx}>{resource}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
-                    <p className="rec-description">{rec.description}</p>
-                    {rec.resources && rec.resources.length > 0 && (
-                      <div className="rec-resources">
-                        <strong>Resources:</strong>
-                        <ul>
-                          {rec.resources.map((resource, idx) => (
-                            <li key={idx}>{resource}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                  ))
+                ) : (
+                  <div className="no-recommendations">
+                    {renderSmartEmptyState()}
                   </div>
-                ))
-              ) : (
-                <div className="no-recommendations">
-                  <Target size={48} />
-                  <h3>Complete Assessments to Get Recommendations</h3>
-                  <p>Start with the Self Discovery Assessment to receive personalized recommendations</p>
-                </div>
-              )}
+                )}
             </div>
           </div>
         )}

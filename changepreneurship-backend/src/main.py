@@ -1,10 +1,13 @@
+"""Main Flask application - Changepreneurship Platform API"""
 import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate
+from sqlalchemy import inspect
+
 from src.models.assessment import db
 from src.routes.user import user_bp
 from src.routes.auth import auth_bp
@@ -19,30 +22,22 @@ from src.routes.enhanced_assessment import enhanced_assessment_bp
 from src.routes.dashboard import dashboard_bp
 from src.routes.ai_recommendations import ai_recommendations_bp
 
-app = Flask(
-    __name__,
-    static_folder=os.path.join(os.path.dirname(__file__), "static")
-)
+app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), "static"))
 
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "changepreneurship-secret-key-2024-secure")
+# Configuration
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "changepreneurship-secret-key-2024-secure")
 
-DEFAULT_ORIGINS = "http://localhost:5173,http://localhost:5174,https://changepreneurship-1.onrender.com"
-ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", DEFAULT_ORIGINS).split(",") if o.strip()]
+# CORS Configuration
+DEFAULT_ORIGINS = "http://localhost:5173,http://localhost:5174,http://localhost:5175,https://changepreneurship-1.onrender.com"
+origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", DEFAULT_ORIGINS).split(",") if o.strip()]
 
-# Ensure common Vite dev ports are present when any one is configured. We sometimes auto-bump to 5175 if 5173/5174 are busy.
-DEV_VITE_PORTS = ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"]
-if any(p in ALLOWED_ORIGINS for p in DEV_VITE_PORTS):
-    for p in DEV_VITE_PORTS:
-        if p not in ALLOWED_ORIGINS:
-            ALLOWED_ORIGINS.append(p)
-
-print(f"[Startup] CORS ALLOWED_ORIGINS => {ALLOWED_ORIGINS}")
+print(f"[Startup] CORS ALLOWED_ORIGINS => {origins}")
 
 CORS(
     app,
     resources={
         r"/api/*": {
-            "origins": ALLOWED_ORIGINS,
+            "origins": origins,
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"],
             "supports_credentials": True,
@@ -50,6 +45,7 @@ CORS(
     },
 )
 
+# Register blueprints
 app.register_blueprint(user_bp, url_prefix="/api")
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(assessment_bp, url_prefix="/api/assessment")
@@ -63,59 +59,66 @@ app.register_blueprint(enhanced_assessment_bp, url_prefix="/api/enhanced-assessm
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(ai_recommendations_bp)
 
-database_url = os.environ.get("DATABASE_URL")
+# Database configuration
+database_url = os.getenv("DATABASE_URL")
 if database_url:
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 else:
     db_path = os.path.join(os.path.dirname(__file__), "database", "app.db")
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 migrate = Migrate(app, db)
 
-# Auto-create only for SQLite (dev convenience). Avoid for Postgres to prevent duplicate objects.
+# Auto-create tables for SQLite only
 with app.app_context():
     try:
         engine_name = db.engine.url.get_backend_name()
         if engine_name == 'sqlite':
-            from sqlalchemy import inspect
             inspector = inspect(db.engine)
             tables = inspector.get_table_names()
             if not tables:
-                print("[Startup] (SQLite) No DB tables detected; creating all...")
+                print("[Startup] SQLite: No tables found, creating...")
                 db.create_all()
             else:
-                expected = {"user", "entrepreneur_profile", "user_session"}
-                missing = expected.difference(tables)
+                required = {"user", "entrepreneur_profile", "user_session"}
+                missing = required.difference(tables)
                 if missing:
-                    print(f"[Startup] (SQLite) Missing tables {missing}; creating...")
+                    print(f"[Startup] SQLite: Missing {missing}, creating...")
                     db.create_all()
         else:
-            print(f"[Startup] Skipping create_all for non-SQLite backend '{engine_name}' (use migrations)")
+            print(f"[Startup] Using {engine_name}, skipping auto-create (use migrations)")
     except Exception as e:
-        print(f"[Startup] DB init check failed: {e}")
+        print(f"[Startup] DB init error: {e}")
+
 
 @app.route("/api/<path:any_path>", methods=["OPTIONS"])
 def cors_preflight(any_path):
+    """Handle CORS preflight requests"""
     return ("", 204)
 
 @app.get("/", defaults={"path": ""})
 @app.get("/<path:path>")
 def serve(path):
+    # API routes return 404 JSON
+    if path.startswith("api/"):
+        return jsonify({"error": "Endpoint not found"}), 404
+    
+    # Serve static files for frontend
     static_folder_path = app.static_folder
-    if static_folder_path is None:
-        return "Static folder not configured", 404
+    if static_folder_path and os.path.exists(static_folder_path):
+        file_path = os.path.join(static_folder_path, path)
+        if path and os.path.exists(file_path):
+            return send_from_directory(static_folder_path, path)
+        
+        index_path = os.path.join(static_folder_path, "index.html")
+        if os.path.exists(index_path):
+            return send_from_directory(static_folder_path, "index.html")
+    
+    return jsonify({"error": "Not found"}), 404
 
-    file_path = os.path.join(static_folder_path, path)
-    if path != "" and os.path.exists(file_path):
-        return send_from_directory(static_folder_path, path)
-
-    index_path = os.path.join(static_folder_path, "index.html")
-    if os.path.exists(index_path):
-        return send_from_directory(static_folder_path, "index.html")
-
-    return "index.html not found", 404
 
 @app.get('/api/health')
 def health():
-    return {"status": "ok"}
+    return jsonify({"status": "ok"})

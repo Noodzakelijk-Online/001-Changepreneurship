@@ -1,0 +1,65 @@
+# Redis Production Configuration Template
+#
+# This file contains recommended Redis settings for production deployment.
+# For local development, Redis runs in-memory fallback mode (no Redis required).
+#
+# DEPLOYMENT OPTIONS:
+#
+# 1. Docker (Recommended for development/staging)
+#    docker run -d -p 6379:6379 redis:7-alpine
+#
+# 2. Docker Compose (from project root)
+#    docker compose up -d redis
+#
+# 3. Cloud Redis (Recommended for production)
+#    - AWS ElastiCache
+#    - Azure Cache for Redis
+#    - Google Cloud Memorystore
+#    - Redis Cloud
+#
+# 4. Local Redis (Windows via WSL or Redis for Windows)
+#    Download: https://github.com/microsoftarchive/redis/releases
+#    Or use WSL: sudo apt-get install redis-server
+#
+# ENVIRONMENT VARIABLES:
+#
+# Set in .env file:
+#   REDIS_URL=redis://localhost:6379/0              # Local Redis
+#   REDIS_URL=redis://redis:6379/0                  # Docker container
+#   REDIS_URL=redis://:password@host:6379/0         # With auth
+#   REDIS_URL=rediss://user:pass@host:6380/0        # SSL/TLS
+#
+# PERFORMANCE SETTINGS (for redis.conf):
+#
+maxmemory 256mb
+maxmemory-policy allkeys-lru
+
+# Persistence (optional - caching doesn't require persistence)
+save ""
+appendonly no
+
+# Network
+timeout 0
+tcp-keepalive 300
+
+# Logging
+loglevel notice
+
+# Security
+# requirepass your-strong-password-here
+# rename-command CONFIG ""
+# rename-command FLUSHALL ""
+#
+# MONITORING:
+#
+# Use redis-cli INFO for monitoring:
+#   - Memory usage: INFO memory
+#   - Hit rate: INFO stats (keyspace_hits / keyspace_misses)
+#   - Connections: INFO clients
+#
+# NOTES:
+#
+# - Application uses graceful fallback: Redis → In-memory dict
+# - Session cache TTL: 30 days (configurable)
+# - LLM response cache TTL: 24 hours (configurable)
+# - No persistent data - can be cleared anytime

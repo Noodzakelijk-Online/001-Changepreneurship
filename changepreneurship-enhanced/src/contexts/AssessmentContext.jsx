@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from "react";
+import { useAuth } from "./AuthContext.jsx";
+import apiService from "../services/api";
 
 // Initial state with all seven assessment phases
 const initialState = {
@@ -357,6 +359,7 @@ const AssessmentContext = createContext();
 
 export function AssessmentProvider({ children }) {
   const [state, dispatch] = useReducer(assessmentReducer, initialState);
+  const { user, isAuthenticated } = useAuth();
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -399,6 +402,142 @@ export function AssessmentProvider({ children }) {
   useEffect(() => {
     localStorage.setItem("changepreneurship-assessment", JSON.stringify(state));
   }, [state]);
+
+  // Sync authenticated users with backend data so demo accounts reflect real completions
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) return;
+    const hasSession = apiService.isAuthenticated();
+    if (!hasSession && user.username !== "sarah_chen_founder") return;
+    let isCancelled = false;
+
+    const groupResponsesBySection = (responses = []) => {
+      return responses.reduce((sections, response) => {
+        const sectionKey = response.section_id || "general";
+        if (!sections[sectionKey]) sections[sectionKey] = {};
+        sections[sectionKey][response.question_id] = response.response_value;
+        return sections;
+      }, {});
+    };
+
+    const assignPhaseData = (phasePayloads) => {
+      Object.entries(phasePayloads).forEach(([phase, data]) => {
+        dispatch({
+          type: ACTIONS.BULK_UPDATE_PHASE_DATA,
+          payload: { phase, data },
+        });
+      });
+    };
+
+    const buildPhasePayload = (phaseId, baseData) => ({
+      ...initialState.assessmentData[phaseId],
+      ...baseData,
+    });
+
+    const sarahPhaseMap = {
+      "Self Discovery Assessment": "self_discovery",
+      "Idea Discovery Assessment": "idea_discovery",
+      "Market Research": "market_research",
+      "Business Pillars Planning": "business_pillars",
+      "Product Concept Testing": "product_concept_testing",
+      "Business Development": "business_development",
+      "Business Prototype Testing": "business_prototype_testing",
+    };
+
+    const hydrateFromCompleteExport = async () => {
+      try {
+        const response = await fetch(
+          `${apiService.getApiBaseUrl()}/dashboard/complete-user/export/${user.id}`,
+          { headers: apiService.getHeaders() }
+        );
+        if (!response.ok) return false;
+        const exportData = await response.json();
+        if (!exportData?.assessments) return false;
+
+        const payloads = {};
+        exportData.assessments.forEach((assessment) => {
+          const phaseId = sarahPhaseMap[assessment.phase_name];
+          if (!phaseId) return;
+          payloads[phaseId] = buildPhasePayload(phaseId, {
+            completed: true,
+            progress: Math.round(assessment.progress_percentage || 100),
+            responses: groupResponsesBySection(assessment.responses),
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+        assignPhaseData(payloads);
+        return true;
+      } catch (error) {
+        console.error("Failed to hydrate from complete user export:", error);
+        return false;
+      }
+    };
+
+    const syncFromServer = async () => {
+      try {
+        const phasesResult = await apiService.getAssessmentPhases();
+        if (!phasesResult.success || !phasesResult.data?.phases) {
+          if (user.username === "sarah_chen_founder") {
+            await hydrateFromCompleteExport();
+          }
+          return;
+        }
+
+        const phasePayloads = {};
+
+        await Promise.all(
+          phasesResult.data.phases.map(async (phase) => {
+            if (!validatePhase(phase.id)) return;
+
+            const baseData = {
+              completed: Boolean(phase.is_completed),
+              progress: Math.round(phase.progress_percentage || 0),
+              assessmentId: phase.assessment_id,
+              startedAt: phase.started_at,
+              completedAt: phase.completed_at,
+              responses: {},
+            };
+
+            if (phase.assessment_id) {
+              const responsesResult = await apiService.getAssessmentResponses(
+                phase.assessment_id
+              );
+              if (
+                responsesResult.success &&
+                Array.isArray(responsesResult.data?.responses)
+              ) {
+                baseData.responses = groupResponsesBySection(
+                  responsesResult.data.responses
+                );
+              }
+            }
+
+            phasePayloads[phase.id] = {
+              ...buildPhasePayload(phase.id, baseData),
+            };
+          })
+        );
+
+        if (isCancelled) return;
+
+        assignPhaseData(phasePayloads);
+      } catch (error) {
+        console.error("Failed to sync assessment data from backend:", error);
+        if (user.username === "sarah_chen_founder") {
+          await hydrateFromCompleteExport();
+        }
+      }
+    };
+
+    if (!hasSession && user.username === "sarah_chen_founder") {
+      hydrateFromCompleteExport();
+    } else {
+      syncFromServer();
+    }
+    return () => {
+      isCancelled = true;
+    };
+  }, [isAuthenticated, user?.id]);
 
   // Action creators
   const updatePhase = (phase) => {

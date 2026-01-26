@@ -6,8 +6,12 @@ import json
 import math
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
+import os
+import logging
 from sqlalchemy.orm import Session
 from ..models.assessment import User, Assessment, AssessmentResponse, db
+
+logger = logging.getLogger(__name__)
 
 class DashboardDataGenerator:
     """
@@ -98,7 +102,7 @@ class DashboardDataGenerator:
                 )
                 sub_elements.append(sub_element_data)
             
-            return {
+            payload = {
                 'component_title': 'Executive Summary Dashboard',
                 'overall_score': overall_score,
                 'data_completeness': data_completeness,
@@ -107,9 +111,68 @@ class DashboardDataGenerator:
                 'sub_elements': sub_elements,
                 'ai_insights': self._generate_ai_insights(user_data, overall_score)
             }
+
+            # Optional LLM-generated narrative summary (feature-flagged)
+            use_llm_flag = os.getenv("USE_LLM", "false").lower()
+            logger.info(f"[DEBUG] USE_LLM env value: '{use_llm_flag}' (equals 'true': {use_llm_flag == 'true'})")
+            if use_llm_flag == "true":
+                logger.info("[LLM] Starting LLM narrative generation...")
+                try:
+                    from .llm_client import LLMClient
+                    prompt = (
+                        "You are an analyst creating an executive summary for a startup founder.\n"
+                        f"Overall score: {overall_score}/100. Data completeness: {int(data_completeness*100)}%. Assessments: {assessment_count}.\n"
+                        "Summarize strengths, risks, and a short outlook in 6-8 bullets."
+                    )
+                    client = LLMClient()
+                    logger.info(f"[LLM] Client initialized, generating narrative...")
+                    narrative = client.generate(prompt=prompt, system="Executive summary generator")
+                    payload['ai_insights']['narrative'] = narrative
+                    logger.info(f"[LLM] Generated narrative: {len(narrative)} chars")
+                except Exception as e:
+                    # Fail silently to preserve rule-based output
+                    logger.error(f"[LLM] Error generating narrative: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    payload['ai_insights']['narrative'] = ""
+
+                # Optional consensus step
+                consensus_flag = os.getenv("LLM_CONSENSUS", "false").lower()
+                logger.info(f"LLM_CONSENSUS={consensus_flag}")
+                if consensus_flag == "true":
+                    logger.info("Starting LLM consensus generation...")
+                    try:
+                        from .llm_consensus import LLMConsensus
+                        configs = [
+                            {"provider": os.getenv("LLM_PROVIDER", "openai"), "model": os.getenv("LLM_MODEL", "gpt-4o-mini")},
+                            {"provider": os.getenv("LLM_PROVIDER_ALT", os.getenv("LLM_PROVIDER", "openai")), "model": os.getenv("LLM_MODEL_ALT", os.getenv("LLM_MODEL", "gpt-4o-mini"))},
+                        ]
+                        
+                        logger.info(f"Running LLM consensus with {len(configs)} models")
+                        consensus = LLMConsensus(configs=configs).run(prompt=prompt, system="Executive summary peer generation")
+                        bullets = consensus.get("majority", [])
+                        minority = consensus.get("minority_reviews", [])
+                        logger.debug(f"Consensus: {len(bullets)} majority, {len(minority)} minority reviews")
+                        
+                        minority_notes = []
+                        for m in minority:
+                            tag = "Niche Insight" if m.get("label") == "niche_insight" else "Hallucination"
+                            minority_notes.append(f"{tag}: {m.get('claim')}")
+                        
+                        merged = "\n".join([f"- {b}" for b in bullets] + (["", "Minority review:"] if minority_notes else []) + [f"- {n}" for n in minority_notes])
+                        payload['ai_insights']['narrative'] = merged or payload['ai_insights'].get('narrative', '')
+                        payload['ai_insights']['consensus'] = {
+                            "models": [{"provider": c.get("provider"), "model": c.get("model")} for c in configs],
+                            "confidence": len(bullets) / max(1, len(bullets) + len(minority_notes))
+                        }
+                        logger.info(f"Consensus confidence: {payload['ai_insights']['consensus']['confidence']:.2%}")
+                    except Exception as e:
+                        logger.error(f"LLM consensus error: {e}", exc_info=True)
+
+            return payload
             
         except Exception as e:
-            print(f"Error generating dashboard data: {str(e)}")
+            logger.error(f"Error generating dashboard data: {e}", exc_info=True)
             return self._generate_fallback_data(user_id)
 
     def _get_user_assessment_data(self, user_id: str) -> Optional[Dict]:
@@ -117,6 +180,10 @@ class DashboardDataGenerator:
         Retrieve and analyze user's assessment responses
         """
         try:
+            # Convert user_id to int if it's numeric
+            if isinstance(user_id, str) and user_id.isdigit():
+                user_id = int(user_id)
+            
             user = self.session.query(User).filter_by(id=user_id).first()
             if not user:
                 return None
@@ -154,7 +221,7 @@ class DashboardDataGenerator:
             return user_data
             
         except Exception as e:
-            print(f"Error retrieving user data: {str(e)}")
+            logger.error(f"Error retrieving user data: {e}", exc_info=True)
             return None
 
     def _calculate_overall_score(self, user_data: Dict) -> int:
@@ -644,7 +711,7 @@ class DashboardDataGenerator:
                 ]
             })
         
-        return {
+        payload = {
             'component_title': 'Executive Summary Dashboard',
             'overall_score': 32,
             'data_completeness': 0.0,
@@ -658,10 +725,45 @@ class DashboardDataGenerator:
                 'next_steps': [
                     "Begin with Self Discovery Assessment",
                     "Complete all seven assessment phases",
-                    "Review AI-generated insights regularly"
+                    "Review AI-generated insights regularly",
                 ]
             }
         }
+        
+        # TEST: Run LLM even with no data to verify infrastructure works
+        use_llm_flag = os.getenv("USE_LLM", "false").lower()
+        logger.info(f"[FALLBACK] USE_LLM={use_llm_flag}")
+        if use_llm_flag == "true":
+            logger.info("[LLM FALLBACK] Testing LLM with empty data profile...")
+            try:
+                from .llm_client import LLMClient
+                prompt = "You are reviewing a startup founder who hasn't completed assessments yet. In 4 bullets, suggest what they should do first."
+                client = LLMClient()
+                logger.info("[LLM FALLBACK] Client created, generating...")
+                narrative = client.generate(prompt=prompt, system="Executive summary generator")
+                payload['ai_insights']['narrative'] = narrative
+                logger.info(f"[LLM FALLBACK] Generated: {len(narrative)} chars")
+                
+                # Test consensus too
+                if os.getenv("LLM_CONSENSUS", "false").lower() == "true":
+                    logger.info("[LLM FALLBACK] Testing consensus...")
+                    from .llm_consensus import LLMConsensus
+                    configs = [
+                        {"provider": os.getenv("LLM_PROVIDER", "openai"), "model": os.getenv("LLM_MODEL", "gpt-4.1-mini")},
+                        {"provider": os.getenv("LLM_PROVIDER_ALT", os.getenv("LLM_PROVIDER", "openai")), "model": os.getenv("LLM_MODEL_ALT", os.getenv("LLM_MODEL", "gpt-4.1-mini"))},
+                    ]
+                    consensus = LLMConsensus(configs=configs).run(prompt=prompt, system="Executive summary peer generation")
+                    payload['ai_insights']['consensus'] = {
+                        "models": [{"provider": c.get("provider"), "model": c.get("model")} for c in configs],
+                        "confidence": len(consensus.get("majority", [])) / max(1, len(consensus.get("majority", [])) + len(consensus.get("minority_reviews", [])))
+                    }
+                    logger.info(f"[LLM FALLBACK] Consensus complete")
+            except Exception as e:
+                logger.error(f"[LLM FALLBACK] Error: {e}")
+                import traceback
+                traceback.print_exc()
+        
+        return payload
 
     def refresh_dashboard_data(self, user_id: str) -> Dict[str, Any]:
         """
