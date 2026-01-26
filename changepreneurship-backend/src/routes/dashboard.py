@@ -1,168 +1,103 @@
-"""
-Executive Summary Dashboard API Routes
-Provides AI-driven business insights and comprehensive dashboard data
-"""
-from flask import Blueprint, request, jsonify, session, current_app, send_file
+"""Dashboard API - Executive summary and business insights"""
+from flask import Blueprint, request, jsonify, session, current_app
 from flask_cors import cross_origin
-from werkzeug.security import generate_password_hash
+from datetime import datetime
+
 from ..services.dashboard_service import DashboardDataGenerator
 from ..services.test_data_generator import TestDataGenerator
 from ..services.complete_user_generator import CompleteUserGenerator
-from ..models.assessment import db, User
-import json
-from datetime import datetime
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
-# Initialize services
+# Services
 dashboard_service = DashboardDataGenerator()
 test_data_generator = TestDataGenerator()
 complete_user_generator = CompleteUserGenerator()
 
+
+def _get_user_id():
+    """Extract user_id from request or session"""
+    user_id = request.args.get('user_id') or session.get('user_id', 'demo-user')
+    try:
+        return int(user_id)
+    except (ValueError, TypeError):
+        return user_id
+
+
 @dashboard_bp.route('/api/dashboard/executive-summary', methods=['GET'])
 @cross_origin()
 def get_executive_summary():
-    """
-    Get comprehensive executive summary dashboard data for a user
-    Query Parameters:
-    - user_id: User ID (optional, defaults to session user or 'demo-user')
-    """
-    try:
-        # Get user ID from query params, session, or default
-        user_id = request.args.get('user_id')
-        if not user_id:
-            user_id = session.get('user_id', 'demo-user')
-        
-        current_app.logger.info(f"Generating executive summary for user: {user_id}")
-        
-        # Generate comprehensive dashboard data
-        dashboard_data = dashboard_service.generate_executive_summary(user_id)
-        
-        return jsonify({
-            'success': True,
-            'data': dashboard_data,
-            'generated_at': datetime.utcnow().isoformat()
-        })
-        
-    except Exception as e:
-        current_app.logger.error(f"Executive summary generation error: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': 'Failed to generate executive summary',
-            'details': str(e)
-        }), 500
+    """Get comprehensive executive summary for user"""
+    user_id = _get_user_id()
+    current_app.logger.info(f"Executive summary for user: {user_id}")
+    
+    dashboard_data = dashboard_service.generate_executive_summary(user_id)
+    
+    return jsonify({
+        'success': True,
+        'data': dashboard_data,
+        'generated_at': datetime.utcnow().isoformat()
+    })
+
 
 @dashboard_bp.route('/api/dashboard/executive-summary/refresh', methods=['POST'])
 @cross_origin()
 def refresh_executive_summary():
-    """
-    Refresh dashboard data for a specific user
-    Request Body:
-    {
-        "user_id": "user123"
-    }
-    """
-    try:
-        data = request.get_json() or {}
-        user_id = data.get('user_id')
-        
-        if not user_id:
-            user_id = session.get('user_id')
-            if not user_id:
-                return jsonify({
-                    'success': False,
-                    'error': 'User ID is required'
-                }), 400
-        
-        current_app.logger.info(f"Refreshing dashboard data for user: {user_id}")
-        
-        # Refresh dashboard data
-        dashboard_data = dashboard_service.refresh_dashboard_data(user_id)
-        
-        return jsonify({
-            'success': True,
-            'data': dashboard_data,
-            'refreshed_at': datetime.utcnow().isoformat()
-        })
-        
-    except Exception as e:
-        current_app.logger.error(f"Dashboard refresh error: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': 'Failed to refresh dashboard data',
-            'details': str(e)
-        }), 500
+    """Refresh dashboard data"""
+    data = request.get_json() or {}
+    user_id = data.get('user_id') or session.get('user_id')
+    
+    if not user_id:
+        return jsonify({'success': False, 'error': 'User ID required'}), 400
+    
+    current_app.logger.info(f"Refreshing dashboard for user: {user_id}")
+    dashboard_data = dashboard_service.refresh_dashboard_data(user_id)
+    
+    return jsonify({
+        'success': True,
+        'data': dashboard_data,
+        'refreshed_at': datetime.utcnow().isoformat()
+    })
+
 
 @dashboard_bp.route('/api/dashboard/sub-element/<element_key>', methods=['GET'])
 @cross_origin()
 def get_sub_element_details(element_key):
-    """
-    Get detailed data for a specific business sub-element
-    Path Parameters:
-    - element_key: Key of the sub-element (e.g., 'company_vision', 'market_opportunity')
-    Query Parameters:
-    - user_id: User ID (optional)
-    """
-    try:
-        user_id = request.args.get('user_id', session.get('user_id', 'demo-user'))
-        
-        current_app.logger.info(f"Getting sub-element '{element_key}' for user: {user_id}")
-        
-        # Get detailed sub-element data
-        sub_element_data = dashboard_service.get_sub_element_details(user_id, element_key)
-        
-        if not sub_element_data:
-            return jsonify({
-                'success': False,
-                'error': f'Sub-element "{element_key}" not found'
-            }), 404
-        
-        return jsonify({
-            'success': True,
-            'data': sub_element_data,
-            'element_key': element_key
-        })
-        
-    except Exception as e:
-        current_app.logger.error(f"Sub-element retrieval error: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': 'Failed to retrieve sub-element data',
-            'details': str(e)
-        }), 500
+    """Get detailed data for specific business sub-element"""
+    user_id = _get_user_id()
+    current_app.logger.info(f"Sub-element '{element_key}' for user: {user_id}")
+    
+    sub_element_data = dashboard_service.get_sub_element_details(user_id, element_key)
+    
+    if not sub_element_data:
+        return jsonify({'success': False, 'error': f'Sub-element "{element_key}" not found'}), 404
+    
+    return jsonify({
+        'success': True,
+        'data': sub_element_data,
+        'element_key': element_key
+    })
+
 
 @dashboard_bp.route('/api/dashboard/metrics', methods=['GET'])
 @cross_origin()
 def get_dashboard_metrics():
-    """
-    Get aggregated dashboard metrics
-    Query Parameters:
-    - user_id: User ID (optional, if not provided returns aggregate metrics)
-    """
-    try:
-        user_id = request.args.get('user_id')
-        
-        if user_id:
-            current_app.logger.info(f"Getting metrics for user: {user_id}")
-        else:
-            current_app.logger.info("Getting aggregate dashboard metrics")
-        
-        # Get dashboard metrics
-        metrics = dashboard_service.get_dashboard_metrics(user_id)
-        
-        return jsonify({
-            'success': True,
-            'data': metrics,
-            'user_specific': bool(user_id)
-        })
-        
-    except Exception as e:
-        current_app.logger.error(f"Dashboard metrics error: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': 'Failed to retrieve dashboard metrics',
-            'details': str(e)
-        }), 500
+    """Get aggregated dashboard metrics"""
+    user_id = request.args.get('user_id')
+    
+    if user_id:
+        current_app.logger.info(f"Getting metrics for user: {user_id}")
+    else:
+        current_app.logger.info("Getting aggregate dashboard metrics")
+    
+    metrics = dashboard_service.get_dashboard_metrics(user_id)
+    
+    return jsonify({
+        'success': True,
+        'data': metrics,
+        'user_specific': bool(user_id)
+    })
+
 
 @dashboard_bp.route('/api/dashboard/health', methods=['GET'])
 @cross_origin()
@@ -375,7 +310,8 @@ def export_complete_user(user_id):
     try:
         current_app.logger.info(f"Exporting user data for user_id: {user_id}")
         
-        filename = f'/tmp/user_{user_id}_export.json'
+        tmp_dir = tempfile.gettempdir()
+        filename = os.path.join(tmp_dir, f'user_{user_id}_export.json')
         export_data = complete_user_generator.export_to_json(user_id, filename)
         
         if export_data:

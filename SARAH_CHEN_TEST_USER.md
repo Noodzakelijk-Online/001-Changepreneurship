@@ -6,7 +6,7 @@
 ## User Details
 - **Username**: `sarah_chen_founder`
 - **Email**: `sarah.chen@techvision.io`
-- **User ID**: `4`
+- **User ID**: `3`
 - **Password**: `test123` (for testing purposes)
 
 ## Profile Summary
@@ -101,7 +101,7 @@ Based on 50+ detailed assessment responses
 
 2. **Executive Summary Dashboard**:
    ```bash
-   GET http://localhost:5000/api/dashboard/executive-summary?user_id=4
+   GET http://localhost:5000/api/dashboard/executive-summary?user_id=3
    ```
 
 3. **Export User Data**:
@@ -120,7 +120,7 @@ Based on 50+ detailed assessment responses
 
 3. **Executive Summary Dashboard**: 
    - http://localhost:5173/dashboard/executive-summary
-   - Use ?user_id=4 query parameter
+   - Use ?user_id=3 query parameter
 
 ## JSON Export
 
@@ -146,7 +146,7 @@ POST http://localhost:5000/api/dashboard/complete-user/create
 # Response
 {
   "success": true,
-  "user_id": 4,
+   "user_id": 3,
   "username": "sarah_chen_founder",
   "completion": "100% (all 7 assessments fully completed)"
 }
