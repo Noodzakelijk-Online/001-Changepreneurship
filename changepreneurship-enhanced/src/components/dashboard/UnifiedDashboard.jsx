@@ -29,7 +29,7 @@ import {
 
 const UnifiedDashboard = () => {
   const { user, isAuthenticated } = useAuth()
-  const { calculateOverallProgress } = useAssessment()
+  const { getOverallProgress } = useAssessment()
   const { metrics, profile, responses, insights, loading, error, refresh, hasData } = useDashboardData()
   const [expandedPhases, setExpandedPhases] = useState({})
   const [showAllResponses, setShowAllResponses] = useState(false)
@@ -70,7 +70,7 @@ const UnifiedDashboard = () => {
   }
 
   // Calculate metrics from available data
-  const overallProgress = calculateOverallProgress() || metrics?.overall_progress || 0
+  const overallProgress = getOverallProgress() || metrics?.overall_progress || 0
   const completedPhasesCount = metrics?.completed_phases || 0
   const totalTime = metrics?.total_time_spent || 0
   const aiScore = insights?.overall_score || profile?.success_probability || 0
