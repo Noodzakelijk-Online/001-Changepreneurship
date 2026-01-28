@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="6" time="2.422" timestamp="2026-01-28T08:58:33.807649+01:00" hostname="DESKTOP-0FSRPKR"><testcase classname="tests.test_e2e.TestFullUserJourney" name="test_new_user_complete_flow" time="0.310"><failure message="KeyError: 'data'">tests\test_e2e.py:30: in test_new_user_complete_flow
+    assert dashboard.json['data']['overall_progress'] == 0
+           ^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'data'</failure></testcase><testcase classname="tests.test_e2e.TestPartialJourney" name="test_save_and_resume" time="0.279"><failure message="KeyError: 'data'">tests\test_e2e.py:230: in test_save_and_resume
+    initial_progress = progress1.json['data']['overall_progress']
+                       ^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'data'</failure></testcase><testcase classname="tests.test_e2e.TestDataConsistency" name="test_response_consistency" time="0.482" /><testcase classname="tests.test_e2e.TestConcurrentUsers" name="test_multiple_users_isolated_data" time="0.529"><failure message="assert None != None&#10; +  where None = &lt;WrapperTestResponse streamed [404 NOT FOUND]&gt;.json&#10; +  and   None = &lt;WrapperTestResponse streamed [404 NOT FOUND]&gt;.json">tests\test_e2e.py:343: in test_multiple_users_isolated_data
+    assert user1_data.json != user2_data.json
+E   assert None != None
+E    +  where None = &lt;WrapperTestResponse streamed [404 NOT FOUND]&gt;.json
+E    +  and   None = &lt;WrapperTestResponse streamed [404 NOT FOUND]&gt;.json</failure></testcase><testcase classname="tests.test_e2e.TestErrorRecovery" name="test_partial_submission_rollback" time="0.272" /><testcase classname="tests.test_e2e.TestFullStackIntegration" name="test_ai_pipeline" time="0.298" /></testsuite></testsuites>

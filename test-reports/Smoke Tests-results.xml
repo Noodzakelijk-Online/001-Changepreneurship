@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="8" time="1.719" timestamp="2026-01-28T08:58:18.097154+01:00" hostname="DESKTOP-0FSRPKR"><testcase classname="tests.test_smoke.TestSmokeTests" name="test_backend_is_running" time="0.165"><failure message="assert 404 == 200&#10; +  where 404 = &lt;WrapperTestResponse streamed [404 NOT FOUND]&gt;.status_code">tests\test_smoke.py:16: in test_backend_is_running
+    assert response.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = &lt;WrapperTestResponse streamed [404 NOT FOUND]&gt;.status_code</failure></testcase><testcase classname="tests.test_smoke.TestSmokeTests" name="test_database_is_connected" time="0.016"><failure message="assert 404 == 200&#10; +  where 404 = &lt;WrapperTestResponse streamed [404 NOT FOUND]&gt;.status_code">tests\test_smoke.py:22: in test_database_is_connected
+    assert response.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = &lt;WrapperTestResponse streamed [404 NOT FOUND]&gt;.status_code</failure></testcase><testcase classname="tests.test_smoke.TestSmokeTests" name="test_can_register_user" time="0.157" /><testcase classname="tests.test_smoke.TestSmokeTests" name="test_can_login" time="0.270" /><testcase classname="tests.test_smoke.TestSmokeTests" name="test_can_access_dashboard" time="0.275"><failure message="assert 500 == 200&#10; +  where 500 = &lt;WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]&gt;.status_code">tests\test_smoke.py:75: in test_can_access_dashboard
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = &lt;WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]&gt;.status_code</failure></testcase><testcase classname="tests.test_smoke.TestSmokeTests" name="test_can_submit_assessment" time="0.270"><failure message="assert 404 in [200, 201]&#10; +  where 404 = &lt;WrapperTestResponse streamed [404 NOT FOUND]&gt;.status_code">tests\test_smoke.py:98: in test_can_submit_assessment
+    assert response.status_code in [200, 201]
+E   assert 404 in [200, 201]
+E    +  where 404 = &lt;WrapperTestResponse streamed [404 NOT FOUND]&gt;.status_code</failure></testcase><testcase classname="tests.test_smoke.TestSmokeTests" name="test_response_times_acceptable" time="0.296" /><testcase classname="tests.test_smoke.TestSmokeTests" name="test_no_critical_errors_in_logs" time="0.016"><failure message="assert 404 == 200&#10; +  where 404 = &lt;WrapperTestResponse streamed [404 NOT FOUND]&gt;.status_code">tests\test_smoke.py:131: in test_no_critical_errors_in_logs
+    assert response.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = &lt;WrapperTestResponse streamed [404 NOT FOUND]&gt;.status_code</failure></testcase></testsuite></testsuites>

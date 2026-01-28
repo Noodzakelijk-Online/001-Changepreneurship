@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.533" timestamp="2026-01-28T08:58:21.634449+01:00" hostname="DESKTOP-0FSRPKR"><testcase classname="tests.test_auth" name="test_register_rolls_back_user_on_profile_failure" time="0.307"><failure message="assert 201 == 500&#10; +  where 201 = &lt;WrapperTestResponse streamed [201 CREATED]&gt;.status_code">tests\test_auth.py:19: in test_register_rolls_back_user_on_profile_failure
+    assert response.status_code == 500
+E   assert 201 == 500
+E    +  where 201 = &lt;WrapperTestResponse streamed [201 CREATED]&gt;.status_code</failure></testcase></testsuite></testsuites>
