@@ -357,18 +357,36 @@ def get_user_responses(user_id):
         if user.id != user_id:
             return jsonify({'error': 'Unauthorized'}), 403
         
-        # Get all responses for user
-        responses = AssessmentResponse.query.filter_by(user_id=user_id).order_by(
+        # Get all assessments for this user
+        user_assessments = Assessment.query.filter_by(user_id=user_id).all()
+        assessment_ids = [a.id for a in user_assessments]
+        
+        if not assessment_ids:
+            return jsonify({
+                'success': True,
+                'total_responses': 0,
+                'responses': [],
+                'by_phase': {}
+            }), 200
+        
+        # Get all responses for user's assessments
+        responses = AssessmentResponse.query.filter(
+            AssessmentResponse.assessment_id.in_(assessment_ids)
+        ).order_by(
             AssessmentResponse.created_at.desc()
         ).all()
+        
+        # Create assessment map for phase lookup
+        assessment_map = {a.id: a.phase_name for a in user_assessments}
         
         # Format responses with full details
         formatted_responses = []
         for response in responses:
+            phase_id = assessment_map.get(response.assessment_id, 'unknown')
             formatted_responses.append({
                 'id': response.id,
                 'assessment_id': response.assessment_id,
-                'phase_id': response.phase_id,
+                'phase_id': phase_id,
                 'question_id': response.question_id,
                 'question_text': response.question_text,
                 'response_type': response.response_type,

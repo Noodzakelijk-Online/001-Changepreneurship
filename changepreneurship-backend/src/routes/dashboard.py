@@ -2,7 +2,9 @@
 from flask import Blueprint, request, jsonify, session, current_app
 from flask_cors import cross_origin
 from datetime import datetime
+from sqlalchemy import text
 
+from ..models.assessment import db
 from ..services.dashboard_service import DashboardDataGenerator
 from ..services.test_data_generator import TestDataGenerator
 from ..services.complete_user_generator import CompleteUserGenerator
@@ -107,7 +109,7 @@ def dashboard_health_check():
     """
     try:
         # Test database connection
-        db.session.execute('SELECT 1')
+        db.session.execute(text('SELECT 1'))
         
         # Test dashboard service initialization
         test_data = dashboard_service._generate_fallback_data('health-check')
