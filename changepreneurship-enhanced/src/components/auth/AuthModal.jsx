@@ -8,17 +8,32 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
   if (!isOpen) return null;
 
   const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) {
+    // Only close if clicking directly on overlay, not when dragging/selecting text
+    if (e.target === e.currentTarget && e.type === 'click') {
       onClose();
     }
+  };
+
+  const handleOverlayMouseDown = (e) => {
+    // Prevent closing modal when user is selecting text
+    e.stopPropagation();
   };
 
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       onClick={handleOverlayClick}
+      onMouseDown={(e) => {
+        // Don't interfere with text selection inside modal
+        if (e.target === e.currentTarget) {
+          e.preventDefault();
+        }
+      }}
     >
-      <div className="relative w-full max-w-md">
+      <div 
+        className="relative w-full max-w-md"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         <button
           onClick={onClose}
           className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors duration-200"
