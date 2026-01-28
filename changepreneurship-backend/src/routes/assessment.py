@@ -343,3 +343,56 @@ def update_profile():
         current_app.logger.error(f"Update profile error: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
+
+@assessment_bp.route('/responses/user/<int:user_id>', methods=['GET'])
+def get_user_responses(user_id):
+    """Get all assessment responses for a specific user with question details"""
+    try:
+        # Authentication check
+        user, session, error, status_code = verify_session_token()
+        if error:
+            return jsonify(error), status_code
+        
+        # Only allow users to see their own responses (or add admin check)
+        if user.id != user_id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Get all responses for user
+        responses = AssessmentResponse.query.filter_by(user_id=user_id).order_by(
+            AssessmentResponse.created_at.desc()
+        ).all()
+        
+        # Format responses with full details
+        formatted_responses = []
+        for response in responses:
+            formatted_responses.append({
+                'id': response.id,
+                'assessment_id': response.assessment_id,
+                'phase_id': response.phase_id,
+                'question_id': response.question_id,
+                'question_text': response.question_text,
+                'response_type': response.response_type,
+                'response_value': response.response_value,
+                'created_at': response.created_at.isoformat() if response.created_at else None,
+                'updated_at': response.updated_at.isoformat() if response.updated_at else None
+            })
+        
+        # Group by phase for easier frontend consumption
+        phases_map = {}
+        for resp in formatted_responses:
+            phase_id = resp['phase_id']
+            if phase_id not in phases_map:
+                phases_map[phase_id] = []
+            phases_map[phase_id].append(resp)
+        
+        return jsonify({
+            'success': True,
+            'total_responses': len(formatted_responses),
+            'responses': formatted_responses,
+            'by_phase': phases_map
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Get user responses error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
