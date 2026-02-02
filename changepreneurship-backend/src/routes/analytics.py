@@ -44,10 +44,11 @@ def get_dashboard_overview():
                 break
         
         # Get recent activity (using updated_at from AssessmentResponse)
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
         recent_responses = db.session.query(AssessmentResponse)\
             .join(Assessment)\
             .filter(Assessment.user_id == user_id)\
-            .filter(AssessmentResponse.updated_at >= datetime.utcnow() - timedelta(days=30))\
+            .filter(AssessmentResponse.updated_at >= thirty_days_ago)\
             .order_by(desc(AssessmentResponse.updated_at))\
             .limit(10).all()
         
@@ -354,11 +355,15 @@ def generate_user_insights(assessments, overall_progress):
         })
     
     # Add time-based insights
-    recent_activity = db.session.query(AssessmentResponse)\
-        .join(Assessment)\
-        .filter(Assessment.user_id == assessments[0].user_id if assessments else 0)\
-        .filter(AssessmentResponse.updated_at >= datetime.utcnow() - timedelta(days=7))\
-        .count()
+    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    recent_activity = 0
+    
+    if assessments:
+        recent_activity = db.session.query(AssessmentResponse)\
+            .join(Assessment)\
+            .filter(Assessment.user_id == assessments[0].user_id)\
+            .filter(AssessmentResponse.updated_at >= seven_days_ago)\
+            .count()
     
     if recent_activity == 0 and assessments:
         insights.append({

@@ -149,23 +149,89 @@ class DashboardDataGenerator:
                         ]
                         
                         logger.info(f"Running LLM consensus with {len(configs)} models")
-                        consensus = LLMConsensus(configs=configs).run(prompt=prompt, system="Executive summary peer generation")
+                        
+                        # Enhanced prompt for structured insights
+                        consensus_prompt = (
+                            "You are a business consultant analyzing a startup founder's assessment.\n"
+                            f"Overall score: {overall_score}/100. Data completeness: {int(data_completeness*100)}%. "
+                            f"Assessments completed: {assessment_count}.\n\n"
+                            "Provide 4-6 key insights in the following format:\n"
+                            "- [STRENGTH] Description of a strength\n"
+                            "- [WARNING] Description of a risk or concern\n"
+                            "- [RECOMMENDATION] Actionable advice\n\n"
+                            "Be specific, actionable, and focus on business readiness."
+                        )
+                        
+                        consensus = LLMConsensus(configs=configs).run(
+                            prompt=consensus_prompt, 
+                            system="Business insights consensus generator"
+                        )
                         bullets = consensus.get("majority", [])
                         minority = consensus.get("minority_reviews", [])
                         logger.debug(f"Consensus: {len(bullets)} majority, {len(minority)} minority reviews")
                         
-                        minority_notes = []
-                        for m in minority:
-                            tag = "Niche Insight" if m.get("label") == "niche_insight" else "Hallucination"
-                            minority_notes.append(f"{tag}: {m.get('claim')}")
+                        # Transform bullets into key_insights structure
+                        llm_insights = []
+                        for bullet in bullets:
+                            # Parse type from bullet (e.g., "[STRENGTH] text")
+                            bullet_text = bullet.strip()
+                            insight_type = 'recommendation'  # default
+                            title = 'Business Insight'
+                            description = bullet_text
+                            
+                            if bullet_text.startswith('[STRENGTH]'):
+                                insight_type = 'strength'
+                                title = 'Strength Identified'
+                                description = bullet_text.replace('[STRENGTH]', '').strip()
+                            elif bullet_text.startswith('[WARNING]'):
+                                insight_type = 'warning'
+                                title = 'Area of Concern'
+                                description = bullet_text.replace('[WARNING]', '').strip()
+                            elif bullet_text.startswith('[RECOMMENDATION]'):
+                                insight_type = 'recommendation'
+                                title = 'Recommended Action'
+                                description = bullet_text.replace('[RECOMMENDATION]', '').strip()
+                            
+                            llm_insights.append({
+                                'type': insight_type,
+                                'title': title,
+                                'description': description,
+                                'source': 'llm_consensus'
+                            })
                         
-                        merged = "\n".join([f"- {b}" for b in bullets] + (["", "Minority review:"] if minority_notes else []) + [f"- {n}" for n in minority_notes])
-                        payload['ai_insights']['narrative'] = merged or payload['ai_insights'].get('narrative', '')
+                        # Add minority insights as niche recommendations
+                        for m in minority:
+                            label = m.get("label", "")
+                            claim = m.get("claim", "")
+                            if label == "niche_insight":
+                                llm_insights.append({
+                                    'type': 'recommendation',
+                                    'title': 'Niche Insight',
+                                    'description': claim,
+                                    'source': 'llm_minority'
+                                })
+                        
+                        # Merge LLM insights with rule-based insights
+                        # LLM insights take priority, add up to 6 total
+                        combined_insights = llm_insights[:4] + payload['ai_insights']['key_insights'][:2]
+                        payload['ai_insights']['key_insights'] = combined_insights[:6]
+                        
+                        # Update narrative with formatted text
+                        narrative_lines = [f"- {bullet}" for bullet in bullets]
+                        if minority:
+                            narrative_lines.append("")
+                            narrative_lines.append("Minority perspectives:")
+                            for m in minority:
+                                tag = "Niche Insight" if m.get("label") == "niche_insight" else "Alternative View"
+                                narrative_lines.append(f"- {tag}: {m.get('claim')}")
+                        
+                        payload['ai_insights']['narrative'] = "\n".join(narrative_lines)
                         payload['ai_insights']['consensus'] = {
                             "models": [{"provider": c.get("provider"), "model": c.get("model")} for c in configs],
-                            "confidence": len(bullets) / max(1, len(bullets) + len(minority_notes))
+                            "confidence": len(bullets) / max(1, len(bullets) + len(minority)),
+                            "total_insights": len(llm_insights)
                         }
-                        logger.info(f"Consensus confidence: {payload['ai_insights']['consensus']['confidence']:.2%}")
+                        logger.info(f"Consensus confidence: {payload['ai_insights']['consensus']['confidence']:.2%}, insights: {len(llm_insights)}")
                     except Exception as e:
                         logger.error(f"LLM consensus error: {e}", exc_info=True)
 
@@ -180,15 +246,21 @@ class DashboardDataGenerator:
         Retrieve and analyze user's assessment responses
         """
         try:
+            logger.info(f"[_get_user_assessment_data] Fetching data for user_id: {user_id} (type: {type(user_id)})")
+            
             # Convert user_id to int if it's numeric
             if isinstance(user_id, str) and user_id.isdigit():
                 user_id = int(user_id)
+                logger.info(f"[_get_user_assessment_data] Converted to int: {user_id}")
             
             user = self.session.query(User).filter_by(id=user_id).first()
             if not user:
+                logger.warning(f"[_get_user_assessment_data] User not found: {user_id}")
                 return None
             
+            logger.info(f"[_get_user_assessment_data] Found user: {user.username}")
             assessments = self.session.query(Assessment).filter_by(user_id=user_id).all()
+            logger.info(f"[_get_user_assessment_data] Found {len(assessments)} assessments")
             
             user_data = {
                 'user_id': user_id,
@@ -201,6 +273,7 @@ class DashboardDataGenerator:
                 responses = self.session.query(AssessmentResponse).filter_by(
                     assessment_id=assessment.id
                 ).all()
+                logger.info(f"[_get_user_assessment_data] Assessment {assessment.phase_name}: {len(responses)} responses")
                 
                 assessment_data = {
                     'id': assessment.id,
@@ -579,64 +652,425 @@ class DashboardDataGenerator:
         
         return sources[:4]  # Limit to 4 sources
 
-    def _generate_improvements(self, element: Dict, user_data: Dict, score: int) -> List[str]:
+    def _generate_improvements(self, element: Dict, user_data: Dict, score: int) -> List[Dict]:
         """
-        Generate AI-driven improvement suggestions
+        Generate AI-driven improvement suggestions with actionable steps
+        Returns list of improvement objects with title, description, and action_steps
         """
         element_key = element['key']
         
         improvement_suggestions = {
             'company_vision': [
-                "Develop a more detailed mission statement that clearly articulates your company's purpose",
-                "Conduct stakeholder interviews to validate vision alignment",
-                "Create measurable vision milestones for the next 3-5 years"
+                {
+                    'title': 'Refine Mission Statement',
+                    'description': 'Develop a more detailed mission statement that clearly articulates your company\'s purpose and impact',
+                    'action_steps': [
+                        'Draft 3-5 variations of mission statement (30 min)',
+                        'Test with 5-10 target customers for clarity (1 week)',
+                        'Align with core values and long-term goals (2 hours)',
+                        'Finalize and integrate into all company materials'
+                    ],
+                    'impact': 'high',
+                    'effort': 'medium',
+                    'timeline': '2-3 weeks'
+                },
+                {
+                    'title': 'Validate Vision Alignment',
+                    'description': 'Conduct stakeholder interviews to ensure vision resonates with team, customers, and partners',
+                    'action_steps': [
+                        'Identify 10-15 key stakeholders (founders, early customers, advisors)',
+                        'Create interview guide with 5-7 core questions',
+                        'Schedule and conduct 20-30 min interviews',
+                        'Analyze feedback and adjust vision accordingly'
+                    ],
+                    'impact': 'high',
+                    'effort': 'high',
+                    'timeline': '3-4 weeks'
+                },
+                {
+                    'title': 'Create Vision Milestones',
+                    'description': 'Establish measurable milestones for the next 3-5 years with quarterly checkpoints',
+                    'action_steps': [
+                        'Define 3-5 major milestones per year',
+                        'Break down into quarterly OKRs (Objectives & Key Results)',
+                        'Assign ownership and accountability for each milestone',
+                        'Set up quarterly review process'
+                    ],
+                    'impact': 'medium',
+                    'effort': 'medium',
+                    'timeline': '1-2 weeks'
+                }
             ],
             'market_opportunity': [
-                "Conduct additional primary market research with target customers",
-                "Analyze competitor pricing strategies and market positioning",
-                "Validate market size assumptions with industry reports"
+                {
+                    'title': 'Primary Market Research',
+                    'description': 'Conduct in-depth customer interviews and surveys to validate market assumptions',
+                    'action_steps': [
+                        'Design survey with 10-15 questions (2 hours)',
+                        'Recruit 50-100 target respondents via LinkedIn, forums',
+                        'Conduct 15-20 customer discovery interviews (3 weeks)',
+                        'Analyze data and update market sizing'
+                    ],
+                    'impact': 'high',
+                    'effort': 'high',
+                    'timeline': '4-6 weeks'
+                },
+                {
+                    'title': 'Competitive Analysis Deep-Dive',
+                    'description': 'Analyze top 5-10 competitors\' pricing, positioning, and market share strategies',
+                    'action_steps': [
+                        'Identify direct and indirect competitors',
+                        'Create competitive matrix (pricing, features, positioning)',
+                        'Sign up for competitor products/trials',
+                        'Document gaps and opportunities'
+                    ],
+                    'impact': 'high',
+                    'effort': 'medium',
+                    'timeline': '2-3 weeks'
+                },
+                {
+                    'title': 'Validate Market Size',
+                    'description': 'Cross-reference market assumptions with industry reports and third-party data',
+                    'action_steps': [
+                        'Purchase or access industry reports (Gartner, IBISWorld)',
+                        'Calculate TAM, SAM, SOM with bottom-up approach',
+                        'Validate with industry associations and experts',
+                        'Update financial projections based on validated data'
+                    ],
+                    'impact': 'medium',
+                    'effort': 'medium',
+                    'timeline': '1-2 weeks'
+                }
             ],
             'competitive_advantage': [
-                "Develop intellectual property protection strategy",
-                "Identify and strengthen unique value proposition elements",
-                "Create competitive moat through strategic partnerships"
+                {
+                    'title': 'IP Protection Strategy',
+                    'description': 'Develop intellectual property protection through patents, trademarks, or trade secrets',
+                    'action_steps': [
+                        'Conduct IP audit of current assets',
+                        'Consult with IP attorney ($2-5K budget)',
+                        'File provisional patent or trademark applications',
+                        'Implement trade secret protection protocols'
+                    ],
+                    'impact': 'high',
+                    'effort': 'high',
+                    'timeline': '2-3 months'
+                },
+                {
+                    'title': 'Strengthen UVP',
+                    'description': 'Identify and amplify unique value proposition elements that competitors cannot easily replicate',
+                    'action_steps': [
+                        'List all unique features, benefits, and capabilities',
+                        'Rank by defensibility and customer value',
+                        'Test messaging with 20-30 target customers',
+                        'Refine UVP based on feedback and competitive landscape'
+                    ],
+                    'impact': 'high',
+                    'effort': 'medium',
+                    'timeline': '3-4 weeks'
+                },
+                {
+                    'title': 'Strategic Partnerships',
+                    'description': 'Create competitive moat through exclusive partnerships with key industry players',
+                    'action_steps': [
+                        'Identify 5-10 potential strategic partners',
+                        'Create partnership proposal deck',
+                        'Reach out and schedule exploratory meetings',
+                        'Negotiate terms and formalize agreements'
+                    ],
+                    'impact': 'high',
+                    'effort': 'high',
+                    'timeline': '2-4 months'
+                }
             ],
             'business_model': [
-                "Test multiple revenue stream options with pilot customers",
-                "Optimize cost structure for better unit economics",
-                "Develop scalable operational processes"
+                {
+                    'title': 'Revenue Stream Testing',
+                    'description': 'Test multiple monetization options with pilot customers before full commitment',
+                    'action_steps': [
+                        'Design 3-5 pricing models (subscription, usage-based, freemium)',
+                        'Create A/B test landing pages for each model',
+                        'Run pilots with 10-20 early customers per model',
+                        'Analyze conversion, retention, and LTV data'
+                    ],
+                    'impact': 'high',
+                    'effort': 'high',
+                    'timeline': '6-8 weeks'
+                },
+                {
+                    'title': 'Optimize Unit Economics',
+                    'description': 'Restructure cost base to achieve positive contribution margin at scale',
+                    'action_steps': [
+                        'Calculate current CAC, LTV, and contribution margin',
+                        'Identify top 3-5 cost drivers',
+                        'Negotiate with vendors or find alternatives',
+                        'Set targets: LTV/CAC > 3, payback period < 12 months'
+                    ],
+                    'impact': 'high',
+                    'effort': 'medium',
+                    'timeline': '4-6 weeks'
+                },
+                {
+                    'title': 'Scalable Operations',
+                    'description': 'Build operational processes that can scale 10x without proportional cost increase',
+                    'action_steps': [
+                        'Document current workflows and bottlenecks',
+                        'Identify automation opportunities (tools, scripts)',
+                        'Implement SOPs (Standard Operating Procedures)',
+                        'Test scalability with 2-3x volume simulation'
+                    ],
+                    'impact': 'medium',
+                    'effort': 'high',
+                    'timeline': '2-3 months'
+                }
             ],
             'financial_projections': [
-                "Create detailed financial models with sensitivity analysis",
-                "Establish key performance indicators (KPIs) tracking",
-                "Develop funding strategy and investor pitch materials"
+                {
+                    'title': 'Build Financial Model',
+                    'description': 'Create detailed 3-5 year financial projections with sensitivity analysis',
+                    'action_steps': [
+                        'Set up 3-statement model (P&L, Balance Sheet, Cash Flow)',
+                        'Define assumptions for revenue, costs, hiring plan',
+                        'Run scenario analysis (best, base, worst case)',
+                        'Validate with industry benchmarks and advisors'
+                    ],
+                    'impact': 'high',
+                    'effort': 'high',
+                    'timeline': '2-3 weeks'
+                },
+                {
+                    'title': 'KPI Tracking System',
+                    'description': 'Establish real-time dashboard for tracking critical business metrics',
+                    'action_steps': [
+                        'Define 5-10 North Star metrics (MRR, churn, CAC, etc.)',
+                        'Set up data collection and analytics (Segment, Mixpanel)',
+                        'Create weekly/monthly reporting dashboards',
+                        'Schedule regular review meetings with team'
+                    ],
+                    'impact': 'high',
+                    'effort': 'medium',
+                    'timeline': '2-4 weeks'
+                },
+                {
+                    'title': 'Funding Strategy',
+                    'description': 'Develop investor pitch materials and determine optimal fundraising approach',
+                    'action_steps': [
+                        'Calculate capital needs for next 18-24 months',
+                        'Research funding options (angels, VCs, grants, revenue-based)',
+                        'Create pitch deck (10-15 slides)',
+                        'Build investor target list and start outreach'
+                    ],
+                    'impact': 'high',
+                    'effort': 'high',
+                    'timeline': '1-2 months'
+                }
             ],
             'team_expertise': [
-                "Identify and recruit key skill gaps in the team",
-                "Establish advisory board with industry experts",
-                "Develop team performance and growth frameworks"
+                {
+                    'title': 'Skill Gap Analysis',
+                    'description': 'Identify critical skill gaps and create hiring/upskilling plan',
+                    'action_steps': [
+                        'Map required skills for next 12 months',
+                        'Assess current team capabilities',
+                        'Prioritize top 3-5 gaps by impact and urgency',
+                        'Decide: hire full-time, contractor, or advisor'
+                    ],
+                    'impact': 'high',
+                    'effort': 'medium',
+                    'timeline': '1-2 weeks'
+                },
+                {
+                    'title': 'Build Advisory Board',
+                    'description': 'Recruit 3-5 advisors with domain expertise, network, and fundraising experience',
+                    'action_steps': [
+                        'Define advisor criteria and value-add',
+                        'Identify candidates via LinkedIn, warm intros',
+                        'Offer 0.25-1% equity with 2-4 year vesting',
+                        'Schedule quarterly advisory board meetings'
+                    ],
+                    'impact': 'high',
+                    'effort': 'medium',
+                    'timeline': '1-3 months'
+                },
+                {
+                    'title': 'Performance Framework',
+                    'description': 'Establish OKRs, 1-on-1s, and growth plans for team development',
+                    'action_steps': [
+                        'Implement OKR framework with quarterly cycles',
+                        'Schedule bi-weekly 1-on-1s with each team member',
+                        'Create individual development plans (IDPs)',
+                        'Set up 360-degree feedback process'
+                    ],
+                    'impact': 'medium',
+                    'effort': 'medium',
+                    'timeline': '2-4 weeks'
+                }
             ],
             'product_development': [
-                "Implement agile development methodology",
-                "Establish user feedback collection and integration processes",
-                "Create detailed product roadmap with feature prioritization"
+                {
+                    'title': 'Agile Implementation',
+                    'description': 'Adopt agile methodology with 2-week sprints and continuous delivery',
+                    'action_steps': [
+                        'Set up project management tool (Jira, Linear)',
+                        'Define sprint cadence and ceremonies (standup, retro, planning)',
+                        'Create product backlog with prioritized features',
+                        'Run first 2-3 sprints and iterate on process'
+                    ],
+                    'impact': 'high',
+                    'effort': 'medium',
+                    'timeline': '2-3 weeks'
+                },
+                {
+                    'title': 'User Feedback Loop',
+                    'description': 'Build systematic process for collecting, analyzing, and acting on user feedback',
+                    'action_steps': [
+                        'Implement in-app feedback tools (Intercom, Hotjar)',
+                        'Schedule monthly user interviews (5-10 users)',
+                        'Analyze support tickets and feature requests',
+                        'Prioritize roadmap based on feedback data'
+                    ],
+                    'impact': 'high',
+                    'effort': 'medium',
+                    'timeline': '2-4 weeks'
+                },
+                {
+                    'title': 'Product Roadmap',
+                    'description': 'Create detailed 6-12 month roadmap with feature prioritization framework',
+                    'action_steps': [
+                        'Use RICE scoring (Reach, Impact, Confidence, Effort)',
+                        'Define MVP features vs. nice-to-haves',
+                        'Create quarterly release plan',
+                        'Communicate roadmap to team and stakeholders'
+                    ],
+                    'impact': 'medium',
+                    'effort': 'medium',
+                    'timeline': '1-2 weeks'
+                }
             ],
             'go_to_market': [
-                "Develop multi-channel customer acquisition strategy",
-                "Optimize customer acquisition cost (CAC) and lifetime value (LTV)",
-                "Create comprehensive digital marketing funnel"
+                {
+                    'title': 'Multi-Channel Acquisition',
+                    'description': 'Test and optimize customer acquisition across 3-5 marketing channels',
+                    'action_steps': [
+                        'Identify top channels (SEO, paid ads, content, partnerships)',
+                        'Allocate $5-10K budget for channel testing',
+                        'Run 30-day experiments per channel',
+                        'Double down on channels with CAC < 1/3 LTV'
+                    ],
+                    'impact': 'high',
+                    'effort': 'high',
+                    'timeline': '2-3 months'
+                },
+                {
+                    'title': 'Optimize CAC/LTV',
+                    'description': 'Reduce customer acquisition cost and increase lifetime value through retention',
+                    'action_steps': [
+                        'Calculate current CAC by channel',
+                        'Implement retention tactics (onboarding, email campaigns)',
+                        'Test pricing and upsell strategies',
+                        'Target: LTV/CAC ratio > 3x, payback < 12 months'
+                    ],
+                    'impact': 'high',
+                    'effort': 'high',
+                    'timeline': '1-2 months'
+                },
+                {
+                    'title': 'Marketing Funnel',
+                    'description': 'Build comprehensive digital funnel from awareness to conversion',
+                    'action_steps': [
+                        'Map customer journey stages (awareness → consideration → decision)',
+                        'Create content for each stage (blog, case studies, demos)',
+                        'Set up marketing automation (HubSpot, Mailchimp)',
+                        'Track conversion rates at each funnel stage'
+                    ],
+                    'impact': 'high',
+                    'effort': 'high',
+                    'timeline': '1-2 months'
+                }
             ],
             'risk_management': [
-                "Conduct comprehensive risk assessment across all business areas",
-                "Develop detailed contingency plans for identified risks",
-                "Establish regular risk monitoring and mitigation processes"
+                {
+                    'title': 'Comprehensive Risk Assessment',
+                    'description': 'Identify and quantify risks across market, financial, operational, and technical domains',
+                    'action_steps': [
+                        'Brainstorm 20-30 potential risks across all areas',
+                        'Rate each risk by probability and impact (1-5 scale)',
+                        'Prioritize top 10 risks (probability × impact)',
+                        'Create risk register with quarterly updates'
+                    ],
+                    'impact': 'high',
+                    'effort': 'medium',
+                    'timeline': '1-2 weeks'
+                },
+                {
+                    'title': 'Contingency Planning',
+                    'description': 'Develop detailed playbooks for responding to major business disruptions',
+                    'action_steps': [
+                        'Select top 5 highest-impact risks',
+                        'Create response playbook for each (triggers, actions, owners)',
+                        'Allocate 10-20% cash buffer for emergencies',
+                        'Run tabletop exercises with team'
+                    ],
+                    'impact': 'high',
+                    'effort': 'high',
+                    'timeline': '2-3 weeks'
+                },
+                {
+                    'title': 'Risk Monitoring Process',
+                    'description': 'Establish ongoing system for tracking risk indicators and early warning signals',
+                    'action_steps': [
+                        'Define key risk indicators (KRIs) for each major risk',
+                        'Set up automated monitoring dashboards',
+                        'Schedule monthly risk review meetings',
+                        'Update mitigation plans based on changing landscape'
+                    ],
+                    'impact': 'medium',
+                    'effort': 'medium',
+                    'timeline': '2-3 weeks'
+                }
             ]
         }
         
         suggestions = improvement_suggestions.get(element_key, [
-            "Gather more comprehensive data in this area",
-            "Consult with industry experts for validation",
-            "Develop detailed implementation plans"
+            {
+                'title': 'Enhance Data Collection',
+                'description': 'Gather more comprehensive data in this area through surveys and research',
+                'action_steps': [
+                    'Identify data gaps in current assessment',
+                    'Create research plan to fill knowledge gaps',
+                    'Conduct targeted interviews or surveys',
+                    'Update assessment with new insights'
+                ],
+                'impact': 'medium',
+                'effort': 'medium',
+                'timeline': '2-3 weeks'
+            },
+            {
+                'title': 'Expert Consultation',
+                'description': 'Consult with industry experts for validation and guidance',
+                'action_steps': [
+                    'Identify relevant industry experts or advisors',
+                    'Prepare specific questions and areas for feedback',
+                    'Schedule consultation sessions',
+                    'Integrate expert recommendations into strategy'
+                ],
+                'impact': 'high',
+                'effort': 'medium',
+                'timeline': '3-4 weeks'
+            },
+            {
+                'title': 'Implementation Planning',
+                'description': 'Develop detailed implementation plans with clear milestones',
+                'action_steps': [
+                    'Break down goals into actionable tasks',
+                    'Assign ownership and deadlines',
+                    'Create tracking system for progress',
+                    'Schedule regular review checkpoints'
+                ],
+                'impact': 'medium',
+                'effort': 'low',
+                'timeline': '1-2 weeks'
+            }
         ])
         
         # Filter suggestions based on score level
@@ -653,28 +1087,57 @@ class DashboardDataGenerator:
         """
         assessments = user_data.get('assessments', [])
         
-        strengths = []
-        opportunities = []
+        key_insights = []
         
+        # Strengths (type: 'strength')
         if overall_score >= 70:
-            strengths.extend([
-                "Strong strategic thinking and planning capabilities",
-                "Well-developed business acumen and market awareness"
-            ])
+            key_insights.append({
+                'type': 'strength',
+                'title': 'Strong Strategic Foundation',
+                'description': 'Your assessment responses demonstrate strong strategic thinking and planning capabilities with well-developed business acumen.'
+            })
+            key_insights.append({
+                'type': 'strength',
+                'title': 'Market Awareness',
+                'description': 'Excellent understanding of market dynamics and competitive landscape based on your comprehensive research.'
+            })
         
         if len(assessments) >= 5:
-            strengths.append("Comprehensive assessment completion demonstrates commitment")
+            key_insights.append({
+                'type': 'strength',
+                'title': 'Assessment Completion',
+                'description': f'Completed {len(assessments)} assessment phases, demonstrating strong commitment to thorough business planning.'
+            })
         
+        # Opportunities/Warnings (type: 'warning' or 'recommendation')
         if overall_score < 60:
-            opportunities.extend([
-                "Focus on completing remaining assessment phases",
-                "Develop detailed business plan documentation"
-            ])
+            key_insights.append({
+                'type': 'warning',
+                'title': 'Assessment Progress',
+                'description': 'Complete remaining assessment phases to unlock full business insights and improve your readiness score.'
+            })
+            key_insights.append({
+                'type': 'recommendation',
+                'title': 'Business Plan Development',
+                'description': 'Focus on developing detailed business plan documentation to strengthen your foundation.'
+            })
+        elif overall_score < 80:
+            key_insights.append({
+                'type': 'recommendation',
+                'title': 'Optimization Opportunities',
+                'description': 'Review areas with lower scores to identify specific improvement opportunities.'
+            })
+        
+        # Next steps (type: 'recommendation')
+        key_insights.append({
+            'type': 'recommendation',
+            'title': 'Focus on Weakest Areas',
+            'description': 'Prioritize assessment phases and business elements with the lowest completion scores.'
+        })
         
         return {
             'overall_assessment': f"Your business readiness score of {overall_score}/100 indicates {'strong potential' if overall_score >= 70 else 'good foundation with room for growth' if overall_score >= 50 else 'early-stage development'}.",
-            'key_strengths': strengths,
-            'growth_opportunities': opportunities,
+            'key_insights': key_insights,
             'next_steps': [
                 "Complete any remaining assessment phases",
                 "Focus on areas with lowest scores",
@@ -705,9 +1168,19 @@ class DashboardDataGenerator:
                     {'name': 'Default Template', 'percentage': 100.0, 'type': 'template'}
                 ],
                 'improvements': [
-                    "Complete relevant assessment phases",
-                    "Provide detailed responses to questions",
-                    "Review and update assessment data regularly"
+                    {
+                        'title': 'Start Assessment Journey',
+                        'description': 'Complete relevant assessment phases to unlock personalized insights',
+                        'action_steps': [
+                            'Begin with Self Discovery Assessment',
+                            'Answer all questions thoughtfully',
+                            'Complete at least 3 assessment phases',
+                            'Review your progress weekly'
+                        ],
+                        'impact': 'high',
+                        'effort': 'medium',
+                        'timeline': '2-4 weeks'
+                    }
                 ]
             })
         
@@ -720,8 +1193,18 @@ class DashboardDataGenerator:
             'sub_elements': sub_elements,
             'ai_insights': {
                 'overall_assessment': "No assessment data available. Complete assessments to receive AI-generated business insights.",
-                'key_strengths': ["Ready to start entrepreneurial journey"],
-                'growth_opportunities': ["Complete comprehensive business assessments"],
+                'key_insights': [
+                    {
+                        'type': 'recommendation',
+                        'title': 'Start Your Journey',
+                        'description': 'Begin with Self Discovery Assessment to understand your entrepreneurial profile.'
+                    },
+                    {
+                        'type': 'recommendation',
+                        'title': 'Complete All Phases',
+                        'description': 'Work through all seven assessment phases to unlock comprehensive business insights.'
+                    }
+                ],
                 'next_steps': [
                     "Begin with Self Discovery Assessment",
                     "Complete all seven assessment phases",

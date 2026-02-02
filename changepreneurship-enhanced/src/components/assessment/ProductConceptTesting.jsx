@@ -2,15 +2,25 @@ import React, { useState } from "react";
 import { PRODUCT_CONCEPT_TESTING_QUESTIONS } from "./ComprehensiveQuestionBank.jsx";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
+import { Button } from "@/components/ui/button.jsx";
 import { Textarea } from "@/components/ui/textarea.jsx";
 import { Input } from "@/components/ui/input.jsx";
-import { Lightbulb, CheckCircle } from "lucide-react";
+import { Lightbulb, CheckCircle, ArrowRight } from "lucide-react";
+import { useAssessment } from "../../contexts/AssessmentContext";
 
 const ProductConceptTesting = () => {
   const [responses, setResponses] = useState({});
+  const { updateResponse, completePhase, updatePhase } = useAssessment();
 
   const handleChange = (id, value) => {
     setResponses((prev) => ({ ...prev, [id]: value }));
+    // Save to backend immediately
+    updateResponse('product_concept_testing', id, value, 'general');
+  };
+
+  const handleNextPhase = () => {
+    completePhase('product_concept_testing');
+    updatePhase('business_development');
   };
 
   return (
@@ -69,6 +79,18 @@ const ProductConceptTesting = () => {
           })}
         </CardContent>
       </Card>
+
+      {/* Next Phase Button */}
+      <div className="flex justify-end">
+        <Button
+          size="lg"
+          onClick={handleNextPhase}
+          className="bg-orange-600 hover:bg-orange-700 text-white"
+        >
+          Next Phase: Business Development
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </Button>
+      </div>
     </div>
   );
 };

@@ -151,14 +151,9 @@ const LandingPage = () => {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
-                <Link to="/ai-insights">
-                  <Button variant="outline" size="lg" className="text-lg px-8 py-6">
-                    <Brain className="mr-2 h-5 w-5" />
-                    AI Insights
-                  </Button>
-                </Link>
                 <Link to="/dashboard">
                   <Button variant="outline" size="lg" className="text-lg px-8 py-6">
+                    <Brain className="mr-2 h-5 w-5" />
                     View Dashboard
                   </Button>
                 </Link>

@@ -60,41 +60,52 @@ This package contains the complete, production-ready Changepreneurship platform 
 
 ## 🛠️ **Setup Instructions**
 
-### **Backend Setup:**
+### **🐳 Docker Deployment (Recommended)**
 
+**Prerequisites:**
+- Docker Desktop installed and running
+- 4GB+ RAM available
+- Ports 80, 5000, 5432, 6379 available
+
+**Quick Start:**
 ```bash
-cd changepreneurship-backend/
-python -m venv venv
-.\.venv\Scripts\Activate.ps1
+# 1. Clone repository
+git clone https://github.com/Noodzakelijk-Online/001-Changepreneurship.git
+cd 001-Changepreneurship
 
-source venv/bin/activate  # Linux/Mac
-# or
-venv\Scripts\activate     # Windows
-pip install -r requirements.txt
-flask --app src.main db upgrade  # Apply database migrations
-python src/main.py
+# 2. Configure environment
+# Edit .env file with your settings (GROQ_API_KEY, SECRET_KEY, etc.)
+
+# 3. Start the stack
+docker-compose up -d
+
+# 4. Check status
+docker-compose ps
+
+# 5. View logs
+docker-compose logs -f
+
+# 6. Create test user (optional)
+docker exec changepreneurship-backend python create_complete_sarah_chen.py
 ```
 
-### **Database Migrations:**
+**Access the application:**
+- Frontend: http://localhost
+- Backend API: http://localhost:5000
+- API Docs: http://localhost:5000/api/docs
+
+**Test Login:**
+- Username: `sarah_chen_founder`
+- Password: `Test1234!`
+
+### **Database Migrations (Inside Docker):**
 
 ```bash
-# Generate a new migration after model changes
-flask --app src.main db migrate -m "describe changes"
+# Apply migrations
+docker exec changepreneurship-backend flask db upgrade
 
-
-# Apply migrations to the database
-flask --app src.main db upgrade
-
-flask db upgrade
-```
-
-### **Frontend Setup:**
-
-```bash
-cd changepreneurship-enhanced/
-npm install
-npm run dev  # Development server
-npm run build  # Production build
+# Generate new migration (after model changes)
+docker exec changepreneurship-backend flask db migrate -m "describe changes"
 ```
 
 ### **Full-Stack Deployment:**
@@ -199,94 +210,70 @@ In `/changepreneurship-enhanced/src/services/api.js`:
 - **Entrepreneur archetype** determination
 - **Personalized recommendations** based on progress
 
-## 🚀 **Deployment Options**
+## 🚀 **Deployment**
 
-### **Local Development:**
+### **🐳 Docker (Recommended - Production Ready)**
 
-- Flask development server on `localhost:5000`
-- React development server on `localhost:5173`
+**Complete stack with PostgreSQL, Redis, Backend, and Frontend:**
 
-### **Production Deployment:**
+```bash
+# 1. Configure environment
+cp .env.example .env
+# Edit .env with your GROQ_API_KEY, SECRET_KEY, etc.
 
-- **Docker / docker-compose** (recommended) – orchestrates PostgreSQL, Redis, backend (gunicorn), and frontend (nginx)
+# 2. Start the stack
+docker-compose up -d
+
+# 3. Check services
+docker-compose ps
+```
+
+**Services:**
+- Frontend (nginx): http://localhost
+- Backend API: http://localhost:5000 (health: /api/health)
+- PostgreSQL: localhost:5432 (internal: postgres:5432)
+- Redis: localhost:6379 (internal: redis:6379)
+
+**Automations:**
+- Database migrations run automatically on backend startup
+- Health checks ensure dependency readiness
+- Session caching via Redis (30 day TTL)
+- Principles dataset caching (1-5 min TTL)
+
+**SPA Routing:**
+- Frontend uses BrowserRouter
+- nginx.conf handles `try_files` fallback to index.html
+
+**Useful Commands:**
+```bash
+# View logs
+docker-compose logs -f backend
+docker-compose logs -f frontend
+
+# Restart services
+docker-compose restart backend
+
+# Rebuild after code changes
+docker-compose build --no-cache backend
+docker-compose up -d
+
+# Run migrations manually
+docker exec changepreneurship-backend flask db upgrade
+
+# Create test user
+docker exec changepreneurship-backend python create_complete_sarah_chen.py
+
+# Stop everything
+docker-compose down
+```
+
+### **☁️ Cloud Deployment**
+
 - **Heroku / Render** – Use gunicorn + auto migrations (adapt entrypoint)
-- **AWS/GCP** – Container images or managed services
+- **AWS/GCP** – Deploy container images or use managed services
 - **Vercel/Netlify** – Frontend only (configure `VITE_API_BASE` to backend URL)
 
-### **Docker Quick Start**
-
-```
-cp .env.example .env   # Adjust secrets as needed
-docker compose up --build
-```
-
-Services:
-* Backend API: http://localhost:5000 (health: /api/health)
-* Frontend SPA: http://localhost:5173
-* PostgreSQL: localhost:5433 (internal service name: postgres)
-* Redis: localhost:6380
-
-Automations:
-* wait_for_db + Alembic upgrade runs before gunicorn starts
-* Healthchecks ensure dependency readiness sequencing
-
-Caching Layers:
-* Sessions: Redis keys `session:<token>` (30 day TTL)
-* Principles queries: Redis keys `json:principles:...` (1–5 min TTL depending on query)
-
-SPA Routing:
-* Frontend uses BrowserRouter; nginx config (`nginx.conf`) handles `try_files` fallback to index.html.
-
-### ▶️ Running WITHOUT Docker (Parity Notes)
-
-You can run the backend and frontend locally without containers. Behavior is equivalent provided you follow these steps:
-
-1. Choose your database:
-	* SQLite (default): No action needed. On first run the backend will auto-create tables (only for SQLite) and you can ignore migrations for quick prototyping.
-	* PostgreSQL (recommended): Set `DATABASE_URL` and run the migration bootstrap script BEFORE starting the dev server.
-
-2. Environment variables (create `.env` or export in shell):
-	* `DATABASE_URL=postgresql+psycopg://user:pass@localhost:5432/cp_db`
-	* `SECRET_KEY=your-dev-secret`
-	* `ALLOWED_ORIGINS=http://localhost:5173`
-	* (Optional) `REDIS_URL=redis://localhost:6379/0` for session + principles caching.
-
-3. Start services:
-	* Postgres: Ensure the database exists (e.g. `createdb cp_db`).
-	* Redis (optional but recommended): `redis-server` (or Docker `redis:alpine`).
-
-4. Install backend deps & run migration bootstrap (this replicates container entrypoint logic):
-	```powershell
-	cd changepreneurship-backend
-	python -m venv .venv; .venv\Scripts\Activate.ps1
-	pip install -r requirements.txt
-	# Idempotent bootstrap (stamps legacy schema or upgrades normally)
-	python migrate_upgrade.py
-	# Run dev server
-	python run_dev.py
-	```
-	If you prefer classic Flask-Migrate workflow on a fresh Postgres DB you can instead do:
-	```powershell
-	flask --app src.main db upgrade
-	python run_dev.py
-	```
-
-5. Frontend:
-	```powershell
-	cd changepreneurship-enhanced
-	pnpm install  # or npm install
-	pnpm run dev  # http://localhost:5173
-	```
-
-6. API base URL configuration:
-	* If the frontend expects a different base, set `VITE_API_BASE=http://localhost:5000` when running `pnpm run dev`.
-
-7. Registration & migrations safety:
-	* Re-running `python migrate_upgrade.py` is safe; it detects if `alembic_version` exists and only performs a normal upgrade.
-	* For a legacy DB created before Alembic (tables but no `alembic_version`), the script stamps the base revision then patches differences (e.g. enlarging `password_hash`) and marks head.
-
-8. Troubleshooting:
-	* Password length errors -> ensure latest migration head applied (`python migrate_upgrade.py`).
+**Note:** Local venv development is deprecated. Use Docker for consistent environment.
 	* Duplicate table errors -> confirm you are not invoking `db.create_all()` on Postgres (code already skips it). Remove any manual create scripts.
 	* Connection refused -> check `DATABASE_URL`, Postgres running, and firewall/port 5432.
 

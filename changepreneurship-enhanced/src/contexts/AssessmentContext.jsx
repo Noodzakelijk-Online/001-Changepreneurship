@@ -362,52 +362,21 @@ export function AssessmentProvider({ children }) {
   const { user, isAuthenticated } = useAuth();
 
   // Load from localStorage on mount
+  // REMOVED: localStorage loading - using backend as single source of truth
+  // useEffect to load from localStorage has been removed
+
+  // REMOVED: localStorage persistence - using backend as single source of truth  
+  // useEffect to save to localStorage has been removed
+
+  // Sync authenticated users with backend data - BACKEND IS SINGLE SOURCE OF TRUTH
   useEffect(() => {
-    const savedState = localStorage.getItem("changepreneurship-assessment");
-    if (savedState) {
-      try {
-        const parsedState = JSON.parse(savedState);
-        if (parsedState.assessmentData) {
-          Object.keys(parsedState.assessmentData).forEach((phase) => {
-            if (validatePhase(phase)) {
-              dispatch({
-                type: ACTIONS.BULK_UPDATE_PHASE_DATA,
-                payload: { phase, data: parsedState.assessmentData[phase] },
-              });
-            }
-          });
-        }
-        if (
-          parsedState.currentPhase &&
-          validatePhase(parsedState.currentPhase)
-        ) {
-          dispatch({
-            type: ACTIONS.UPDATE_PHASE,
-            payload: parsedState.currentPhase,
-          });
-        }
-        if (parsedState.userProfile) {
-          dispatch({
-            type: ACTIONS.UPDATE_PROFILE,
-            payload: parsedState.userProfile,
-          });
-        }
-      } catch (e) {
-        console.error("Error loading saved assessment:", e);
-      }
+    console.log('[SYNC useEffect] Triggered with:', { isAuthenticated, userId: user?.id, username: user?.username });
+    
+    if (!isAuthenticated || !user?.id) {
+      console.log('[SYNC useEffect] Skipping - not authenticated or no user ID');
+      return;
     }
-  }, []);
-
-  // Save to localStorage
-  useEffect(() => {
-    localStorage.setItem("changepreneurship-assessment", JSON.stringify(state));
-  }, [state]);
-
-  // Sync authenticated users with backend data so demo accounts reflect real completions
-  useEffect(() => {
-    if (!isAuthenticated || !user?.id) return;
-    const hasSession = apiService.isAuthenticated();
-    if (!hasSession && user.username !== "sarah_chen_founder") return;
+    
     let isCancelled = false;
 
     const groupResponsesBySection = (responses = []) => {
@@ -475,8 +444,12 @@ export function AssessmentProvider({ children }) {
 
     const syncFromServer = async () => {
       try {
+        console.log('[SYNC] Starting syncFromServer for user:', user?.username);
         const phasesResult = await apiService.getAssessmentPhases();
+        console.log('[SYNC] Phases result:', phasesResult);
+        
         if (!phasesResult.success || !phasesResult.data?.phases) {
+          console.log('[SYNC] Invalid phases result, attempting sarah_chen fallback');
           if (user.username === "sarah_chen_founder") {
             await hydrateFromCompleteExport();
           }
@@ -499,17 +472,30 @@ export function AssessmentProvider({ children }) {
             };
 
             if (phase.assessment_id) {
+              console.log(`[SYNC] Fetching responses for phase ${phase.id}, assessment_id=${phase.assessment_id}`);
               const responsesResult = await apiService.getAssessmentResponses(
                 phase.assessment_id
               );
+              console.log(`[SYNC] Responses result for ${phase.id}:`, {
+                success: responsesResult.success,
+                responseCount: responsesResult.data?.responses?.length,
+                sampleResponse: responsesResult.data?.responses?.[0]
+              });
+              
               if (
                 responsesResult.success &&
                 Array.isArray(responsesResult.data?.responses)
               ) {
+                console.log(`[SYNC] Found ${responsesResult.data.responses.length} responses for ${phase.id}`);
                 baseData.responses = groupResponsesBySection(
                   responsesResult.data.responses
                 );
+                console.log(`[SYNC] Grouped responses for ${phase.id}:`, Object.keys(baseData.responses), baseData.responses);
+              } else {
+                console.log(`[SYNC] No valid responses for ${phase.id}`, responsesResult);
               }
+            } else {
+              console.log(`[SYNC] No assessment_id for phase ${phase.id}`);
             }
 
             phasePayloads[phase.id] = {
@@ -520,20 +506,21 @@ export function AssessmentProvider({ children }) {
 
         if (isCancelled) return;
 
+        console.log('[SYNC] Dispatching phasePayloads:', phasePayloads);
         assignPhaseData(phasePayloads);
+        console.log('[SYNC] Sync completed successfully');
       } catch (error) {
         console.error("Failed to sync assessment data from backend:", error);
-        if (user.username === "sarah_chen_founder") {
+        if (user?.username === "sarah_chen_founder") {
           await hydrateFromCompleteExport();
         }
       }
     };
 
-    if (!hasSession && user.username === "sarah_chen_founder") {
-      hydrateFromCompleteExport();
-    } else {
-      syncFromServer();
-    }
+    // Always sync from server when authenticated
+    console.log('[SYNC useEffect] Calling syncFromServer...');
+    syncFromServer();
+    
     return () => {
       isCancelled = true;
     };
@@ -547,19 +534,102 @@ export function AssessmentProvider({ children }) {
       dispatch({ type: ACTIONS.UPDATE_PHASE, payload: phase });
     }
   };
-  const updateResponse = (phase, questionId, answer, section = "general") => {
-    if (validatePhase(phase)) {
-      dispatch({
-        type: ACTIONS.UPDATE_RESPONSE,
-        payload: { phase, questionId, answer, section },
-      });
+  const updateResponse = async (phase, questionId, answer, section = "general") => {
+    if (!validatePhase(phase)) return;
+    
+    // Update local state immediately for responsive UI
+    dispatch({
+      type: ACTIONS.UPDATE_RESPONSE,
+      payload: { phase, questionId, answer, section },
+    });
+
+    // Save to backend if authenticated
+    if (isAuthenticated && user?.id) {
+      try {
+        let phaseData = state.assessmentData[phase];
+        let assessmentId = phaseData?.assessmentId;
+        
+        // If no assessment exists for this phase, start it
+        if (!assessmentId) {
+          console.log(`[AssessmentContext] No assessment for ${phase}, starting new one...`);
+          const startResult = await apiService.startAssessmentPhase(phase);
+          
+          if (startResult.success && startResult.data?.assessment) {
+            assessmentId = startResult.data.assessment.id;
+            console.log(`[AssessmentContext] Created assessment ${assessmentId} for ${phase}`);
+            
+            // Update local state with assessment ID
+            dispatch({
+              type: ACTIONS.BULK_UPDATE_PHASE_DATA,
+              payload: { 
+                phase, 
+                data: { 
+                  ...phaseData,
+                  assessmentId,
+                  startedAt: new Date().toISOString()
+                } 
+              },
+            });
+          } else {
+            console.error(`[AssessmentContext] Failed to start assessment:`, startResult.error);
+            return;
+          }
+        }
+        
+        if (assessmentId) {
+          console.log(`[AssessmentContext] Saving response to backend: assessment=${assessmentId}, question=${questionId}`);
+          
+          const responseData = {
+            question_id: questionId,
+            response_value: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
+            section_id: section,
+            response_type: typeof answer === 'object' ? 'multiple-scale' : (typeof answer === 'number' ? 'scale' : 'text'),
+            question_text: `Question ${questionId}`, // TODO: Get actual question text
+          };
+          
+          const result = await apiService.saveAssessmentResponse(assessmentId, responseData);
+          
+          if (result.success) {
+            console.log(`[AssessmentContext] Response saved successfully`);
+          } else {
+            console.error(`[AssessmentContext] Failed to save response:`, result.error);
+          }
+        } else {
+          console.warn(`[AssessmentContext] No assessmentId for phase ${phase}, cannot save to backend`);
+        }
+      } catch (error) {
+        console.error(`[AssessmentContext] Error saving response:`, error);
+      }
     }
   };
-  const updateProgress = (phase, progress) => {
-    if (validatePhase(phase)) {
-      dispatch({ type: ACTIONS.UPDATE_PROGRESS, payload: { phase, progress } });
+
+  const updateProgress = async (phase, progress) => {
+    if (!validatePhase(phase)) return;
+    
+    // Update local state immediately for responsive UI
+    dispatch({ type: ACTIONS.UPDATE_PROGRESS, payload: { phase, progress } });
+    
+    // Sync with backend if assessment exists
+    const phaseData = state.assessmentData[phase];
+    const assessmentId = phaseData?.assessmentId;
+    
+    if (assessmentId) {
+      try {
+        await apiService.updateAssessmentProgress(
+          assessmentId,
+          Math.round(progress)
+        );
+        console.log(
+          `[AssessmentContext] Updated backend progress for ${phase}: ${progress}% (assessment_id=${assessmentId})`
+        );
+      } catch (error) {
+        console.error(`[AssessmentContext] Error updating progress:`, error);
+      }
+    } else {
+      console.log(`[AssessmentContext] No assessmentId for ${phase}, skipping progress update to backend`);
     }
   };
+
   const completePhase = (phase) => {
     if (validatePhase(phase))
       dispatch({ type: ACTIONS.COMPLETE_PHASE, payload: phase });
@@ -698,7 +768,7 @@ export function AssessmentProvider({ children }) {
   };
 
   const resetAssessment = () => {
-    localStorage.removeItem("changepreneurship-assessment");
+    // Backend will handle data persistence - no localStorage cleanup needed
     return dispatch({ type: ACTIONS.RESET_ASSESSMENT });
   };
 

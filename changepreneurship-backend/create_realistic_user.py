@@ -6,8 +6,12 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(__file__))
 
+# Load environment to use centralized database
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
+
 from src.main import app
-from src.models.assessment import db, User, Assessment, AssessmentResponse
+from src.models.assessment import db, User, Assessment, AssessmentResponse, EntrepreneurProfile
 from werkzeug.security import generate_password_hash
 from datetime import datetime, timedelta
 import random
@@ -26,11 +30,16 @@ def create_marcus_rodriguez():
         user = User(
             username='marcus_rodriguez',
             email='marcus.rodriguez@greenloop.co',
-            password_hash=generate_password_hash('test123'),
+            password_hash=generate_password_hash('Test123!'),
             created_at=datetime.utcnow() - timedelta(days=45)
         )
         db.session.add(user)
         db.session.flush()
+        
+        # Create entrepreneur profile
+        profile = EntrepreneurProfile(user_id=user.id)
+        db.session.add(profile)
+        
         user_id = user.id
         
         print(f"[OK] Created user: marcus_rodriguez (ID: {user_id})")

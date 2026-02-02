@@ -1,74 +1,132 @@
-version: '3.9'
 services:
+  # PostgreSQL Database
   postgres:
-    image: postgres:16
+    image: postgres:16-alpine
+    container_name: changepreneurship-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: cp_user
-      POSTGRES_PASSWORD: cp_pass
-      POSTGRES_DB: cp_db
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+      POSTGRES_DB: changepreneurship
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5433:5432"
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cp_user"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d changepreneurship"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+    networks:
+      - changepreneurship-network
 
+  # Redis Cache
   redis:
     image: redis:7-alpine
+    container_name: changepreneurship-redis
     restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass changepreneurship123
     ports:
-      - "6380:6379"
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 5s
+    networks:
+      - changepreneurship-network
 
+  # Flask Backend
   backend:
-    build: ./changepreneurship-backend
+    build:
+      context: ./changepreneurship-backend
+      dockerfile: Dockerfile
+    container_name: changepreneurship-backend
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql+psycopg://cp_user:cp_pass@postgres:5432/cp_db
-      REDIS_URL: redis://redis:6379/0
-      SECRET_KEY: changepreneurship-dev-secret
-      ALLOWED_ORIGINS: http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:3000
+      # Database
+      DATABASE_URL: postgresql://admin:admin@postgres:5432/changepreneurship
+      
+      # Redis
+      REDIS_URL: redis://:changepreneurship123@redis:6379/0
+      
+      # Flask
+      FLASK_APP: src.main:app
+      FLASK_ENV: production
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      
+      # LLM Settings
+      USE_LLM: "true"
+      LLM_CONSENSUS: "true"
+      LLM_PROVIDER: "groq"
+      LLM_MODEL: "llama-3.3-70b-versatile"
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      
+      # CORS
+      ALLOWED_ORIGINS: http://localhost,http://localhost:80,http://frontend
+    ports:
+      - "5000:5000"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    ports:
-      - "5000:5000"
+    volumes:
+      - backend_logs:/app/logs
+    networks:
+      - changepreneurship-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health').read()"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5000/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
+  # React Frontend
   frontend:
-    build: ./changepreneurship-enhanced
+    build:
+      context: ./changepreneurship-enhanced
+      dockerfile: Dockerfile
+    container_name: changepreneurship-frontend
     restart: unless-stopped
+    ports:
+      - "80:80"
     depends_on:
       backend:
         condition: service_healthy
-    ports:
-      - "5173:80"
-    environment:
-      # For local dev hitting backend directly
-      VITE_API_BASE: http://localhost:5000
+    networks:
+      - changepreneurship-network
     healthcheck:
-      test: ["CMD-SHELL", "test -f /usr/share/nginx/html/index.html"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
       interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  changepreneurship-network:
+    driver: bridge
 
 volumes:
-  pgdata: {}
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: E:/Docker installed/changepreneurship/postgres
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: E:/Docker installed/changepreneurship/redis
+  backend_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: E:/Docker installed/changepreneurship/logs

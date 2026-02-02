@@ -7,6 +7,11 @@ Usage:
 """
 import os
 import sys
+from dotenv import load_dotenv
+
+# Load environment variables from root .env
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from src.main import app
@@ -19,7 +24,7 @@ def seed_database():
         print("[Seed] Starting database seeding...")
         
         # Check if Sarah Chen already exists
-        from src.models.user import User
+        from src.models.assessment import User
         existing = User.query.filter_by(username='sarah_chen_founder').first()
         if existing:
             print(f"[Seed] Sarah Chen already exists (ID: {existing.id})")
@@ -31,18 +36,17 @@ def seed_database():
         generator = CompleteUserGenerator(db.session)
         
         try:
-            result = generator.create_complete_user()
+            user_id = generator.create_complete_user()
             
-            if result.get('success'):
+            if user_id:
                 print(f"[Seed] ✓ Successfully created Sarah Chen")
                 print(f"[Seed]   Username: sarah_chen_founder")
                 print(f"[Seed]   Email: sarah.chen@techvision.io")
                 print(f"[Seed]   Password: test123")
-                print(f"[Seed]   User ID: {result.get('user_id')}")
-                print(f"[Seed]   Completion: {result.get('completion')}")
+                print(f"[Seed]   User ID: {user_id}")
                 print("[Seed] Database seeding complete!")
             else:
-                print(f"[Seed] ✗ Failed: {result.get('error')}")
+                print(f"[Seed] ✗ Failed to create user")
                 sys.exit(1)
                 
         except Exception as e:

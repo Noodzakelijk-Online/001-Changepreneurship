@@ -56,9 +56,9 @@ const BusinessPillarsPlanning = React.lazy(() => import('./components/assessment
 const ProductConceptTesting = React.lazy(() => import('./components/assessment/ProductConceptTesting'));
 const BusinessDevelopmentDecisionMaking = React.lazy(() => import('./components/assessment/BusinessDevelopmentDecisionMaking'));
 const BusinessPrototypeTesting = React.lazy(() => import('./components/assessment/BusinessPrototypeTesting'));
-import ExecutiveSummaryDashboard from "./components/ExecutiveSummaryDashboard";
 import LandingPage from "./components/LandingPage";
-import UserDashboard from "./components/dashboard/UserDashboard";
+import UnifiedDashboard from "./components/dashboard/UnifiedDashboard";
+import ExecutiveSummaryDashboard from "./components/ExecutiveSummaryDashboard";
 import ProfileSettings from "./components/ProfileSettings";
 import AssessmentHistory from "./components/AssessmentHistory";
 import NavBar from "./components/NavBar";
@@ -390,15 +390,17 @@ function App() {
                   <Route path="/assessment" element={<AssessmentPage />} />
                   <Route path="/assessment/:slug" element={<AssessmentPage />} />
                   
-                  {/* Main Dashboards */}
-                  <Route path="/dashboard" element={<UserDashboard />} />
-                  <Route path="/ai-insights" element={<ExecutiveSummaryDashboard />} />
+                  {/* Main Dashboard - Unified */}
+                  <Route path="/dashboard" element={<UnifiedDashboard />} />
+                  
+                  {/* Executive Summary - Full AI Analysis */}
+                  <Route path="/dashboard/executive-summary" element={<ExecutiveSummaryDashboard />} />
                   
                   {/* Legacy redirects - maintain backward compatibility */}
                   <Route path="/user-dashboard" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/dashboard/executive-summary" element={<Navigate to="/ai-insights" replace />} />
-                  <Route path="/ai-recommendations" element={<Navigate to="/ai-insights" replace />} />
-                  <Route path="/ai-insights/recommendations" element={<Navigate to="/ai-insights" replace />} />
+                  <Route path="/ai-insights" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/ai-recommendations" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/ai-insights/recommendations" element={<Navigate to="/dashboard" replace />} />
                   
                   {/* User settings */}
                   <Route path="/profile" element={<ProfileSettings />} />

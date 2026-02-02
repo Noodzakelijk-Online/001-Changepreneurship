@@ -133,18 +133,24 @@ class ApiService {
   }
 
   async login(credentials) {
+    console.log('[API] Login request for:', credentials.username);
     const res = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: this.getHeaders(),
       body: JSON.stringify(credentials),
     });
     const result = await this.handleResponse(res);
-    if (result.success && result.data?.session_token)
+    console.log('[API] Login response:', result);
+    
+    if (result.success && result.data?.session_token) {
+      console.log('[API] Setting session with token:', result.data.session_token.substring(0, 20) + '...');
       this.setSession(
         result.data.session_token,
         result.data.user,
         result.data.expires_at
       );
+      console.log('[API] Session set. isAuthenticated():', this.isAuthenticated());
+    }
     return result;
   }
 
@@ -261,6 +267,44 @@ class ApiService {
         method: "PUT",
         headers: this.getHeaders(),
         body: JSON.stringify(progressData),
+      }
+    );
+
+    return this.handleResponse(response);
+  }
+
+  /**
+   * Save assessment response
+   * @param {number} assessmentId - Assessment ID
+   * @param {Object} responseData - Response data {question_id, response_value, section_id, response_type, question_text}
+   * @returns {Promise<Object>} Save response result
+   */
+  async saveAssessmentResponse(assessmentId, responseData) {
+    const response = await fetch(
+      `${API_BASE_URL}/assessment/${assessmentId}/response`,
+      {
+        method: "POST",
+        headers: this.getHeaders(),
+        body: JSON.stringify(responseData),
+      }
+    );
+
+    return this.handleResponse(response);
+  }
+
+  /**
+   * Update assessment progress percentage
+   * @param {string} assessmentId - Assessment identifier
+   * @param {number} progressPercentage - Progress percentage (0-100)
+   * @returns {Promise<Object>} Update result
+   */
+  async updateAssessmentProgress(assessmentId, progressPercentage) {
+    const response = await fetch(
+      `${API_BASE_URL}/assessment/${assessmentId}/progress`,
+      {
+        method: "PUT",
+        headers: this.getHeaders(),
+        body: JSON.stringify({ progress_percentage: progressPercentage }),
       }
     );
 

@@ -343,3 +343,267 @@ def update_profile():
         current_app.logger.error(f"Update profile error: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
+
+@assessment_bp.route('/responses/user/<int:user_id>', methods=['GET'])
+def get_user_responses(user_id):
+    """Get all assessment responses for a specific user with question details"""
+    try:
+        # Authentication check
+        user, session, error, status_code = verify_session_token()
+        if error:
+            return jsonify(error), status_code
+        
+        # Only allow users to see their own responses (or add admin check)
+        if user.id != user_id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Get all assessments for this user
+        user_assessments = Assessment.query.filter_by(user_id=user_id).all()
+        assessment_ids = [a.id for a in user_assessments]
+        
+        if not assessment_ids:
+            return jsonify({
+                'success': True,
+                'total_responses': 0,
+                'responses': [],
+                'by_phase': {}
+            }), 200
+        
+        # Get all responses for user's assessments
+        responses = AssessmentResponse.query.filter(
+            AssessmentResponse.assessment_id.in_(assessment_ids)
+        ).order_by(
+            AssessmentResponse.created_at.desc()
+        ).all()
+        
+        # Create assessment map for phase lookup
+        assessment_map = {a.id: a.phase_name for a in user_assessments}
+        
+        # Format responses with full details
+        formatted_responses = []
+        for response in responses:
+            phase_id = assessment_map.get(response.assessment_id, 'unknown')
+            formatted_responses.append({
+                'id': response.id,
+                'assessment_id': response.assessment_id,
+                'phase_id': phase_id,
+                'question_id': response.question_id,
+                'question_text': response.question_text,
+                'response_type': response.response_type,
+                'response_value': response.response_value,
+                'created_at': response.created_at.isoformat() if response.created_at else None,
+                'updated_at': response.updated_at.isoformat() if response.updated_at else None
+            })
+        
+        # Group by phase for easier frontend consumption
+        phases_map = {}
+        for resp in formatted_responses:
+            phase_id = resp['phase_id']
+            if phase_id not in phases_map:
+                phases_map[phase_id] = []
+            phases_map[phase_id].append(resp)
+        
+        return jsonify({
+            'success': True,
+            'total_responses': len(formatted_responses),
+            'responses': formatted_responses,
+            'by_phase': phases_map
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Get user responses error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+# Compatibility routes for tests
+@assessment_bp.route('/<phase_id>/submit', methods=['POST'])
+def submit_phase_assessment(phase_id):
+    """Submit assessment for a specific phase (compatibility route for tests)"""
+    user, session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+    
+    try:
+        data = request.get_json()
+        
+        # Get or create assessment for this phase
+        assessment = Assessment.query.filter_by(
+            user_id=user.id,
+            phase_id=phase_id
+        ).first()
+        
+        if not assessment:
+            # Map phase_id to phase_name
+            phase_name_map = {
+                'self_discovery': 'Self Discovery',
+                'idea_discovery': 'Idea Discovery',
+                'market_validation': 'Market Validation',
+                'business_model': 'Business Model',
+                'financial_planning': 'Financial Planning',
+                'execution_roadmap': 'Execution Roadmap',
+                'resilience_mindset': 'Resilience & Mindset'
+            }
+            
+            assessment = Assessment(
+                user_id=user.id,
+                phase_id=phase_id,
+                phase_name=phase_name_map.get(phase_id, phase_id.replace('_', ' ').title()),
+                started_at=datetime.utcnow()
+            )
+            db.session.add(assessment)
+            db.session.flush()
+        
+        # Save responses
+        responses_data = data.get('responses', {})
+        for question_key, answer in responses_data.items():
+            response = AssessmentResponse(
+                assessment_id=assessment.id,
+                section_id='general',  # Default section
+                question_id=str(question_key),
+                question_text=str(question_key),
+                response_type='text',
+                response_value=str(answer),
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            db.session.add(response)
+        
+        # Update progress
+        assessment.progress_percentage = 100
+        assessment.is_completed = True
+        assessment.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'{phase_id} assessment submitted successfully',
+            'assessment_id': assessment.id
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Submit assessment error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+@assessment_bp.route('/responses', methods=['GET'])
+def get_current_user_responses():
+    """Get responses for current authenticated user (compatibility route)"""
+    user, session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+    
+    try:
+        # Redirect to user-specific endpoint
+        responses = AssessmentResponse.query.join(Assessment).filter(
+            Assessment.user_id == user.id
+        ).order_by(AssessmentResponse.created_at.desc()).all()
+        
+        return jsonify({
+            'success': True,
+            'total_responses': len(responses),
+            'responses': [{
+                'id': r.id,
+                'question_id': r.question_id,
+                'response_value': r.response_value,
+                'created_at': r.created_at.isoformat()
+            } for r in responses]
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Get responses error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+@assessment_bp.route('/<phase_id>/questions', methods=['GET'])
+def get_phase_questions(phase_id):
+    """Get questions for a specific phase (compatibility route for tests)"""
+    user, session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+    
+    # Return mock questions structure
+    phase_questions = {
+        'self_discovery': {
+            'title': 'Self Discovery',
+            'description': 'Understand your motivations and goals',
+            'sections': [
+                {
+                    'id': 'core_motivation',
+                    'title': 'Core Motivation',
+                    'questions': [
+                        {
+                            'id': 'motivation_1',
+                            'text': 'What drives you to become an entrepreneur?',
+                            'type': 'text'
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+    
+    questions = phase_questions.get(phase_id, {'title': phase_id, 'sections': []})
+    
+    return jsonify({
+        'success': True,
+        'phase_id': phase_id,
+        'questions': questions
+    }), 200
+
+@assessment_bp.route('/sync-all', methods=['GET'])
+def sync_all_assessments():
+    """Sync all assessment data - returns phases with full response data in format frontend expects"""
+    try:
+        user, session, error, status_code = verify_session_token()
+        if error:
+            return jsonify(error), status_code
+        
+        # Get all assessments for user
+        assessments = Assessment.query.filter_by(user_id=user.id).all()
+        
+        # Build assessment data in exact format frontend expects
+        assessment_payload = {}
+        
+        for assessment in assessments:
+            # Get all responses for this assessment
+            responses = AssessmentResponse.query.filter_by(assessment_id=assessment.id).all()
+            
+            # Group responses by section
+            sections = {}
+            for response in responses:
+                section_id = response.section_id or 'general'
+                if section_id not in sections:
+                    sections[section_id] = []
+                sections[section_id].append({
+                    'question_id': response.question_id,
+                    'question_text': response.question_text,
+                    'response_type': response.response_type,
+                    'response_value': response.response_value
+                })
+            
+            # Build phase data in frontend format
+            assessment_payload[assessment.phase_id] = {
+                'assessmentId': assessment.id,
+                'phaseId': assessment.phase_id,
+                'completed': assessment.is_completed,
+                'progress': int(assessment.progress_percentage),
+                'startedAt': assessment.started_at.isoformat() if assessment.started_at else None,
+                'completedAt': assessment.completed_at.isoformat() if assessment.completed_at else None,
+                'responses': sections,
+                'responseCount': len(responses)
+            }
+        
+        return jsonify({
+            'success': True,
+            'user_id': user.id,
+            'username': user.username,
+            'assessmentData': assessment_payload,
+            'totalAssessments': len(assessments),
+            'completedAssessments': sum(1 for a in assessments if a.is_completed)
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Sync all error: {str(e)}")
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500

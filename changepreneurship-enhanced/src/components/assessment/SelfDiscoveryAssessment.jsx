@@ -178,6 +178,16 @@ const SelfDiscoveryAssessment = () => {
 
   const selfDiscoveryData = assessmentData["self_discovery"] || {};
   const responses = selfDiscoveryData.responses || {};
+  
+  // DEBUG: Log responses on component mount and when they change
+  useEffect(() => {
+    console.log('[SelfDiscovery] Component mounted/updated');
+    console.log('[SelfDiscovery] assessmentData:', assessmentData);
+    console.log('[SelfDiscovery] selfDiscoveryData:', selfDiscoveryData);
+    console.log('[SelfDiscovery] responses:', responses);
+    console.log('[SelfDiscovery] Current section:', currentSection);
+    console.log('[SelfDiscovery] Section responses:', responses[currentSection]);
+  }, [assessmentData, responses, currentSection]);
 
   // Assessment sections configuration
   const sections = [
@@ -370,8 +380,27 @@ const SelfDiscoveryAssessment = () => {
     }
   }, [sectionProgress, currentSection, selfDiscoveryData.archetype, responses, calculateArchetype, sections]);
 
+  // CRITICAL DEBUG: Log on every render
+  console.log('[SelfDiscovery RENDER] responses object:', responses);
+  console.log('[SelfDiscovery RENDER] currentSection:', currentSection);
+  console.log('[SelfDiscovery RENDER] Section data:', responses[currentSection]);
+  console.log('[SelfDiscovery RENDER] motivation section:', responses['motivation']);
+  
   return (
     <div className="space-y-6">
+      {/* DEBUG PANEL - REMOVE AFTER FIXING */}
+      <Card className="border-red-500 bg-red-50 dark:bg-red-950/20">
+        <CardHeader>
+          <CardTitle className="text-red-800 dark:text-red-200">🐛 DEBUG INFO</CardTitle>
+        </CardHeader>
+        <CardContent className="text-xs font-mono">
+          <div><strong>currentSection:</strong> {currentSection}</div>
+          <div><strong>responses keys:</strong> {Object.keys(responses).join(', ')}</div>
+          <div><strong>responses[{currentSection}]:</strong> {JSON.stringify(responses[currentSection], null, 2)}</div>
+          <div><strong>currentSectionData questions:</strong> {currentSectionData?.questions?.map(q => q.id).join(', ')}</div>
+        </CardContent>
+      </Card>
+
       {/* Data Import Banner */}
       {showDataImport && (
         <DataImportBanner
@@ -483,18 +512,31 @@ const SelfDiscoveryAssessment = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {currentSection === "results" ? (
-            <ArchetypeResults
-              archetype={selfDiscoveryData.archetype}
-              insights={selfDiscoveryData.insights}
-            />
-          ) : (
-            <SectionQuestions
-              section={currentSectionData}
-              responses={responses[currentSection] || {}}
-              onResponse={handleResponse}
-            />
-          )}
+          {(() => {
+            console.log('[RENDER DECISION] currentSection:', currentSection);
+            console.log('[RENDER DECISION] currentSection === "results"?', currentSection === "results");
+            console.log('[RENDER DECISION] currentSectionData:', currentSectionData);
+            console.log('[RENDER DECISION] responses[currentSection]:', responses[currentSection]);
+            
+            if (currentSection === "results") {
+              console.log('[RENDERING] ArchetypeResults');
+              return (
+                <ArchetypeResults
+                  archetype={selfDiscoveryData.archetype}
+                  insights={selfDiscoveryData.insights}
+                />
+              );
+            } else {
+              console.log('[RENDERING] SectionQuestions for section:', currentSection);
+              return (
+                <SectionQuestions
+                  section={currentSectionData}
+                  responses={responses[currentSection] || {}}
+                  onResponse={handleResponse}
+                />
+              );
+            }
+          })()}
         </CardContent>
       </Card>
 
@@ -531,6 +573,10 @@ const SelfDiscoveryAssessment = () => {
 
 // Section Questions Component
 const SectionQuestions = ({ section, responses, onResponse }) => {
+  console.log('[SectionQuestions] Section:', section.id);
+  console.log('[SectionQuestions] Responses object:', responses);
+  console.log('[SectionQuestions] Response keys:', Object.keys(responses || {}));
+  
   if (!section.questions || section.questions.length === 0) {
     return (
       <div className="text-center text-muted-foreground">
@@ -541,16 +587,20 @@ const SectionQuestions = ({ section, responses, onResponse }) => {
 
   return (
     <div className="space-y-8">
-      {section.questions.map((question, index) => (
-        <QuestionCard
-          key={question.id}
-          question={question}
-          response={responses[question.id]}
-          onResponse={(answer) => onResponse(question.id, answer)}
-          questionNumber={index + 1}
-          totalQuestions={section.questions.length}
-        />
-      ))}
+      {section.questions.map((question, index) => {
+        const responseValue = responses[question.id];
+        console.log(`[SectionQuestions] Question ${question.id}: response =`, responseValue, typeof responseValue);
+        return (
+          <QuestionCard
+            key={question.id}
+            question={question}
+            response={responseValue}
+            onResponse={(answer) => onResponse(question.id, answer)}
+            questionNumber={index + 1}
+            totalQuestions={section.questions.length}
+          />
+        );
+      })}
     </div>
   );
 };
@@ -563,30 +613,43 @@ const QuestionCard = ({
   questionNumber,
   totalQuestions,
 }) => {
+  console.log(`[QuestionCard] Rendering ${question.id} (type: ${question.type}), response:`, response, typeof response);
+  
   const renderQuestionInput = () => {
     switch (question.type) {
       case "multiple-choice":
+        console.log(`[Multiple-choice] question.id=${question.id}, response="${response}"`);
         return (
-          <RadioGroup value={response || ""} onValueChange={onResponse}>
-            {question.options.map((option) => (
-              <div key={option.value} className="flex items-center space-x-2">
-                <RadioGroupItem value={option.value} id={option.value} />
-                <Label htmlFor={option.value} className="flex-1 cursor-pointer">
-                  <div>
-                    <div className="font-medium">{option.label}</div>
-                    {option.description && (
-                      <div className="text-sm text-muted-foreground">
-                        {option.description}
-                      </div>
-                    )}
-                  </div>
-                </Label>
-              </div>
-            ))}
+          <RadioGroup 
+            key={`${question.id}-${response}`}
+            value={response || ""} 
+            onValueChange={onResponse}
+          >
+            {question.options.map((option) => {
+              const isChecked = option.value === response;
+              console.log(`  Option ${option.value}: ${isChecked ? 'CHECKED' : 'unchecked'}`);
+              return (
+                <div key={option.value} className="flex items-center space-x-2">
+                  <RadioGroupItem value={option.value} id={`${question.id}-${option.value}`} />
+                  <Label htmlFor={`${question.id}-${option.value}`} className="flex-1 cursor-pointer">
+                    <div>
+                      <div className="font-medium">{option.label}</div>
+                      {option.description && (
+                        <div className="text-sm text-muted-foreground">
+                          {option.description}
+                        </div>
+                      )}
+                    </div>
+                  </Label>
+                </div>
+              );
+            })}
           </RadioGroup>
         );
 
       case "scale":
+        const numValue = typeof response === 'number' ? response : parseInt(response) || question.scaleRange?.min || 1;
+        console.log(`[Scale] response=${response}, numValue=${numValue}`);
         return (
           <div className="space-y-4">
             <div className="flex justify-between text-sm text-muted-foreground">
@@ -594,7 +657,8 @@ const QuestionCard = ({
               <span>{question.scaleLabels?.max || "High"}</span>
             </div>
             <Slider
-              value={[response ?? question.scaleRange?.min ?? 1]}
+              key={`${question.id}-${numValue}`}
+              value={[numValue]}
               onValueChange={(value) => onResponse(value[0])}
               min={question.scaleRange?.min || 1}
               max={question.scaleRange?.max || 10}
@@ -602,7 +666,7 @@ const QuestionCard = ({
               className="w-full"
             />
             <div className="text-center text-sm font-medium">
-              Current value: {response ?? question.scaleRange?.min ?? 1}
+              Current value: {numValue}
             </div>
           </div>
         );
@@ -610,6 +674,7 @@ const QuestionCard = ({
       case "textarea":
         return (
           <Textarea
+            key={`${question.id}-textarea`}
             value={response || ""}
             onChange={(e) => onResponse(e.target.value)}
             placeholder={question.placeholder || "Enter your response..."}

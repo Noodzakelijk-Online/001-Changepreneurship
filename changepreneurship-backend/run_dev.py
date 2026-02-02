@@ -8,11 +8,7 @@ try:
 except ImportError:
     print("[run_dev] python-dotenv not installed, using existing environment")
 
-# Use local SQLite if DATABASE_URL_LOCAL is set
-if os.getenv("DATABASE_URL_LOCAL"):
-    os.environ["DATABASE_URL"] = os.getenv("DATABASE_URL_LOCAL")
-    print("[run_dev] Using local SQLite database")
-
+print(f"[run_dev] DATABASE_URL: {os.getenv('DATABASE_URL', 'Not set')[:50]}...")
 print(f"[run_dev] USE_LLM={os.getenv('USE_LLM')}, LLM_CONSENSUS={os.getenv('LLM_CONSENSUS')}")
 
 from src.main import app

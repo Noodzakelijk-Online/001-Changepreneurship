@@ -1,46 +1,40 @@
-# Backend Dockerfile - Optimized for Production
-FROM python:3.12-slim AS base
+# Multi-stage build for Python Flask backend
+FROM python:3.12-slim as base
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
 
-# System deps for psycopg (minimal layer caching)
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+    gcc \
+    postgresql-client \
     libpq-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies (layer cached separately)
-COPY requirements.txt ./
-RUN pip install --upgrade pip setuptools wheel && \
-    pip install -r requirements.txt
+# Copy requirements first for better caching
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source
+# Copy application code
 COPY . .
+
+# Create non-root user for security
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
 
 # Expose port
 EXPOSE 5000
 
-# Environment defaults (override in compose)
-ENV DATABASE_URL=sqlite:///./src/database/app.db \
-    REDIS_URL=redis://redis:6379/0 \
-    FLASK_ENV=production \
-    PYTHONPATH=/app
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:5000/health', timeout=5)" || exit 1
 
-# Add entrypoint script
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
-
-# Create non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser appuser && \
-    chown -R appuser:appuser /app
-USER appuser
-
-ENTRYPOINT ["/app/entrypoint.sh"]
-# Use gunicorn for Linux/Docker, waitress can be used locally on Windows
-CMD ["gunicorn", "wsgi:app", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "--keep-alive", "5", "--access-logfile", "-", "--error-logfile", "-"]
+# Run migrations and start server
+CMD ["sh", "-c", "flask db upgrade && gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 wsgi:app"]

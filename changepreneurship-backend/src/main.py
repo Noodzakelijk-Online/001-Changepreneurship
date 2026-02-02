@@ -21,6 +21,7 @@ from src.routes.ai_adoption_roadmap import ai_adoption_bp
 from src.routes.enhanced_assessment import enhanced_assessment_bp
 from src.routes.dashboard import dashboard_bp
 from src.routes.ai_recommendations import ai_recommendations_bp
+from src.routes.ai_routes import ai_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), "static"))
 
@@ -58,12 +59,14 @@ app.register_blueprint(ai_adoption_bp, url_prefix="/api/ai-adoption")
 app.register_blueprint(enhanced_assessment_bp, url_prefix="/api/enhanced-assessment")
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(ai_recommendations_bp)
+app.register_blueprint(ai_bp, url_prefix="/api/ai")
 
 # Database configuration
 database_url = os.getenv("DATABASE_URL")
 if database_url:
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 else:
+    # Fallback to SQLite for development without DATABASE_URL
     db_path = os.path.join(os.path.dirname(__file__), "database", "app.db")
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 
