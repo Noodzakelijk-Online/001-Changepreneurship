@@ -19,7 +19,9 @@ changepreneurship-enhanced/build/
 
 # Environment
 .env
-*.env
+.env.docker
+*.env.local
+*.env.production
 
 # OS / Editor
 .DS_Store
