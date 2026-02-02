@@ -15,10 +15,6 @@ import {
   ChevronRight
 } from 'lucide-react'
 import apiService from '../services/api.js'
-import SmartEmptyState from '@/components/ai/SmartEmptyState.jsx'
-import ConsensusInsights from '@/components/ConsensusInsights.jsx'
-import useAiReadiness from '@/hooks/useAiReadiness.js'
-import { resolveAiEmptyScenario, AI_READINESS_STAGES } from '@/lib/aiEmptyScenarios.js'
 
 const ExecutiveSummaryDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null)
@@ -26,13 +22,6 @@ const ExecutiveSummaryDashboard = () => {
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
-  const { readinessStage, stats = {} } = useAiReadiness()
-
-  const readinessMetrics = useMemo(() => ([
-    { label: 'Overall progress', value: `${stats.totalProgress ?? 0}%` },
-    { label: 'Phases completed', value: `${stats.completedPhases ?? 0}/7` },
-    { label: 'Responses logged', value: stats.answeredQuestions ?? 0 }
-  ]), [stats])
 
   // Fetch dashboard data
   const fetchDashboardData = async () => {
@@ -168,31 +157,34 @@ const ExecutiveSummaryDashboard = () => {
               </div>
             </CardContent>
           </Card>
-          <div className="mt-6">
-            <SmartEmptyState
-                scenario={resolveAiEmptyScenario('executiveSummary', AI_READINESS_STAGES.POLISHED)}
-              metrics={readinessMetrics}
-              onRetry={fetchDashboardData}
-            />
-          </div>
         </div>
       </div>
     )
   }
 
-    const shouldShowEmptyState =
-      !dashboardData?.sub_elements?.length ||
-      [AI_READINESS_STAGES.BLANK, AI_READINESS_STAGES.COLLECTING].includes(readinessStage)
+  const shouldShowEmptyState = !dashboardData?.sub_elements?.length
 
   if (shouldShowEmptyState) {
     return (
       <div className="min-h-screen bg-background dark p-6">
         <div className="max-w-4xl mx-auto">
-          <SmartEmptyState
-            scenario={resolveAiEmptyScenario('executiveSummary', readinessStage)}
-            metrics={readinessMetrics}
-            onRetry={fetchDashboardData}
-          />
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-yellow-500" />
+                No Data Available
+              </CardTitle>
+              <CardDescription>
+                Complete assessments to generate your Executive Summary
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={fetchDashboardData} variant="outline">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -351,13 +343,28 @@ const ExecutiveSummaryDashboard = () => {
           {/* Main Content Area */}
           <div className="lg:col-span-3 space-y-6">
             
-            {/* Multi-Model Consensus Insights */}
+            {/* LLM Narrative (if available) */}
             {dashboardData?.ai_insights?.narrative && (
-              <ConsensusInsights 
-                narrative={dashboardData.ai_insights.narrative}
-                consensus={dashboardData.ai_insights.consensus}
-                onRegenerate={refreshDashboard}
-              />
+              <Card className="border-primary/20 bg-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="h-5 w-5 text-primary" />
+                    AI Narrative Analysis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground whitespace-pre-wrap">{dashboardData.ai_insights.narrative}</p>
+                  {dashboardData.ai_insights.consensus && (
+                    <div className="mt-4 p-3 bg-background rounded-lg text-sm">
+                      <p className="text-muted-foreground">
+                        Consensus from {dashboardData.ai_insights.consensus.models?.join(', ') || 'multiple models'}
+                        {dashboardData.ai_insights.consensus.confidence && 
+                          ` (${Math.round(dashboardData.ai_insights.consensus.confidence * 100)}% confidence)`}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             )}
 
             {currentSubElement && (
@@ -457,13 +464,39 @@ const ExecutiveSummaryDashboard = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {currentSubElement.improvements.map((improvement, index) => (
-                          <div key={index} className="flex items-start gap-3 p-3 bg-muted rounded-lg">
-                            <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground mt-0.5">
-                              {index + 1}
+                          <div key={index} className="p-4 bg-muted rounded-lg border border-border">
+                            <div className="flex items-start gap-3 mb-2">
+                              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0 mt-0.5">
+                                {index + 1}
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-foreground mb-1">{improvement.title}</h4>
+                                <p className="text-sm text-muted-foreground">{improvement.description}</p>
+                              </div>
+                              <div className="flex gap-2">
+                                <Badge variant="outline" className="text-xs">
+                                  Impact: {improvement.impact}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {improvement.timeline}
+                                </Badge>
+                              </div>
                             </div>
-                            <p className="text-sm text-foreground flex-1">{improvement}</p>
+                            {improvement.action_steps && improvement.action_steps.length > 0 && (
+                              <div className="ml-9 mt-3 space-y-2">
+                                <p className="text-xs font-medium text-muted-foreground uppercase">Action Steps:</p>
+                                <ol className="space-y-1.5">
+                                  {improvement.action_steps.map((step, stepIndex) => (
+                                    <li key={stepIndex} className="text-sm text-foreground flex gap-2">
+                                      <span className="text-primary font-medium">{stepIndex + 1}.</span>
+                                      <span>{step}</span>
+                                    </li>
+                                  ))}
+                                </ol>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

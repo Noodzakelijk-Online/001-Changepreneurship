@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useAssessment } from '../../contexts/AssessmentContext'
 import useDashboardData from '../../hooks/useDashboardData'
+import { phaseIdToSlug } from '../../lib/assessmentPhases'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Progress } from '../ui/progress'
 import { Badge } from '../ui/badge'
@@ -70,11 +71,31 @@ const UnifiedDashboard = () => {
   }
 
   // Calculate metrics from available data
+  // Prioritize insights (executive-summary) over metrics (analytics/overview)
   const overallProgress = getOverallProgress() || metrics?.overall_progress || 0
-  const completedPhasesCount = metrics?.completed_phases || 0
   const totalTime = metrics?.total_time_spent || 0
   const aiScore = insights?.overall_score || profile?.success_probability || 0
   const totalResponses = responses?.total_responses || 0
+  
+  // Calculate completed phases from responses data
+  const completedPhasesFromResponses = phases.filter(phase => {
+    const phaseResponses = responses?.by_phase?.[phase.id]
+    return phaseResponses && phaseResponses.length >= 5
+  }).length
+  
+  const completedPhasesCount = completedPhasesFromResponses || metrics?.completed_phases || 0
+
+  // Debug logging
+  console.log('[UnifiedDashboard] Data:', {
+    overallProgress,
+    completedPhasesCount,
+    aiScore,
+    totalResponses,
+    insightsAvailable: !!insights,
+    insightsScore: insights?.overall_score,
+    keyInsightsCount: insights?.ai_insights?.key_insights?.length,
+    responsesById: Object.keys(responses?.by_phase || {})
+  })
 
   // Get next steps
   const getNextSteps = () => {
@@ -85,11 +106,12 @@ const UnifiedDashboard = () => {
       const phaseResponses = responses?.by_phase?.[phase.id]
       if (!phaseResponses || phaseResponses.length < 5) {
         const remaining = 5 - (phaseResponses?.length || 0)
+        const slug = phaseIdToSlug(phase.id) || phase.id
         steps.push({
           type: 'assessment',
           icon: '📝',
           text: `Complete ${remaining} remaining questions in ${phase.name}`,
-          link: `/assessment/${phase.id}`
+          link: `/assessment/${slug}`
         })
       }
     })
@@ -334,9 +356,11 @@ const UnifiedDashboard = () => {
                       </div>
                     </div>
                   ))}
-                  <Button variant="outline" className="w-full border-purple-600 text-purple-400 hover:bg-purple-900/30">
-                    View Full AI Analysis <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
+                  <Link to="/dashboard/executive-summary">
+                    <Button variant="outline" className="w-full border-purple-600 text-purple-400 hover:bg-purple-900/30">
+                      View Full AI Analysis <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
                 </>
               ) : (
                 <div className="text-center py-8">

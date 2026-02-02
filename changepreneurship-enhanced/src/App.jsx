@@ -58,6 +58,7 @@ const BusinessDevelopmentDecisionMaking = React.lazy(() => import('./components/
 const BusinessPrototypeTesting = React.lazy(() => import('./components/assessment/BusinessPrototypeTesting'));
 import LandingPage from "./components/LandingPage";
 import UnifiedDashboard from "./components/dashboard/UnifiedDashboard";
+import ExecutiveSummaryDashboard from "./components/ExecutiveSummaryDashboard";
 import ProfileSettings from "./components/ProfileSettings";
 import AssessmentHistory from "./components/AssessmentHistory";
 import NavBar from "./components/NavBar";
@@ -392,10 +393,12 @@ function App() {
                   {/* Main Dashboard - Unified */}
                   <Route path="/dashboard" element={<UnifiedDashboard />} />
                   
+                  {/* Executive Summary - Full AI Analysis */}
+                  <Route path="/dashboard/executive-summary" element={<ExecutiveSummaryDashboard />} />
+                  
                   {/* Legacy redirects - maintain backward compatibility */}
                   <Route path="/user-dashboard" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/ai-insights" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/dashboard/executive-summary" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/ai-recommendations" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/ai-insights/recommendations" element={<Navigate to="/dashboard" replace />} />
                   

@@ -8,16 +8,17 @@ from src.utils.llm_cache import LLMCache
 class LLMClient:
     """
     Thin abstraction over multiple LLM providers. Keeps one public method: generate(prompt, system, options).
-    Providers supported via env: LLM_PROVIDER=openai|azure-openai|anthropic|ollama|mock
+    Providers supported via env: LLM_PROVIDER=openai|azure-openai|anthropic|ollama|groq|mock
     """
 
     def __init__(self):
-        self.provider = os.getenv("LLM_PROVIDER", "openai").strip()
-        self.model = os.getenv("LLM_MODEL", "gpt-4.1-mini").strip()
+        self.provider = os.getenv("LLM_PROVIDER", "groq").strip()
+        self.model = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile").strip()
         self.timeout = int(os.getenv("LLM_TIMEOUT_SECONDS", "60"))
         self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", "1200"))
         self.temperature = float(os.getenv("LLM_TEMPERATURE", "0.2"))
         self.api_key = os.getenv("LLM_API_KEY", "")
+        self.groq_api_key = os.getenv("GROQ_API_KEY", "")
         self.azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT", "")
         self.azure_api_key = os.getenv("AZURE_OPENAI_API_KEY", "")
         
@@ -57,6 +58,8 @@ class LLMClient:
             provider = self.provider
             if provider == "mock":
                 response = self._generate_mock(prompt, system, options)
+            elif provider == "groq":
+                response = self._generate_groq(prompt, system, options)
             elif provider == "openai":
                 response = self._generate_openai(prompt, system, options)
             elif provider == "azure-openai":
@@ -98,6 +101,36 @@ class LLMClient:
         from .mock_llm_client import MockLLMClient
         mock = MockLLMClient()
         return mock.generate(prompt, system, options)
+
+    def _generate_groq(self, prompt: str, system: Optional[str], options: Optional[Dict[str, Any]]) -> str:
+        """Use Groq's ultra-fast inference API with Llama 3.1 70B."""
+        try:
+            from groq import Groq
+        except Exception:
+            raise RuntimeError("Groq client not installed. Add 'groq' to requirements.txt.")
+        
+        if not self.groq_api_key:
+            raise RuntimeError("Missing GROQ_API_KEY environment variable")
+        
+        client = Groq(api_key=self.groq_api_key)
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+        
+        temperature = (options or {}).get("temperature", self.temperature)
+        max_tokens = (options or {}).get("max_tokens", self.max_tokens)
+        
+        start = time.time()
+        resp = client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        if time.time() - start > self.timeout:
+            raise TimeoutError("LLM request exceeded timeout")
+        return (resp.choices[0].message.content or "").strip()
 
     # Provider implementations are minimal and import lazily to avoid hard deps
     def _generate_openai(self, prompt: str, system: Optional[str], options: Optional[Dict[str, Any]]) -> str:

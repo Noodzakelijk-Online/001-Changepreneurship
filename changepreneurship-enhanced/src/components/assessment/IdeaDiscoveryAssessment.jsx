@@ -275,11 +275,15 @@ const QuestionCard = ({ question, response, onResponse, questionNumber, totalQue
     switch (question.type) {
       case 'multiple-choice':
         return (
-          <RadioGroup value={response || ''} onValueChange={onResponse}>
+          <RadioGroup 
+            key={`${question.id}-${response}`}
+            value={response || ''} 
+            onValueChange={onResponse}
+          >
             {question.options.map((option) => (
               <div key={option.value} className="flex items-center space-x-2">
-                <RadioGroupItem value={option.value} id={option.value} />
-                <Label htmlFor={option.value} className="flex-1 cursor-pointer">
+                <RadioGroupItem value={option.value} id={`${question.id}-${option.value}`} />
+                <Label htmlFor={`${question.id}-${option.value}`} className="flex-1 cursor-pointer">
                   <div>
                     <div className="font-medium">{option.label}</div>
                     {option.description && (
@@ -293,6 +297,7 @@ const QuestionCard = ({ question, response, onResponse, questionNumber, totalQue
         )
 
       case 'scale':
+        const scaleValue = response || question.scaleRange?.min || 1;
         return (
           <div className="space-y-4">
             <div className="flex justify-between text-sm text-muted-foreground">
@@ -300,7 +305,8 @@ const QuestionCard = ({ question, response, onResponse, questionNumber, totalQue
               <span>{question.scaleLabels?.max || 'High'}</span>
             </div>
             <Slider
-              value={[response || question.scaleRange?.min || 1]}
+              key={`${question.id}-${scaleValue}`}
+              value={[scaleValue]}
               onValueChange={(value) => onResponse(value[0])}
               min={question.scaleRange?.min || 1}
               max={question.scaleRange?.max || 10}
@@ -316,6 +322,7 @@ const QuestionCard = ({ question, response, onResponse, questionNumber, totalQue
       case 'textarea':
         return (
           <Textarea
+            key={`${question.id}-textarea`}
             value={response || ''}
             onChange={(e) => onResponse(e.target.value)}
             placeholder={question.placeholder || 'Enter your response...'}

@@ -2,16 +2,36 @@ import React, { useState } from "react";
 import { BUSINESS_PROTOTYPE_TESTING_QUESTIONS } from "./ComprehensiveQuestionBank.jsx";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
+import { Button } from "@/components/ui/button.jsx";
 import { Textarea } from "@/components/ui/textarea.jsx";
 import { Input } from "@/components/ui/input.jsx";
-import { Lightbulb, CheckCircle } from "lucide-react";
+import { Lightbulb, CheckCircle, Check } from "lucide-react";
+import { useAssessment } from "../../contexts/AssessmentContext";
+import { useNavigate } from "react-router-dom";
 
 const BusinessPrototypeTesting = () => {
   const [responses, setResponses] = useState({});
+  const { updateResponse, completePhase } = useAssessment();
+  const navigate = useNavigate();
 
   const handleChange = (id, value) => {
     setResponses((prev) => ({ ...prev, [id]: value }));
+    // Save to backend immediately
+    updateResponse('business_prototype_testing', id, value, 'general');
   };
+
+  const handleSubmit = () => {
+    // Mark phase as complete
+    completePhase('business_prototype_testing');
+    
+    // Navigate to dashboard
+    navigate('/dashboard');
+  };
+
+  // Calculate completion
+  const answeredCount = Object.keys(responses).filter(key => responses[key]?.trim()).length;
+  const totalQuestions = BUSINESS_PROTOTYPE_TESTING_QUESTIONS.length;
+  const isComplete = answeredCount === totalQuestions;
 
   return (
     <div className="space-y-6">
@@ -67,6 +87,44 @@ const BusinessPrototypeTesting = () => {
               </Card>
             );
           })}
+        </CardContent>
+      </Card>
+
+      {/* Submit Button */}
+      <Card className="border-dashed border-2 border-orange-500 bg-orange-50 dark:bg-orange-950/20">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                isComplete ? 'bg-green-500' : 'bg-orange-500'
+              }`}>
+                {isComplete ? (
+                  <Check className="h-6 w-6 text-white" />
+                ) : (
+                  <span className="text-white font-bold">{answeredCount}/{totalQuestions}</span>
+                )}
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">
+                  {isComplete ? '🎉 Assessment Complete!' : 'Complete Final Phase'}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {isComplete 
+                    ? 'Submit to finish all 7 phases and unlock AI insights'
+                    : `Answer all ${totalQuestions} questions to complete your entrepreneurial journey`
+                  }
+                </p>
+              </div>
+            </div>
+            <Button
+              size="lg"
+              onClick={handleSubmit}
+              disabled={!isComplete}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-8"
+            >
+              {isComplete ? 'Submit Assessment' : 'Complete All Questions'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

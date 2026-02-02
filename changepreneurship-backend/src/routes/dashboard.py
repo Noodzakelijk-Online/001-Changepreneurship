@@ -8,6 +8,7 @@ from ..models.assessment import db
 from ..services.dashboard_service import DashboardDataGenerator
 from ..services.test_data_generator import TestDataGenerator
 from ..services.complete_user_generator import CompleteUserGenerator
+from ..utils.auth import verify_session_token
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -17,23 +18,19 @@ test_data_generator = TestDataGenerator()
 complete_user_generator = CompleteUserGenerator()
 
 
-def _get_user_id():
-    """Extract user_id from request or session"""
-    user_id = request.args.get('user_id') or session.get('user_id', 'demo-user')
-    try:
-        return int(user_id)
-    except (ValueError, TypeError):
-        return user_id
-
-
+@dashboard_bp.route('/executive-summary', methods=['GET'])
 @dashboard_bp.route('/api/dashboard/executive-summary', methods=['GET'])
 @cross_origin()
 def get_executive_summary():
-    """Get comprehensive executive summary for user"""
-    user_id = _get_user_id()
-    current_app.logger.info(f"Executive summary for user: {user_id}")
+    """Get comprehensive executive summary for authenticated user"""
+    # Use proper session authentication
+    user, user_session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
     
-    dashboard_data = dashboard_service.generate_executive_summary(user_id)
+    current_app.logger.info(f"[Dashboard] Executive summary for user: {user.username} (ID: {user.id})")
+    
+    dashboard_data = dashboard_service.generate_executive_summary(user.id)
     
     return jsonify({
         'success': True,
@@ -45,15 +42,14 @@ def get_executive_summary():
 @dashboard_bp.route('/api/dashboard/executive-summary/refresh', methods=['POST'])
 @cross_origin()
 def refresh_executive_summary():
-    """Refresh dashboard data"""
-    data = request.get_json() or {}
-    user_id = data.get('user_id') or session.get('user_id')
+    """Refresh dashboard data for authenticated user"""
+    # Use proper session authentication
+    user, user_session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
     
-    if not user_id:
-        return jsonify({'success': False, 'error': 'User ID required'}), 400
-    
-    current_app.logger.info(f"Refreshing dashboard for user: {user_id}")
-    dashboard_data = dashboard_service.refresh_dashboard_data(user_id)
+    current_app.logger.info(f"[Dashboard] Refreshing dashboard for user: {user.username} (ID: {user.id})")
+    dashboard_data = dashboard_service.refresh_dashboard_data(user.id)
     
     return jsonify({
         'success': True,
@@ -66,10 +62,14 @@ def refresh_executive_summary():
 @cross_origin()
 def get_sub_element_details(element_key):
     """Get detailed data for specific business sub-element"""
-    user_id = _get_user_id()
-    current_app.logger.info(f"Sub-element '{element_key}' for user: {user_id}")
+    # Use proper session authentication
+    user, user_session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
     
-    sub_element_data = dashboard_service.get_sub_element_details(user_id, element_key)
+    current_app.logger.info(f"[Dashboard] Sub-element '{element_key}' for user: {user.username} (ID: {user.id})")
+    
+    sub_element_data = dashboard_service.get_sub_element_details(user.id, element_key)
     
     if not sub_element_data:
         return jsonify({'success': False, 'error': f'Sub-element "{element_key}" not found'}), 404
@@ -101,7 +101,7 @@ def get_dashboard_metrics():
     })
 
 
-@dashboard_bp.route('/api/dashboard/health', methods=['GET'])
+@dashboard_bp.route('/health', methods=['GET'])
 @cross_origin()
 def dashboard_health_check():
     """

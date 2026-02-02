@@ -1,7 +1,20 @@
 from flask import Blueprint, jsonify, request
 from src.models.assessment import User, db
+from src.utils.auth import verify_session_token
 
 user_bp = Blueprint('user', __name__)
+
+@user_bp.route('/profile', methods=['GET'])
+def get_profile():
+    """Get current user profile (requires authentication)"""
+    user, session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+    
+    return jsonify({
+        'success': True,
+        'user': user.to_dict()
+    }), 200
 
 @user_bp.route('/users', methods=['GET'])
 def get_users():

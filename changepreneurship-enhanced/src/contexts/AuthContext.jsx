@@ -79,10 +79,15 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
+      console.log('[AUTH] Attempting login for:', credentials.username);
       const result = await apiService.login(credentials);
+      console.log('[AUTH] Login result:', result);
+      
       if (result.success && result.data?.user) {
+        console.log('[AUTH] Setting user:', result.data.user);
         setUser(result.data.user);
         setIsAuthenticated(true);
+        console.log('[AUTH] User set, isAuthenticated=true');
       }
       return result;
     } catch (error) {
