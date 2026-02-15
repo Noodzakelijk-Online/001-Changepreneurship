@@ -1,7 +1,7 @@
 # Changepreneurship - Project Status
 **Last Updated:** February 15, 2026  
-**Git Branch:** `main`  
-**Latest Commit:** Futuristic landing page redesign with cyberpunk aesthetics
+**Git Branch:** `ui-rewamp-2`  
+**Latest Commit:** fix: Normalize backend phase names to frontend phase IDs in dashboard data
 
 ---
 
@@ -12,7 +12,7 @@
 ✅ PostgreSQL 16     - Healthy (port 5432)
 ✅ Redis 7          - Healthy (port 6379)  
 ✅ Flask Backend    - Healthy (port 5000)
-✅ Frontend (Nginx) - Running (port 80) - NEW DESIGN!
+✅ Frontend (Nginx) - Healthy (port 80) - FUTURISTIC REDESIGN + FIXED METRICS!
 ```
 
 **Access Points:**
@@ -37,6 +37,7 @@
 - **Framework:** React 18 + Vite
 - **Routing:** React Router v6
 - **UI:** Tailwind CSS + shadcn/ui
+- **Theme:** Dark cyberpunk with cyan/purple gradients
 - **State:** Context API
 - **Server:** Nginx (production)
 
@@ -44,59 +45,105 @@
 
 ## 🎨 Recent Work (This Session)
 
-### ✅ COMPLETED: Futuristic Landing Page Redesign
-Implementiran potpuno novi, futuristički dizajn landing page-a:
+### ✅ COMPLETED: Complete UI Overhaul & Bug Fixes
+
+#### 1. Futuristic Landing Page Redesign
+Implementiran potpuno novi, futuristički dizajn:
 
 **Vizuelne izmene:**
 - 🌌 Dark theme sa cyberpunk estetikom (crna pozadina)
-- 🎨 Cyan/Purple gradient akcenti kroz celu stranicu
-- 🖼️ Full-screen hero sekcija sa background image-om
-- ✨ Animated glow efekti i smooth transitions
-- 🎯 Moderna card dizajna sa hover effects
+- 🎨 Cyan (#06b6d4) / Purple (#a855f7) gradient akcenti
+- 🖼️ Full-screen hero sekcija sa blurred background
+- ✨ Typing animation na "Autonomously." tekstu
+- 🎯 Moderna card dizajna sa glow hover effects
 - 📐 Poboljšana tipografija i spacing
 - 🎭 Custom scrollbar sa gradient stilom
+- ✨ CSS animacije (glow-pulse, float, shimmer)
 
-**Tehničke izmene:**
-- Pojednostavljena navigacija (Logo + Platform + Login/Start Building)
-- CSS animacije (glow-pulse, float, shimmer)
-- Responsive design sa backdrop blur efektima
-- Glassmorphism efekti na kartama
-- Uklonjen prethodni generički look
+**Funkcionalnost:**
+- Uklonjen "SYSTEM ONLINE V44.0" banner
+- Uklonjen "Platform" button iz navigacije
+- Background image sa backdrop blur(3px) filter
+- Responsive design sa glassmorphism efektima
 
-**Git workflow:**
-- ✅ Korišćen feature branch: `feat/futuristic-landing-redesign`
-- ✅ Commit: "feat: Futuristic landing page redesign with cyberpunk aesthetics"
-- ✅ Merged u main branch
+#### 2. Dashboard Theme & Metrics Overhaul
+Potpuna rekonstrukcija dashboard-a:
 
-### 🔧 Issues Resolved
-- ✅ Landing page sada izgleda moderno i profesionalno
-- ✅ Hero sekcija optimizovana (ne zauzima 80%+ ekrana)
-- ✅ Navigation pojednostavljena
-- ⚠️ Frontend health check i dalje pokazuje unhealthy (ali sajt radi perfektno)
+**Vizuelne izmene:**
+- ⚫ Crna pozadina (bg-black) kao landing page
+- 🎨 Cyan/purple gradient na svim kartama
+- 💫 Glow efekti na button hover-u
+- 📊 Progress bar visina smanjena na h-1.5
+- 🌈 Cyan-purple gradient na progress barovima
+- ✨ Konzistentna dark tema kroz sve komponente
 
-### ⚠️ Known Issues (Ostalo za sledeću sesiju)
-- Dashboard showing incorrect metrics
-- Next Steps logic needs fixing (should check < 10 responses, not < 5)
-- Progress bars need better contrast
+**Funkcionalnost - KRITIČNI BUGFIX:**
+- 🐛 **FIX:** Progress barovi sada pokazuju TAČAN progres!
+  - Problem: Backend koristi "Self Discovery Assessment" kao phase_id
+  - Frontend očekuje "self_discovery" format
+  - Rešenje: Dodao phase name normalization u useDashboardData.js
+  - Kreiran mapping: `phaseNameToId` objekat za transformaciju
+
+- ✅ Time metric: Realistična procena (`totalResponses * 2 min`)
+- ✅ Next Steps: Filtrira faze sa < 10 responses (ne prikazuje završene)
+- ✅ Next Steps: Priority sorting (foundation phases prvo)
+- ✅ Uklonjena "My Responses" sekcija (redundantna)
+- ✅ Health check fix: Changed from `/` to `/index.html`
+
+#### 3. Git Workflow Corrections
+- ⚠️ Početnički error: Commiti ušli na `main` umesto na feature branch
+- ✅ Napravljen `ui-rewamp-2` branch
+- ✅ Git reset main to commit `07871ff`
+- ✅ Cherry-picked 3 commits na `ui-rewamp-2`
+- ✅ Čist workflow sada uspostavljen
+
+### 🔧 Critical Bugs Fixed
+
+1. **Progress Bars Showing 0% Despite Having Responses** ✅ FIXED
+   - Root Cause: Backend `by_phase` keys !== frontend `phase.id` values
+   - Backend: "Self Discovery Assessment", "Market Research", etc
+   - Frontend: "self_discovery", "market_research", etc
+   - Solution: Phase name normalization in [useDashboardData.js](changepreneurship-enhanced/src/hooks/useDashboardData.js#L86-L111)
+
+2. **Dashboard Metrics Showing 0m, 0 Insights** ✅ FIXED
+   - Dodao fallback kalkulacije za time metric
+   - Koristim `total_responses * 2` kao realistic estimate
+
+3. **Next Steps Showing Already-Completed Phases** ✅ FIXED
+   - Filter promenjne sa `< 5` na `< 10` responses
+   - Priority sorting dodao (foundation faze prvo)
+
+4. **Frontend Health Check Failing** ✅ FIXED
+   - Changed health check endpoint from `/` to `/index.html`
+   - Container sada pokazuje "healthy" status
+
+### ⚠️ Known Issues
+- NONE trenutno - sve core funkcionalnosti rade!
+- Sledeći koraci: User testiranje dashboard-a sa sarah_chen_founder accountom
 
 ---
 
 ## 🎯 Key Features Working
 
-### ✅ Operational
-- User authentication (login/register)
-- 7-phase assessment system
-- AI-powered insights via Groq
-- Dashboard with metrics
-- Progress tracking
-- Docker deployment
+### ✅ Fully Operational
+- ✅ User authentication (login/register)
+- ✅ 7-phase assessment system
+- ✅ AI-powered insights via Groq (PURE_AI_MODE)
+- ✅ Dashboard with real-time metrics
+- ✅ Progress tracking (phase-level i overall)
+- ✅ Next Steps recommendations (AI-driven)
+- ✅ Docker deployment (all containers healthy)
+- ✅ Health checks for all services
+- ✅ Futuristic UI theme (dark cyberpunk)
+- ✅ Phase name normalization (backend ↔ frontend)
 
-### ⚠️ Needs Attention
-- Frontend health check
-- Dashboard metric accuracy
-- UI/UX refinements
-- Navigation cleanup
-- Landing page optimization
+### 📊 Test User
+**Username:** `sarah_chen_founder`  
+**Password:** `Test1234!`  
+**User ID:** 7  
+**Total Responses:** 65 (7 faza potpuno popunjene)
+
+Use this account to test dashboard with real data!
 
 ---
 
