@@ -71,11 +71,19 @@ const UnifiedDashboard = () => {
   }
 
   // Calculate metrics from available data
-  // Prioritize insights (executive-summary) over metrics (analytics/overview)
-  const overallProgress = getOverallProgress() || metrics?.overall_progress || 0
-  const totalTime = metrics?.total_time_spent || 0
-  const aiScore = insights?.overall_score || profile?.success_probability || 0
+  // Get total responses first
   const totalResponses = responses?.total_responses || 0
+  
+  // Calculate overall progress based on actual responses
+  const totalPossibleResponses = 7 * 10 // 7 phases, 10 questions each
+  const calculatedProgress = totalResponses > 0 ? (totalResponses / totalPossibleResponses) * 100 : 0
+  const overallProgress = calculatedProgress || getOverallProgress() || metrics?.overall_progress || 0
+  
+  // Estimate time: ~2 minutes per response
+  const estimatedTime = totalResponses * 2
+  const totalTime = metrics?.total_time_spent || estimatedTime
+  
+  const aiScore = insights?.overall_score || profile?.success_probability || 0
   
   // Calculate completed phases from responses data
   const completedPhasesFromResponses = phases.filter(phase => {
@@ -161,7 +169,7 @@ const UnifiedDashboard = () => {
 
   if (loading && !hasData) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="flex items-center space-x-2 text-white">
           <RefreshCw className="h-6 w-6 animate-spin" />
           <span>Loading your dashboard...</span>
@@ -171,17 +179,17 @@ const UnifiedDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <div className="bg-gray-800 border-b border-gray-700">
+      <div className="bg-black/80 border-b border-cyan-500/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="bg-orange-600 p-3 rounded-lg">
+              <div className="bg-gradient-to-r from-cyan-500 to-purple-500 p-3 rounded-lg shadow-lg shadow-cyan-500/50">
                 <BarChart3 className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">My Entrepreneurial Dashboard</h1>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">My Entrepreneurial Dashboard</h1>
                 <p className="text-gray-400">Complete overview of your journey</p>
               </div>
             </div>
@@ -190,7 +198,7 @@ const UnifiedDashboard = () => {
                 variant="outline" 
                 onClick={refresh} 
                 disabled={loading}
-                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
@@ -198,7 +206,7 @@ const UnifiedDashboard = () => {
               <Button 
                 variant="outline" 
                 onClick={exportData}
-                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Export
@@ -212,7 +220,7 @@ const UnifiedDashboard = () => {
         
         {/* Compact Metrics Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gradient-to-br from-gray-900 to-black border-gray-800 hover:border-cyan-500/50 transition-colors">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -225,40 +233,40 @@ const UnifiedDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gradient-to-br from-gray-900 to-black border-gray-800 hover:border-green-500/50 transition-colors">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Phases</p>
                   <p className="text-3xl font-bold text-white">{completedPhasesCount}/7</p>
                 </div>
-                <CheckCircle className="h-8 w-8 text-green-600" />
+                <CheckCircle className="h-8 w-8 text-green-500" />
               </div>
               <p className="text-xs text-gray-400 mt-3">phases completed</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gradient-to-br from-gray-900 to-black border-gray-800 hover:border-blue-500/50 transition-colors">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Time</p>
-                  <p className="text-3xl font-bold text-white">{totalTime}m</p>
+                  <p className="text-3xl font-bold text-white">{totalTime > 0 ? totalTime : totalResponses * 2}m</p>
                 </div>
-                <Clock className="h-8 w-8 text-blue-600" />
+                <Clock className="h-8 w-8 text-blue-500" />
               </div>
               <p className="text-xs text-gray-400 mt-3">minutes invested</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gradient-to-br from-gray-900 to-black border-gray-800 hover:border-purple-500/50 transition-colors">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">AI Score</p>
                   <p className="text-3xl font-bold text-white">{Math.round(aiScore)}%</p>
                 </div>
-                <Brain className="h-8 w-8 text-purple-600" />
+                <Brain className="h-8 w-8 text-purple-500" />
               </div>
               <p className="text-xs text-gray-400 mt-3">success probability</p>
             </CardContent>
@@ -267,24 +275,24 @@ const UnifiedDashboard = () => {
 
         {/* Next Steps Section */}
         {nextSteps.length > 0 && (
-          <Card className="bg-gradient-to-r from-orange-900/20 to-orange-800/20 border-orange-600/50">
+          <Card className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 border-cyan-500/50">
             <CardHeader>
               <CardTitle className="text-white flex items-center">
-                <Target className="h-5 w-5 mr-2 text-orange-500" />
+                <Target className="h-5 w-5 mr-2 text-cyan-400" />
                 Next Steps for You
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {nextSteps.map((step, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                  <div key={idx} className="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-gray-800">
                     <div className="flex items-center space-x-3">
                       <span className="text-2xl">{step.icon}</span>
                       <span className="text-white">{step.text}</span>
                     </div>
                     {step.link && (
                       <Link to={step.link}>
-                        <Button size="sm" variant="outline" className="border-orange-600 text-orange-400 hover:bg-orange-900/30">
+                        <Button size="sm" className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white border-0">
                           Go <ArrowRight className="h-4 w-4 ml-1" />
                         </Button>
                       </Link>
@@ -300,7 +308,7 @@ const UnifiedDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* Left: Phase Progress */}
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gradient-to-br from-gray-900 to-black border-gray-800">
             <CardHeader>
               <CardTitle className="text-white flex items-center">
                 <BarChart3 className="h-5 w-5 mr-2 text-orange-600" />
@@ -337,7 +345,7 @@ const UnifiedDashboard = () => {
           </Card>
 
           {/* Right: AI Insights */}
-          <Card className="bg-gray-800 border-gray-700" id="ai-insights">
+          <Card className="bg-gradient-to-br from-gray-900 to-black border-gray-800" id="ai-insights">
             <CardHeader>
               <CardTitle className="text-white flex items-center">
                 <Brain className="h-5 w-5 mr-2 text-purple-600" />
