@@ -148,7 +148,7 @@ const LandingPage = () => {
 
       {/* Hero Section with Background */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Image */}
+        {/* Background Image - Fully Transparent Cyberpunk City */}
         <div 
           className="absolute inset-0 z-0"
           style={{
@@ -156,24 +156,24 @@ const LandingPage = () => {
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
-            filter: 'blur(3px)'
+            filter: 'blur(2px)'
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/95"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+          {/* Subtle dark overlay for text readability only */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40"></div>
         </div>
         
-        {/* Animated overlay effects */}
+        {/* Animated overlay effects - more subtle */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
         </div>
 
         {/* Content */}
         <div className="container mx-auto px-6 text-center relative z-10 pt-20">
-          <h1 className="text-6xl md:text-8xl font-bold mb-6 leading-tight">
-            <span className="block text-white">From Idea to IPO,</span>
-            <span className="block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight">
+            <span className="block text-white drop-shadow-2xl">From Idea to IPO,</span>
+            <span className="block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent drop-shadow-2xl">
               {typedText}<span className="animate-pulse">|</span>
             </span>
           </h1>
