@@ -95,31 +95,44 @@ const LandingPage = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black text-white">
       {/* Navigation Header */}
-      <nav className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-b">
-        <div className="container mx-auto px-4 py-4">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-lg border-b border-cyan-500/20">
+        <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold">Changepreneurship</span>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="absolute inset-0 bg-cyan-500 blur-lg opacity-50"></div>
+                <TrendingUp className="h-8 w-8 text-cyan-400 relative" />
+              </div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                Changepreneurship
+              </span>
             </div>
             
             <div className="flex items-center gap-4">
+              <Button 
+                variant="ghost" 
+                className="text-gray-300 hover:text-cyan-400 hover:bg-cyan-500/10"
+              >
+                Platform
+              </Button>
               {isAuthenticated ? (
                 <UserProfile />
               ) : (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <Button 
                     variant="ghost" 
                     onClick={() => handleAuthAction('login')}
+                    className="text-gray-300 hover:text-white hover:bg-white/10"
                   >
-                    Sign In
+                    Log In
                   </Button>
                   <Button 
                     onClick={() => handleAuthAction('register')}
+                    className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white border-0 shadow-lg shadow-cyan-500/50"
                   >
-                    Get Started
+                    Start Building
                   </Button>
                 </div>
               )}
@@ -128,33 +141,69 @@ const LandingPage = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 px-4 pt-32">{/* Added pt-32 for nav spacing */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
-        <div className="container mx-auto text-center relative">
-          <Badge variant="secondary" className="mb-6">
-            Transform Your Entrepreneurial Journey
-          </Badge>
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            Changepreneurship
+      {/* Hero Section with Background */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: 'url(/hero-bg.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/90"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+        </div>
+        
+        {/* Animated overlay effects */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        </div>
+
+        {/* Content */}
+        <div className="container mx-auto px-6 text-center relative z-10 pt-20">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 mb-8 backdrop-blur-sm">
+            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+            <span className="text-cyan-400 text-sm font-medium tracking-wider uppercase">
+              System Online // V44.0
+            </span>
+          </div>
+          
+          <h1 className="text-6xl md:text-8xl font-bold mb-6 leading-tight">
+            <span className="block text-white">From Idea to IPO,</span>
+            <span className="block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Autonomously.
+            </span>
           </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Discover your entrepreneurial archetype, validate business ideas, and build a comprehensive 
-            roadmap for success with our AI-powered assessment platform.
+          
+          <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+            The world's first cognitive venture architecture. Orchestrate AI agents to
+            <br />validate, build, and scale your business in real-time.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             {isAuthenticated ? (
               <>
                 <Link to="/assessment">
-                  <Button size="lg" className="text-lg px-8 py-6">
+                  <Button 
+                    size="lg" 
+                    className="text-lg px-10 py-7 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white border-0 shadow-2xl shadow-cyan-500/50 rounded-full font-semibold"
+                  >
                     Continue Assessment
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
                 <Link to="/dashboard">
-                  <Button variant="outline" size="lg" className="text-lg px-8 py-6">
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    className="text-lg px-10 py-7 bg-white/5 hover:bg-white/10 text-white border-white/20 backdrop-blur-sm rounded-full"
+                  >
                     <Brain className="mr-2 h-5 w-5" />
-                    View Dashboard
+                    Dashboard
                   </Button>
                 </Link>
               </>
@@ -162,34 +211,49 @@ const LandingPage = () => {
               <>
                 <Button 
                   size="lg" 
-                  className="text-lg px-8 py-6"
+                  className="text-lg px-10 py-7 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white border-0 shadow-2xl shadow-cyan-500/50 rounded-full font-semibold transform hover:scale-105 transition-transform"
                   onClick={() => handleAuthAction('register')}
                 >
-                  Start Your Journey
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="text-lg px-8 py-6"
-                  onClick={() => handleAuthAction('login')}
-                >
-                  <Brain className="mr-2 h-5 w-5" />
-                  Sign In to Continue
+                  Start Building
+                  <ArrowRight className="ml-3 h-5 w-5" />
                 </Button>
               </>
             )}
+          </div>
+
+          {/* Tech badge */}
+          <div className="mt-16 flex items-center justify-center gap-8 text-gray-500 text-sm">
+            <span className="uppercase tracking-wider">Powered by Next-Gen Intelligence</span>
+            <div className="flex gap-4">
+              <div className="w-8 h-8 rounded border border-gray-700 flex items-center justify-center hover:border-cyan-500/50 transition-colors">
+                <span className="text-xs">AI</span>
+              </div>
+              <div className="w-8 h-8 rounded-full border border-gray-700 flex items-center justify-center hover:border-cyan-500/50 transition-colors">
+                <span className="text-xs">◇</span>
+              </div>
+              <div className="w-8 h-8 rounded border border-gray-700 rotate-45 flex items-center justify-center hover:border-cyan-500/50 transition-colors">
+                <span className="text-xs -rotate-45">▢</span>
+              </div>
+              <div className="w-8 h-8 border border-gray-700 flex items-center justify-center hover:border-cyan-500/50 transition-colors">
+                <span className="text-xs">□</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-6 bg-black">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">How It Works</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Our comprehensive 7-part framework guides you through every step of your entrepreneurial journey
+            <div className="inline-block px-4 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 mb-6">
+              <span className="text-cyan-400 text-sm uppercase tracking-wider">Our Framework</span>
+            </div>
+            <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              7-Stage Architecture
+            </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Navigate every phase of your entrepreneurial journey with precision
             </p>
           </div>
           
@@ -200,7 +264,7 @@ const LandingPage = () => {
               const card = (
                 <Card
                   key={index}
-                  className="relative overflow-hidden group hover:shadow-lg transition-all duration-300 cursor-pointer"
+                  className="relative overflow-hidden group hover:shadow-2xl hover:shadow-cyan-500/20 transition-all duration-500 cursor-pointer bg-gradient-to-br from-gray-900 to-black border-gray-800 hover:border-cyan-500/50"
                   onClick={(e) => {
                     if (!isAuthenticated) {
                       setAuthMode('register')
@@ -215,38 +279,39 @@ const LandingPage = () => {
                       if (!isAuthenticated) {
                         setAuthMode('register')
                         setAuthModalOpen(true)
-                      } else {
-                        // let outer Link handle navigation if present
                       }
                     }
                   }}
                   aria-label={`Open ${feature.title} assessment`}
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
+                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
+                  
+                  {/* Glow effect */}
+                  <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-purple-500/0 opacity-0 group-hover:opacity-100 blur transition-opacity duration-500"></div>
+                  
                   <CardHeader className="relative">
                     <div className="flex items-center justify-between mb-4">
-                      <div className={`p-3 rounded-lg bg-gradient-to-br ${feature.color}`}>
+                      <div className={`p-3 rounded-lg bg-gradient-to-br ${feature.color} shadow-lg`}>
                         <Icon className="h-6 w-6 text-white" />
                       </div>
                       <div className="flex flex-col items-end gap-1">
-                        <Badge variant="outline" className="text-xs">
-                          Step {index + 1}
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs">
-                          {feature.phase}
+                        <Badge variant="outline" className="text-xs bg-cyan-500/10 border-cyan-500/30 text-cyan-400">
+                          Stage {index + 1}
                         </Badge>
                       </div>
                     </div>
-                    <CardTitle className="text-lg flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg flex items-center justify-between gap-2 text-white">
                       <span>{feature.title}</span>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <ArrowRight className="h-4 w-4 text-gray-500 group-hover:text-cyan-400 transition-colors transform group-hover:translate-x-1" />
                     </CardTitle>
-                    <CardDescription className="text-sm">{feature.description}</CardDescription>
+                    <CardDescription className="text-sm text-gray-400">{feature.description}</CardDescription>
                   </CardHeader>
                   <CardContent className="relative">
                     <div className="flex items-center justify-between">
-                      <Badge variant="secondary" className="text-xs">{feature.duration}</Badge>
-                      <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">{isAuthenticated ? 'Open' : 'Sign in to access'}</span>
+                      <Badge variant="secondary" className="text-xs bg-gray-800 text-gray-300">{feature.duration}</Badge>
+                      <span className="text-xs text-gray-500 group-hover:text-cyan-400 transition-colors">
+                        {isAuthenticated ? 'Launch →' : 'Authenticate'}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -263,12 +328,17 @@ const LandingPage = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section className="py-20 px-6 bg-gradient-to-b from-black via-gray-900 to-black">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Why Choose Changepreneurship?</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Built on proven frameworks and powered by AI to maximize your chances of success
+            <div className="inline-block px-4 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 mb-6">
+              <span className="text-purple-400 text-sm uppercase tracking-wider">Advantages</span>
+            </div>
+            <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              Enterprise-Grade Intelligence
+            </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Built on proven frameworks and powered by AI to maximize your success probability
             </p>
           </div>
           
@@ -276,15 +346,18 @@ const LandingPage = () => {
             {benefits.map((benefit, index) => {
               const Icon = benefit.icon
               return (
-                <Card key={index} className="hover:shadow-md transition-shadow">
+                <Card 
+                  key={index} 
+                  className="bg-gradient-to-br from-gray-900 to-black border-gray-800 hover:border-purple-500/50 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 group"
+                >
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <Icon className="h-5 w-5 text-primary" />
+                      <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/30 group-hover:bg-purple-500/20 transition-colors">
+                        <Icon className="h-6 w-6 text-purple-400" />
                       </div>
                       <div>
-                        <h3 className="font-semibold mb-2">{benefit.title}</h3>
-                        <p className="text-sm text-muted-foreground">{benefit.description}</p>
+                        <h3 className="font-semibold mb-2 text-white">{benefit.title}</h3>
+                        <p className="text-sm text-gray-400">{benefit.description}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -296,66 +369,97 @@ const LandingPage = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-6 bg-black border-y border-cyan-500/20">
         <div className="container mx-auto">
           <div className="grid md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">500+</div>
-              <div className="text-muted-foreground">Assessment Questions</div>
+            <div className="group">
+              <div className="text-5xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform">
+                500+
+              </div>
+              <div className="text-gray-400 text-sm uppercase tracking-wider">Assessment Vectors</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">6</div>
-              <div className="text-muted-foreground">Entrepreneur Archetypes</div>
+            <div className="group">
+              <div className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform">
+                6
+              </div>
+              <div className="text-gray-400 text-sm uppercase tracking-wider">Entrepreneur Profiles</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">45+</div>
-              <div className="text-muted-foreground">Business Assets</div>
+            <div className="group">
+              <div className="text-5xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform">
+                45+
+              </div>
+              <div className="text-gray-400 text-sm uppercase tracking-wider">Strategic Assets</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">1000+</div>
-              <div className="text-muted-foreground">Verified Investors</div>
+            <div className="group">
+              <div className="text-5xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform">
+                1000+
+              </div>
+              <div className="text-gray-400 text-sm uppercase tracking-wider">Capital Partners</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-primary/10 to-accent/10">
-        <div className="container mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-4">Ready to Transform Your Future?</h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of aspiring entrepreneurs who have discovered their path to success
+      <section className="py-32 px-6 bg-gradient-to-br from-cyan-900/20 via-black to-purple-900/20 relative overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        </div>
+        
+        <div className="container mx-auto text-center relative z-10">
+          <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+            Ready to Build the Future?
+          </h2>
+          <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
+            Join the next generation of entrepreneurs leveraging AI-powered intelligence
           </p>
           {isAuthenticated ? (
             <Link to="/assessment">
-              <Button size="lg" className="text-lg px-8 py-6">
+              <Button 
+                size="lg" 
+                className="text-lg px-12 py-8 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white border-0 shadow-2xl shadow-cyan-500/50 rounded-full font-semibold transform hover:scale-105 transition-transform"
+              >
                 Continue Your Assessment
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-3 h-6 w-6" />
               </Button>
             </Link>
           ) : (
             <Button 
               size="lg" 
-              className="text-lg px-8 py-6"
+              className="text-lg px-12 py-8 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white border-0 shadow-2xl shadow-cyan-500/50 rounded-full font-semibold transform hover:scale-105 transition-transform"
               onClick={() => handleAuthAction('register')}
             >
-              Start Your Assessment Now
-              <ArrowRight className="ml-2 h-5 w-5" />
+              Initialize Your Journey
+              <ArrowRight className="ml-3 h-6 w-6" />
             </Button>
           )}
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 border-t">
-        <div className="container mx-auto text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <TrendingUp className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">Changepreneurship</span>
+      <footer className="py-12 px-6 border-t border-gray-800 bg-black">
+        <div className="container mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="absolute inset-0 bg-cyan-500 blur-lg opacity-30"></div>
+                <TrendingUp className="h-6 w-6 text-cyan-400 relative" />
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                Changepreneurship
+              </span>
+            </div>
+            <p className="text-gray-500 text-sm">
+              Cognitive Venture Architecture © 2026
+            </p>
+            <div className="flex gap-6 text-sm text-gray-500">
+              <a href="#" className="hover:text-cyan-400 transition-colors">Privacy</a>
+              <a href="#" className="hover:text-cyan-400 transition-colors">Terms</a>
+              <a href="#" className="hover:text-cyan-400 transition-colors">API</a>
+            </div>
           </div>
-          <p className="text-muted-foreground">
-            Empowering entrepreneurs with AI-driven insights and proven frameworks
-          </p>
         </div>
       </footer>
 
