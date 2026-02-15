@@ -111,12 +111,6 @@ const LandingPage = () => {
             </div>
             
             <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                className="text-gray-300 hover:text-cyan-400 hover:bg-cyan-500/10"
-              >
-                Platform
-              </Button>
               {isAuthenticated ? (
                 <UserProfile />
               ) : (
@@ -150,10 +144,11 @@ const LandingPage = () => {
             backgroundImage: 'url(/hero-bg.jpg)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
+            backgroundRepeat: 'no-repeat',
+            filter: 'blur(3px)'
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/90"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/95"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
         </div>
         
@@ -165,13 +160,6 @@ const LandingPage = () => {
 
         {/* Content */}
         <div className="container mx-auto px-6 text-center relative z-10 pt-20">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 mb-8 backdrop-blur-sm">
-            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-            <span className="text-cyan-400 text-sm font-medium tracking-wider uppercase">
-              System Online // V44.0
-            </span>
-          </div>
-          
           <h1 className="text-6xl md:text-8xl font-bold mb-6 leading-tight">
             <span className="block text-white">From Idea to IPO,</span>
             <span className="block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">

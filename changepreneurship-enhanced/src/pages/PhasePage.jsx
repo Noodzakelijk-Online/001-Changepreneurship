@@ -16,12 +16,18 @@ export default function PhasePage() {
     fetchTab(phaseId, tabId).then(setTab);
   }, [phaseId, tabId]);
 
-  if (!phase || !tab) return <p>Loading...</p>;
+  if (!phase || !tab) return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <p className="text-gray-400">Loading...</p>
+    </div>
+  );
   if (!phase.tabs) return <Navigate to="/" replace />;
 
   return (
-    <div className="p-4 space-y-4">
-      <h1 className="text-xl font-bold">{phase.title} / {tab.title}</h1>
+    <div className="min-h-screen bg-black text-white p-4 space-y-4">
+      <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+        {phase.title} / {tab.title}
+      </h1>
       <SectionView phaseId={phaseId} tabId={tabId} sectionId={sectionId} />
     </div>
   );

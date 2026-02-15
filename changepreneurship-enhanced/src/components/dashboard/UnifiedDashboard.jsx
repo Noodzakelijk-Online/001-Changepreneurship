@@ -80,7 +80,7 @@ const UnifiedDashboard = () => {
   // Calculate completed phases from responses data
   const completedPhasesFromResponses = phases.filter(phase => {
     const phaseResponses = responses?.by_phase?.[phase.id]
-    return phaseResponses && phaseResponses.length >= 5
+    return phaseResponses && phaseResponses.length >= 10
   }).length
   
   const completedPhasesCount = completedPhasesFromResponses || metrics?.completed_phases || 0
@@ -104,8 +104,8 @@ const UnifiedDashboard = () => {
     // Check incomplete phases
     phases.forEach(phase => {
       const phaseResponses = responses?.by_phase?.[phase.id]
-      if (!phaseResponses || phaseResponses.length < 5) {
-        const remaining = 5 - (phaseResponses?.length || 0)
+      if (!phaseResponses || phaseResponses.length < 10) {
+        const remaining = 10 - (phaseResponses?.length || 0)
         const slug = phaseIdToSlug(phase.id) || phase.id
         steps.push({
           type: 'assessment',
