@@ -337,7 +337,6 @@ const UnifiedDashboard = () => {
                       <span className="text-sm text-gray-400">{Math.round(phaseProgress)}%</span>
                     </div>
                     <Progress value={phaseProgress} className="h-1.5" />
-                    <p className="text-xs text-gray-500">{phaseResponses.length} responses</p>
                   </div>
                 )
               })}
