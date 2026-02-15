@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import AuthModal from './auth/AuthModal'
@@ -27,6 +27,17 @@ const LandingPage = () => {
   const { isAuthenticated } = useAuth()
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [authMode, setAuthMode] = useState('login')
+  const [typedText, setTypedText] = useState('')
+  const fullText = 'Autonomously.'
+  
+  useEffect(() => {
+    if (typedText.length < fullText.length) {
+      const timeout = setTimeout(() => {
+        setTypedText(fullText.slice(0, typedText.length + 1))
+      }, 100)
+      return () => clearTimeout(timeout)
+    }
+  }, [typedText])
 
   const handleAuthAction = (mode) => {
     if (isAuthenticated) {
@@ -163,7 +174,7 @@ const LandingPage = () => {
           <h1 className="text-6xl md:text-8xl font-bold mb-6 leading-tight">
             <span className="block text-white">From Idea to IPO,</span>
             <span className="block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Autonomously.
+              {typedText}<span className="animate-pulse">|</span>
             </span>
           </h1>
           

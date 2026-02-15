@@ -101,20 +101,27 @@ const UnifiedDashboard = () => {
   const getNextSteps = () => {
     const steps = []
     
-    // Check incomplete phases
+    // Check incomplete phases - only show if there are actual incomplete phases
     phases.forEach(phase => {
       const phaseResponses = responses?.by_phase?.[phase.id]
-      if (!phaseResponses || phaseResponses.length < 10) {
-        const remaining = 10 - (phaseResponses?.length || 0)
+      const responseCount = phaseResponses?.length || 0
+      
+      // Only add if phase is not completed (less than 10 responses)
+      if (responseCount < 10) {
+        const remaining = 10 - responseCount
         const slug = phaseIdToSlug(phase.id) || phase.id
         steps.push({
           type: 'assessment',
           icon: '📝',
-          text: `Complete ${remaining} remaining questions in ${phase.name}`,
-          link: `/assessment/${slug}`
+          text: `Complete ${remaining} more ${remaining === 1 ? 'question' : 'questions'} in ${phase.name}`,
+          link: `/assessment/${slug}`,
+          priority: responseCount === 0 ? 1 : 2 // Prioritize phases with 0 responses
         })
       }
     })
+    
+    // Sort by priority (phases with 0 responses first)
+    steps.sort((a, b) => (a.priority || 0) - (b.priority || 0))
 
     // AI recommendations
     if (aiScore > 0 && totalResponses > 10) {
@@ -214,7 +221,7 @@ const UnifiedDashboard = () => {
                 </div>
                 <TrendingUp className="h-8 w-8 text-orange-600" />
               </div>
-              <Progress value={overallProgress} className="mt-3 h-2" />
+              <Progress value={overallProgress} className="mt-3 h-1.5" />
             </CardContent>
           </Card>
 
@@ -321,7 +328,7 @@ const UnifiedDashboard = () => {
                       </div>
                       <span className="text-sm text-gray-400">{Math.round(phaseProgress)}%</span>
                     </div>
-                    <Progress value={phaseProgress} className="h-2" />
+                    <Progress value={phaseProgress} className="h-1.5" />
                     <p className="text-xs text-gray-500">{phaseResponses.length} responses</p>
                   </div>
                 )
@@ -371,70 +378,6 @@ const UnifiedDashboard = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* My Responses Section */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-white flex items-center">
-                  <Calendar className="h-5 w-5 mr-2 text-blue-600" />
-                  My Assessment Responses ({totalResponses} total)
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  Your answers across all assessment phases
-                </CardDescription>
-              </div>
-              {totalResponses > 5 && (
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setShowAllResponses(!showAllResponses)}
-                  className="text-gray-400 hover:text-white"
-                >
-                  {showAllResponses ? (
-                    <>Show Less <ChevronUp className="h-4 w-4 ml-1" /></>
-                  ) : (
-                    <>Show All <ChevronDown className="h-4 w-4 ml-1" /></>
-                  )}
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {recentResponses.length > 0 ? (
-              <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                {recentResponses.map((response) => {
-                  const phase = phases.find(p => p.id === response.phase_id)
-                  return (
-                    <div key={response.id} className="border-l-4 border-orange-600 pl-4 py-3 bg-gray-900/30 rounded-r-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge variant="outline" className="border-orange-600 text-orange-400">
-                          {phase?.emoji} {phase?.name || response.phase_id}
-                        </Badge>
-                        <span className="text-xs text-gray-500">
-                          {new Date(response.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-400 mb-2">{response.question_text}</p>
-                      <p className="text-white">{response.response_value}</p>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Calendar className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 mb-4">No responses yet. Start your assessment journey!</p>
-                <Link to="/assessment">
-                  <Button className="bg-orange-600 hover:bg-orange-700">
-                    Start Assessment <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
       </div>
     </div>
