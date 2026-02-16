@@ -148,19 +148,18 @@ const LandingPage = () => {
 
       {/* Hero Section with Background */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Image - Blurred and Darkened */}
+        {/* Background Image - Sharp, Only Darkened */}
         <div 
           className="absolute inset-0 z-0"
           style={{
             backgroundImage: 'url(/bg.jpg)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            filter: 'blur(4px)'
+            backgroundRepeat: 'no-repeat'
           }}
         >
-          {/* Dark overlay to keep focus on content */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/60"></div>
+          {/* Dark overlay - NO BLUR, just darkening */}
+          <div className="absolute inset-0 bg-black/60"></div>
         </div>
         
         {/* Animated overlay effects - more subtle */}
