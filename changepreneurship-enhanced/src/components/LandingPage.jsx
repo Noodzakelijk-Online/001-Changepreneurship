@@ -148,7 +148,11 @@ const LandingPage = () => {
           }}
         >
           {/* Dark overlay - NO BLUR, just darkening */}
-          <div className="absolute inset-0 bg-black/70"></div>
+          <div className="absolute inset-0 bg-black/80"></div>
+          {/* Inner stroke effect */}
+          <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]"></div>
+          {/* Gradient fade to black at bottom for smooth blending */}
+          <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-b from-transparent to-black"></div>
         </div>
         
         {/* Animated overlay effects - more subtle */}
