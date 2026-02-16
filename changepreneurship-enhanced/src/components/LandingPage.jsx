@@ -27,17 +27,6 @@ const LandingPage = () => {
   const { isAuthenticated } = useAuth()
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [authMode, setAuthMode] = useState('login')
-  const [typedText, setTypedText] = useState('')
-  const fullText = 'Autonomously.'
-  
-  useEffect(() => {
-    if (typedText.length < fullText.length) {
-      const timeout = setTimeout(() => {
-        setTypedText(fullText.slice(0, typedText.length + 1))
-      }, 100)
-      return () => clearTimeout(timeout)
-    }
-  }, [typedText])
 
   const handleAuthAction = (mode) => {
     if (isAuthenticated) {
@@ -159,7 +148,7 @@ const LandingPage = () => {
           }}
         >
           {/* Dark overlay - NO BLUR, just darkening */}
-          <div className="absolute inset-0 bg-black/60"></div>
+          <div className="absolute inset-0 bg-black/70"></div>
         </div>
         
         {/* Animated overlay effects - more subtle */}
@@ -173,7 +162,7 @@ const LandingPage = () => {
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight">
             <span className="block text-white drop-shadow-2xl">From Idea to IPO,</span>
             <span className="block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent drop-shadow-2xl">
-              {typedText}<span className="animate-pulse">|</span>
+              Autonomously.
             </span>
           </h1>
           
