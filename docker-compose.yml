@@ -113,20 +113,5 @@ networks:
 
 volumes:
   postgres_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: E:/Docker installed/changepreneurship/postgres
   redis_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: E:/Docker installed/changepreneurship/redis
   backend_logs:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: E:/Docker installed/changepreneurship/logs
