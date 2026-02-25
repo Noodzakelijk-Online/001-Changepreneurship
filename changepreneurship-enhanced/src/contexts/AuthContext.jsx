@@ -35,19 +35,37 @@ export const AuthProvider = ({ children }) => {
     }
 
     const initAuth = async () => {
-      try {
-        if (apiService.isAuthenticated()) {
-          const result = await apiService.verifySession();
-          if (result.success && result.data?.user) {
-            setUser(result.data.user);
-            setIsAuthenticated(true);
-          } else {
-            apiService.clearSession();
-          }
+      if (BYPASS_AUTH) {
+        setIsLoading(false);
+        return;
+      }
+
+      // --- Restore from localStorage immediately so page renders before verify round-trip ---
+      if (apiService.isAuthenticated()) {
+        const cached = apiService.getUserData();
+        if (cached?.id) {
+          setUser(cached);
+          setIsAuthenticated(true);
         }
+      } else {
+        setIsLoading(false);
+        return;
+      }
+
+      // --- Background verify: only log out on explicit 401 / expired, not network errors ---
+      try {
+        const result = await apiService.verifySession();
+        if (result.success && result.data?.user) {
+          setUser(result.data.user);
+          setIsAuthenticated(true);
+        } else if (/401|unauthorized|expired|invalid/i.test(result.error || "")) {
+          apiService.clearSession();
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+        // On any other error (network, 500, etc.) we keep the cached session.
       } catch (error) {
-        console.warn("Session verification failed:", error.message);
-        apiService.clearSession();
+        console.warn("[AUTH] Session verify error (keeping cached session):", error.message);
       } finally {
         setIsLoading(false);
       }

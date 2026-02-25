@@ -63,6 +63,8 @@ import ProfileSettings from "./components/ProfileSettings";
 import AssessmentHistory from "./components/AssessmentHistory";
 import NavBar from "./components/NavBar";
 import PhasePage from "./pages/PhasePage.jsx";
+import AIInsightsPage from "./pages/AIInsightsPage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
 
 // slugToPhaseId now imported from central mapping
 
@@ -393,27 +395,19 @@ function App() {
                   {/* Main Dashboard - Unified */}
                   <Route path="/dashboard" element={<UnifiedDashboard />} />
                   
-                  {/* Executive Summary - Full AI Analysis */}
-                  <Route path="/dashboard/executive-summary" element={<ExecutiveSummaryDashboard />} />
+                  {/* Executive Summary → redirect to full AI Insights */}
+                  <Route path="/dashboard/executive-summary" element={<Navigate to="/ai-insights" replace />} />
                   
                   {/* Legacy redirects - maintain backward compatibility */}
                   <Route path="/user-dashboard" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/ai-insights" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/ai-recommendations" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/ai-insights/recommendations" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/ai-insights" element={<AIInsightsPage />} />
+                  <Route path="/ai-insights/recommendations" element={<AIInsightsPage />} />
+                  <Route path="/ai-recommendations" element={<Navigate to="/ai-insights" replace />} />
+                  <Route path="/login" element={<LoginPage />} />
                   
                   {/* User settings */}
                   <Route path="/profile" element={<ProfileSettings />} />
                   <Route path="/assessment-history" element={<AssessmentHistory />} />
-                  <Route
-                    path="/new/:phaseId/:tabId/:sectionId/:questionId"
-                    element={<PhasePage />}
-                  />
-                  <Route
-                    path="/phase/:phase/tab/:tab/section/:section/question/:question"
-                    element={<QuestionNavigator />}
-                  />
-                  <Route path="/:code" element={<QuestionNavigator />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </ErrorBoundary>

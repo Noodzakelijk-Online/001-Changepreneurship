@@ -370,7 +370,7 @@ const UnifiedDashboard = () => {
                       </div>
                     </div>
                   ))}
-                  <Link to="/dashboard/executive-summary">
+                  <Link to="/ai-insights">
                     <Button variant="outline" className="w-full border-purple-600 text-purple-400 hover:bg-purple-900/30">
                       View Full AI Analysis <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
