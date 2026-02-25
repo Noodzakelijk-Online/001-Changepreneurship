@@ -4,6 +4,7 @@ Multi-LLM business insights endpoints
 """
 from flask import Blueprint, jsonify, request
 from src.services.ai_consensus import AIConsensusService
+from src.services.insights_report_service import InsightsReportService
 from src.models.assessment import Assessment, AssessmentResponse, db
 from src.utils.auth import verify_session_token
 import logging
@@ -123,3 +124,92 @@ def health_check():
         'llm_count': len(available_llms),
         'fallback_enabled': True
     }), 200
+
+
+# ---------------------------------------------------------------------------
+# Full AI Insights Report (Entrepreneur + Venture + Alignment)
+# ---------------------------------------------------------------------------
+
+@ai_bp.route('/insights-report', methods=['GET'])
+def get_insights_report():
+    """
+    Generate the full AI-powered Entrepreneur & Venture insights report.
+
+    The report is built by sending all assessment responses to the Groq LLM
+    (llama-3.3-70b-versatile) with a structured JSON prompt, so every score,
+    insight, sweet-spot and risk-zone is AI-reasoned — not deterministic.
+
+    Query params:
+        refresh=1  — bypass Redis cache and regenerate
+
+    Returns:
+        {
+          success: true,
+          report: { entrepreneur, venture, alignment, readiness, consensus, ... }
+        }
+    """
+    user, session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+
+    try:
+        force_refresh = request.args.get('refresh', '0') == '1'
+        service = InsightsReportService()
+
+        # Bust cache if requested
+        if force_refresh:
+            service.invalidate_cache(user.id)
+
+        # Collect all assessments -------------------------------------------
+        assessments = Assessment.query.filter_by(user_id=user.id).all()
+
+        phases = [
+            {
+                'id': a.phase_id,
+                'name': a.phase_name,
+                'progress': a.progress_percentage,
+                'completed': a.is_completed,
+            }
+            for a in assessments
+        ]
+
+        # Collect responses grouped by phase_id --------------------------------
+        responses_by_phase: dict = {}
+        if assessments:
+            assessment_ids = [a.id for a in assessments]
+            all_responses = AssessmentResponse.query.filter(
+                AssessmentResponse.assessment_id.in_(assessment_ids)
+            ).all()
+
+            # Build a lookup: assessment_id → phase_id
+            aid_to_phase = {a.id: a.phase_id for a in assessments}
+
+            for r in all_responses:
+                phase_id = aid_to_phase.get(r.assessment_id)
+                if phase_id:
+                    responses_by_phase.setdefault(phase_id, []).append({
+                        'question_id': r.question_id,
+                        'section_id': r.section_id,
+                        'question_text': r.question_text or r.question_id,
+                        'response_value': r.get_response_value(),
+                        'response_type': r.response_type,
+                    })
+
+        assessment_data = {
+            'phases': phases,
+            'responses': responses_by_phase,
+        }
+
+        report = service.generate_report(user.id, assessment_data)
+
+        return jsonify({
+            'success': True,
+            'report': report,
+        }), 200
+
+    except Exception as e:
+        logger.error(f"[InsightsReport] Error for user {user.id}: {e}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': str(e),
+        }), 500

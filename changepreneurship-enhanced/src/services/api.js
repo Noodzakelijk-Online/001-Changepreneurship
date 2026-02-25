@@ -108,7 +108,10 @@ class ApiService {
   }
 
   isSessionExpired() {
-    if (!this.userData || !this.userData.expiresAt) return true;
+    // If no token at all → expired
+    if (!this.sessionToken) return true;
+    // If token exists but no expiry stored → optimistically assume valid
+    if (!this.userData || !this.userData.expiresAt) return false;
     return Date.now() >= new Date(this.userData.expiresAt).getTime();
   }
 
@@ -531,6 +534,25 @@ class ApiService {
    */
   getApiBaseUrl() {
     return API_BASE_URL;
+  }
+
+  // ==================== AI INSIGHTS REPORT ====================
+
+  /**
+   * Get the full AI-powered Entrepreneur + Venture insights report.
+   * The backend calls Groq (llama-3.3-70b-versatile) in JSON mode, so every
+   * score, insight, sweet-spot and risk-zone is AI-reasoned.
+   *
+   * @param {boolean} refresh - Force AI regeneration (bypass Redis cache)
+   * @returns {Promise<{success: boolean, report: Object}>}
+   */
+  async getInsightsReport(refresh = false) {
+    const qs = refresh ? '?refresh=1' : '';
+    const res = await fetch(`${API_BASE_URL}/ai/insights-report${qs}`, {
+      method: 'GET',
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(res);
   }
 
   /**

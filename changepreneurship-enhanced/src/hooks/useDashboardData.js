@@ -82,6 +82,33 @@ export const useDashboardData = () => {
         progressHistory: historyRes.status === 'fulfilled' ? historyRes.value?.data : null
       }
       
+      // Normalize phase names from backend to frontend format
+      // Backend uses "Self Discovery Assessment", frontend uses "self_discovery"
+      const phaseNameToId = {
+        'Self Discovery Assessment': 'self_discovery',
+        'Idea Discovery Assessment': 'idea_discovery',
+        'Market Research': 'market_research',
+        'Business Pillars Planning': 'business_pillars',
+        'Product Concept Testing': 'product_concept_testing',
+        'Business Development': 'business_development',
+        'Business Prototype Testing': 'business_prototype_testing',
+        // Also support backend by_phase keys without " Assessment" suffix
+        'Self Discovery': 'self_discovery',
+        'Idea Discovery': 'idea_discovery'
+      }
+
+      // Normalize backend by_phase keys to frontend phase IDs
+      if (newData.responses?.by_phase) {
+        console.log('[useDashboardData] Backend by_phase keys:', Object.keys(newData.responses.by_phase))
+        const normalizedByPhase = {}
+        Object.entries(newData.responses.by_phase).forEach(([backendPhaseName, responses]) => {
+          const frontendPhaseId = phaseNameToId[backendPhaseName] || backendPhaseName.toLowerCase().replace(/\s+/g, '_')
+          normalizedByPhase[frontendPhaseId] = responses
+        })
+        newData.responses.by_phase = normalizedByPhase
+        console.log('[useDashboardData] Normalized by_phase keys:', Object.keys(normalizedByPhase))
+      }
+      
       console.log('[useDashboardData] Fetched data:', {
         hasMetrics: !!newData.metrics,
         hasProfile: !!newData.profile,
@@ -90,6 +117,7 @@ export const useDashboardData = () => {
         hasHistory: !!newData.progressHistory,
         metricsProgress: newData.metrics?.overall_progress,
         responsesCount: newData.responses?.total_responses,
+        responsesByPhase: newData.responses?.by_phase ? Object.keys(newData.responses.by_phase) : [],
         insightsScore: newData.insights?.overall_score,
         insightsKeyInsightsCount: newData.insights?.ai_insights?.key_insights?.length,
         insightsRaw: newData.insights

@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Changepreneurship — AI Insights v7</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#080c18;
+    color:#e0e6f0;
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+  }
+  body.no-scroll{overflow:hidden}
+
+  /* ===== BACKGROUND ===== */
+  .bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none}
+  .bg-layer::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(249,115,22,0.06) 0%,transparent 60%),radial-gradient(ellipse at 70% 20%,rgba(59,130,246,0.06) 0%,transparent 60%),radial-gradient(ellipse at 50% 80%,rgba(168,85,247,0.04) 0%,transparent 60%)}
+  .bg-layer::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+
+  .wireframe-tag{position:fixed;top:12px;right:12px;background:rgba(8,12,24,0.8);border:1px solid rgba(249,115,22,0.4);color:#f97316;padding:4px 14px;font-size:10px;letter-spacing:3px;z-index:9999;font-weight:700;backdrop-filter:blur(10px);border-radius:4px}
+
+  /* ===== MAIN CONTAINER ===== */
+  .main-container{position:relative;z-index:10}
+
+  /* ===== HEADER ===== */
+  .header{text-align:center;padding:24px 40px 16px}
+  .header h1{font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px}
+  .header h1 .o{color:#f97316}
+  .header h1 .b{color:#3b82f6}
+  .header .sub{color:rgba(255,255,255,0.4);font-size:12px;margin-top:2px}
+  .header .combined{display:inline-flex;align-items:center;gap:12px;margin-top:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:40px;padding:6px 24px;backdrop-filter:blur(10px)}
+  .header .c-score{font-size:28px;font-weight:900;background:linear-gradient(135deg,#f97316,#a855f7,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .header .c-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4)}
+  .header .c-sep{width:1px;height:24px;background:rgba(255,255,255,0.1)}
+  .header .c-align{font-size:13px;color:rgba(255,255,255,0.6)}
+  .header .c-align b{color:#a855f7;font-weight:700}
+
+  /* ===== PANES ROW ===== */
+  .panes-row{display:flex;gap:16px;padding:0 24px 24px;min-height:520px}
+
+  /* ===== PANE ===== */
+  .pane{
+    flex:1;border-radius:20px;padding:24px;position:relative;overflow:hidden;cursor:pointer;
+    transition:all 0.6s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;
+  }
+  .pane::before{content:'';position:absolute;inset:0;border-radius:20px;background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.06);z-index:0}
+  .pane>*{position:relative;z-index:1}
+  .pane.ent::after{content:'';position:absolute;top:-40%;right:-20%;width:300px;height:300px;background:radial-gradient(circle,rgba(249,115,22,0.08) 0%,transparent 70%);z-index:0;pointer-events:none}
+  .pane.ven::after{content:'';position:absolute;top:-40%;left:-20%;width:300px;height:300px;background:radial-gradient(circle,rgba(59,130,246,0.08) 0%,transparent 70%);z-index:0;pointer-events:none}
+  .pane:hover::before{border-color:rgba(255,255,255,0.12)}
+  .pane.ent:hover::before{border-color:rgba(249,115,22,0.2);box-shadow:0 0 40px rgba(249,115,22,0.05)}
+  .pane.ven:hover::before{border-color:rgba(59,130,246,0.2);box-shadow:0 0 40px rgba(59,130,246,0.05)}
+
+  /* Expanded state */
+  .pane.expanded{position:fixed;inset:0;z-index:1000;border-radius:0;padding:0;cursor:default;overflow-y:auto;flex:none}
+  .pane.expanded::before{border-radius:0;background:rgba(8,12,24,0.97);backdrop-filter:blur(30px)}
+  .pane.collapsed{flex:0;width:0;padding:0;overflow:hidden;opacity:0;pointer-events:none}
+
+  /* Pane header */
+  .pane-header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+  .glow-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .glow-dot.orange{background:#f97316;box-shadow:0 0 12px rgba(249,115,22,0.6)}
+  .glow-dot.blue{background:#3b82f6;box-shadow:0 0 12px rgba(59,130,246,0.6)}
+  .p-title{font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:700}
+  .p-title.orange{color:#f97316}
+  .p-title.blue{color:#3b82f6}
+  .p-score{margin-left:auto;font-size:36px;font-weight:900;line-height:1}
+  .p-score.orange{color:#f97316;text-shadow:0 0 30px rgba(249,115,22,0.3)}
+  .p-score.blue{color:#3b82f6;text-shadow:0 0 30px rgba(59,130,246,0.3)}
+  .p-sub{font-size:18px;font-weight:700;color:#fff}
+
+  /* ===== GLASS CARD ===== */
+  .glass{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:16px;backdrop-filter:blur(10px);transition:border-color 0.3s}
+  .glass:hover{border-color:rgba(255,255,255,0.12)}
+  .card-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);font-weight:700;margin-bottom:10px}
+
+  /* Compact grid */
+  .compact-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;min-height:0}
+  .card-wide{grid-column:1/-1}
+
+  /* Mini bars */
+  .mini-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .mini-bar .label{font-size:11px;color:rgba(255,255,255,0.5);width:90px;flex-shrink:0;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+  .mini-bar .track{flex:1;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden}
+  .mini-bar .fill{height:3px;border-radius:2px}
+  .mini-bar .fill.green{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,0.3)}
+  .mini-bar .fill.orange{background:#f97316;box-shadow:0 0 6px rgba(249,115,22,0.3)}
+  .mini-bar .fill.red{background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,0.3)}
+  .mini-bar .fill.blue{background:#3b82f6;box-shadow:0 0 6px rgba(59,130,246,0.3)}
+  .mini-bar .fill.purple{background:#a855f7;box-shadow:0 0 6px rgba(168,85,247,0.3)}
+  .mini-bar .val{font-size:11px;font-weight:700;width:24px;text-align:right;color:rgba(255,255,255,0.7)}
+
+  /* Phase pills */
+  .phase-pills{display:flex;gap:6px;flex-wrap:wrap}
+  .phase-pill{font-size:10px;padding:3px 10px;border-radius:20px;font-weight:600;border:1px solid}
+  .phase-pill.done{background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.3);color:#22c55e}
+  .phase-pill.progress{background:rgba(249,115,22,0.1);border-color:rgba(249,115,22,0.3);color:#f97316}
+  .phase-pill.locked{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.08);color:rgba(255,255,255,0.3)}
+
+  .radar-compact{width:100%;max-width:200px;margin:0 auto}
+
+  /* Strength dots */
+  .str-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .str-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .str-dot.green{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,0.5)}
+  .str-dot.red{background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,0.5)}
+  .str-row .s-name{font-size:11px;color:rgba(255,255,255,0.6);flex:1}
+  .str-row .s-val{font-size:11px;font-weight:700;color:rgba(255,255,255,0.8)}
+
+  /* Heatmap */
+  .heatmap{display:grid;grid-template-columns:auto repeat(6,1fr);gap:2px;font-size:9px}
+  .heatmap .h-label{color:rgba(255,255,255,0.3);padding:2px 6px 2px 0;text-align:right;font-weight:500;display:flex;align-items:center}
+  .heatmap .h-cell{padding:4px 2px;text-align:center;border-radius:3px;font-weight:600;color:#fff}
+  .heatmap .h-head{color:rgba(255,255,255,0.3);padding:2px;text-align:center;font-weight:600}
+
+  /* Donut */
+  .donut-wrap{position:relative;width:80px;height:80px;margin:0 auto}
+  .donut-wrap svg{width:80px;height:80px;transform:rotate(-90deg)}
+  .donut-wrap .dbg{fill:none;stroke:rgba(255,255,255,0.06);stroke-width:6}
+  .donut-wrap .dfg{fill:none;stroke-width:6;stroke-linecap:round}
+  .donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+  .donut-center .d-val{font-size:16px;font-weight:800;color:#fff}
+  .donut-center .d-sub{font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:1px}
+
+  /* Activity */
+  .activity{display:flex;flex-direction:column;gap:8px}
+  .act-item{display:flex;align-items:center;gap:8px}
+  .act-icon{width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+  .act-icon.green{background:rgba(34,197,94,0.15);color:#22c55e}
+  .act-icon.orange{background:rgba(249,115,22,0.15);color:#f97316}
+  .act-icon.purple{background:rgba(168,85,247,0.15);color:#a855f7}
+  .act-text{font-size:11px;color:rgba(255,255,255,0.5)}
+  .act-text b{color:rgba(255,255,255,0.8);font-weight:600}
+
+  .click-hint{text-align:center;margin-top:auto;padding-top:12px;font-size:11px;color:rgba(255,255,255,0.2);letter-spacing:1px;transition:color 0.3s}
+  .pane:hover .click-hint{color:rgba(255,255,255,0.4)}
+
+  /* ===== EXPANDED CONTENT ===== */
+  .expanded-content{display:none;padding:28px 40px 60px}
+  .pane.expanded .expanded-content{display:block}
+  .pane.expanded .compact-grid{display:none}
+  .pane.expanded .click-hint{display:none}
+  .pane.expanded .pane-header{padding:20px 40px 0}
+
+  .back-btn{position:sticky;top:16px;z-index:100;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;backdrop-filter:blur(10px);margin-bottom:20px;transition:all 0.2s}
+  .back-btn:hover{background:rgba(255,255,255,0.1);color:#fff}
+
+  .exp-section{margin-bottom:32px}
+  .exp-section h3{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px}
+  .exp-section .exp-sub{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:16px}
+  .exp-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .exp-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:18px 20px;transition:border-color 0.3s}
+  .exp-card:hover{border-color:rgba(255,255,255,0.12)}
+  .ec-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .ec-top h4{font-size:14px;font-weight:600;color:#fff}
+  .ec-score{font-size:22px;font-weight:800}
+  .ec-score.green{color:#22c55e}.ec-score.orange{color:#f97316}.ec-score.red{color:#ef4444}.ec-score.blue{color:#3b82f6}
+  .ec-bar{width:100%;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-bottom:10px}
+  .ec-fill{height:3px;border-radius:2px}
+  .ec-desc{font-size:12px;color:rgba(255,255,255,0.45);line-height:1.6;margin-bottom:10px}
+  .ec-subs{border-top:1px solid rgba(255,255,255,0.06);padding-top:8px}
+  .exp-radar{max-width:420px;margin:0 auto 20px}
+  .exp-phase-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.06)}
+  .eph-icon{font-size:18px}
+  .exp-phase-header h3{flex:1}
+  .eph-score{font-size:26px;font-weight:800}
+  .locked-phase{background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.08);border-radius:14px;padding:32px;text-align:center;color:rgba(255,255,255,0.3);font-size:13px}
+  .lock-btn{display:inline-block;margin-top:10px;padding:8px 20px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#3b82f6;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none}
+
+  .pane.expanded::-webkit-scrollbar{width:6px}
+  .pane.expanded::-webkit-scrollbar-track{background:transparent}
+  .pane.expanded::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px}
+
+  /* ============================================================
+     ALIGNMENT / CONNECTING THE DOTS SECTION
+     ============================================================ */
+  .alignment-section{
+    padding:0 24px 60px;
+    position:relative;
+    z-index:10;
+  }
+
+  /* Section divider */
+  .section-divider{
+    display:flex;align-items:center;gap:16px;
+    margin:16px 0 28px;
+  }
+  .section-divider .div-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(168,85,247,0.3),transparent)}
+  .section-divider .div-label{
+    font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:700;
+    color:#a855f7;
+    padding:6px 20px;
+    background:rgba(168,85,247,0.08);
+    border:1px solid rgba(168,85,247,0.2);
+    border-radius:30px;
+    white-space:nowrap;
+  }
+
+  /* Alignment header */
+  .align-header{text-align:center;margin-bottom:32px}
+  .align-header h2{font-size:20px;font-weight:800;color:#fff;margin-bottom:6px}
+  .align-header h2 .o{color:#f97316}
+  .align-header h2 .b{color:#3b82f6}
+  .align-header h2 .p{color:#a855f7}
+  .align-header .ah-sub{font-size:13px;color:rgba(255,255,255,0.4);max-width:600px;margin:0 auto;line-height:1.6}
+
+  /* Alignment score overview */
+  .align-overview{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    gap:0;
+    align-items:center;
+    max-width:900px;
+    margin:0 auto 40px;
+    padding:28px 32px;
+    background:rgba(255,255,255,0.02);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:20px;
+  }
+  .ao-pillar{text-align:center}
+  .ao-pillar .ao-tag{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:6px}
+  .ao-pillar .ao-tag.orange{color:#f97316}
+  .ao-pillar .ao-tag.blue{color:#3b82f6}
+  .ao-pillar .ao-big{font-size:48px;font-weight:900;line-height:1}
+  .ao-pillar .ao-big.orange{color:#f97316}
+  .ao-pillar .ao-big.blue{color:#3b82f6}
+  .ao-pillar .ao-name{font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px}
+
+  .ao-center{text-align:center;padding:0 32px}
+  .ao-center .ao-venn{position:relative;width:160px;height:100px;margin:0 auto 8px}
+  .ao-venn .venn-circle{position:absolute;width:100px;height:100px;border-radius:50%;top:0;opacity:0.15}
+  .ao-venn .venn-circle.left{left:0;background:#f97316;border:2px solid rgba(249,115,22,0.4)}
+  .ao-venn .venn-circle.right{right:0;background:#3b82f6;border:2px solid rgba(59,130,246,0.4)}
+  .ao-venn .venn-score{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2}
+  .ao-venn .venn-score .vs-num{font-size:28px;font-weight:900;color:#a855f7;text-shadow:0 0 20px rgba(168,85,247,0.4)}
+  .ao-venn .venn-score .vs-label{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.4);text-align:center}
+  .ao-stats{display:flex;gap:16px;justify-content:center}
+  .ao-stat{text-align:center}
+  .ao-stat .as-num{font-size:18px;font-weight:800}
+  .ao-stat .as-num.green{color:#22c55e}
+  .ao-stat .as-num.red{color:#ef4444}
+  .ao-stat .as-num.purple{color:#a855f7}
+  .ao-stat .as-label{font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;text-transform:uppercase}
+
+  /* Category headers */
+  .cat-header{
+    display:flex;align-items:center;gap:10px;
+    margin:32px 0 16px;
+    padding-bottom:10px;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .cat-header .ch-icon{font-size:18px}
+  .cat-header h3{font-size:16px;font-weight:700;color:#fff;flex:1}
+  .cat-header .ch-count{font-size:12px;color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.04);padding:3px 12px;border-radius:20px}
+
+  /* Connection cards */
+  .conn-card{
+    background:rgba(255,255,255,0.02);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:16px;
+    padding:20px 24px;
+    margin-bottom:14px;
+    transition:all 0.3s;
+  }
+  .conn-card:hover{border-color:rgba(255,255,255,0.12);background:rgba(255,255,255,0.03)}
+  .conn-card.sweet{border-left:3px solid rgba(34,197,94,0.5)}
+  .conn-card.risk{border-left:3px solid rgba(239,68,68,0.5)}
+  .conn-card.potential{border-left:3px solid rgba(168,85,247,0.5)}
+
+  .cc-row{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center}
+  .cc-side{display:flex;flex-direction:column;gap:3px}
+  .cc-tag{font-size:9px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase}
+  .cc-tag.orange{color:#f97316}
+  .cc-tag.blue{color:#3b82f6}
+  .cc-dim{font-size:15px;font-weight:600;color:#fff}
+  .cc-score-val{font-size:24px;font-weight:800}
+  .cc-score-val.green{color:#22c55e}
+  .cc-score-val.orange{color:#f97316}
+  .cc-score-val.red{color:#ef4444}
+  .cc-score-val.blue{color:#3b82f6}
+
+  .cc-mid{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .cc-connector{width:60px;height:2px;position:relative}
+  .cc-connector::before{content:'';position:absolute;inset:0;border-radius:1px}
+  .cc-connector.sweet::before{background:linear-gradient(90deg,#f97316,#22c55e,#3b82f6)}
+  .cc-connector.risk::before{background:linear-gradient(90deg,#f97316,#ef4444,#3b82f6)}
+  .cc-connector.potential::before{background:linear-gradient(90deg,#f97316,#a855f7,#3b82f6)}
+  .cc-badge{font-size:8px;letter-spacing:1px;font-weight:700;padding:2px 10px;border-radius:4px;text-transform:uppercase}
+  .cc-badge.sweet{background:rgba(34,197,94,0.12);color:#22c55e;border:1px solid rgba(34,197,94,0.2)}
+  .cc-badge.risk{background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.2)}
+  .cc-badge.potential{background:rgba(168,85,247,0.12);color:#a855f7;border:1px solid rgba(168,85,247,0.2)}
+
+  .cc-insight{margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7}
+  .cc-insight b{color:rgba(255,255,255,0.85);font-weight:600}
+  .cc-insight .highlight{padding:2px 6px;border-radius:4px;font-weight:600;font-size:12px}
+  .cc-insight .highlight.green{background:rgba(34,197,94,0.1);color:#22c55e}
+  .cc-insight .highlight.red{background:rgba(239,68,68,0.1);color:#ef4444}
+  .cc-insight .highlight.purple{background:rgba(168,85,247,0.1);color:#a855f7}
+
+  .cc-action{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:6px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.6);cursor:pointer;transition:all 0.2s}
+  .cc-action:hover{background:rgba(255,255,255,0.08);color:#fff}
+  .cc-action.risk-btn{border-color:rgba(239,68,68,0.2);color:#ef4444}
+  .cc-action.risk-btn:hover{background:rgba(239,68,68,0.1)}
+
+  /* Readiness meter */
+  .readiness{
+    max-width:700px;margin:40px auto 0;
+    background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);
+    border-radius:20px;padding:28px 32px;text-align:center;
+  }
+  .readiness h3{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px}
+  .readiness .r-sub{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:20px}
+  .readiness-bars{display:flex;gap:24px;justify-content:center;flex-wrap:wrap}
+  .r-item{text-align:center;min-width:160px}
+  .r-item .r-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:6px}
+  .r-item .r-label.orange{color:#f97316}
+  .r-item .r-label.blue{color:#3b82f6}
+  .r-item .r-label.purple{color:#a855f7}
+  .r-bar{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin-bottom:4px}
+  .r-bar .r-fill{height:6px;border-radius:3px;transition:width 1.5s ease}
+  .r-bar .r-fill.orange{background:#f97316;box-shadow:0 0 8px rgba(249,115,22,0.3)}
+  .r-bar .r-fill.blue{background:#3b82f6;box-shadow:0 0 8px rgba(59,130,246,0.3)}
+  .r-bar .r-fill.purple{background:#a855f7;box-shadow:0 0 8px rgba(168,85,247,0.3)}
+  .r-vals{display:flex;justify-content:space-between;font-size:11px}
+  .r-vals .r-current{font-weight:700;color:rgba(255,255,255,0.7)}
+  .r-vals .r-target{color:rgba(255,255,255,0.3)}
+  .r-check{font-size:11px;margin-top:2px}
+  .r-check.pass{color:#22c55e}
+  .r-check.fail{color:#ef4444}
+
+  .unlock-msg{margin-top:20px;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600}
+  .unlock-msg.locked{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.15);color:#ef4444}
+  .unlock-msg.unlocked{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.15);color:#22c55e}
+</style>
+</head>
+<body>
+<div class="bg-layer"></div>
+<div class="wireframe-tag">WIREFRAME V7.0</div>
+
+<div class="main-container">
+
+<!-- ===== HEADER ===== -->
+<div class="header" id="mainHeader">
+  <h1>Your AI Insights — <span class="o">Entrepreneur</span> & <span class="b">Venture</span></h1>
+  <div class="sub">Based on 342 of 500+ questions answered · February 24, 2026</div>
+  <div class="combined">
+    <div><div class="c-score">72</div><div class="c-label">Combined Score</div></div>
+    <div class="c-sep"></div>
+    <div class="c-align">Alignment: <b>68%</b></div>
+  </div>
+</div>
+
+<!-- ===== TWO PANES ===== -->
+<div class="panes-row" id="panesRow">
+
+  <!-- LEFT: ENTREPRENEUR -->
+  <div class="pane ent" id="paneEnt" onclick="expandPane('ent')">
+    <div class="pane-header">
+      <span class="glow-dot orange"></span>
+      <div><div class="p-title orange">Entrepreneur Profile</div><div class="p-sub">The Founder</div></div>
+      <div class="p-score orange">84</div>
+    </div>
+    <div class="compact-grid">
+      <div class="glass"><div class="card-label">Skills Radar</div><div class="radar-compact"><canvas id="radarEntCompact"></canvas></div></div>
+      <div class="glass">
+        <div class="card-label">Key Dimensions</div>
+        <div class="mini-bar"><span class="label">Motivation</span><div class="track"><div class="fill green" style="width:92%"></div></div><span class="val">92</span></div>
+        <div class="mini-bar"><span class="label">Values</span><div class="track"><div class="fill green" style="width:90%"></div></div><span class="val">90</span></div>
+        <div class="mini-bar"><span class="label">Passion</span><div class="track"><div class="fill green" style="width:88%"></div></div><span class="val">88</span></div>
+        <div class="mini-bar"><span class="label">Self-Awareness</span><div class="track"><div class="fill green" style="width:86%"></div></div><span class="val">86</span></div>
+        <div class="mini-bar"><span class="label">Leadership</span><div class="track"><div class="fill orange" style="width:68%"></div></div><span class="val">68</span></div>
+        <div class="mini-bar"><span class="label">Team Building</span><div class="track"><div class="fill red" style="width:55%"></div></div><span class="val">55</span></div>
+      </div>
+      <div class="glass"><div class="card-label">Strengths</div>
+        <div class="str-row"><span class="str-dot green"></span><span class="s-name">Purpose & Drive</span><span class="s-val">92</span></div>
+        <div class="str-row"><span class="str-dot green"></span><span class="s-name">Ethical Foundation</span><span class="s-val">90</span></div>
+        <div class="str-row"><span class="str-dot green"></span><span class="s-name">Stress Resilience</span><span class="s-val">88</span></div>
+      </div>
+      <div class="glass"><div class="card-label">Growth Areas</div>
+        <div class="str-row"><span class="str-dot red"></span><span class="s-name">Team Building</span><span class="s-val">55</span></div>
+        <div class="str-row"><span class="str-dot red"></span><span class="s-name">Culture Definition</span><span class="s-val">56</span></div>
+        <div class="str-row"><span class="str-dot red"></span><span class="s-name">Financial Runway</span><span class="s-val">65</span></div>
+      </div>
+      <div class="glass card-wide"><div class="card-label">Assessment Progress</div>
+        <div class="phase-pills"><span class="phase-pill done">Phase 1 ✓</span><span class="phase-pill done">Phase 2 ✓</span><span class="phase-pill progress">Phase 5 ◐</span></div>
+        <div style="margin-top:8px"><div class="mini-bar"><span class="label">Completion</span><div class="track"><div class="fill orange" style="width:72%"></div></div><span class="val">72%</span></div></div>
+      </div>
+      <div class="glass card-wide"><div class="card-label">Recent Activity</div>
+        <div class="activity">
+          <div class="act-item"><div class="act-icon green">✓</div><span class="act-text"><b>Phase 1</b> completed — Self-Discovery</span></div>
+          <div class="act-item"><div class="act-icon orange">◐</div><span class="act-text"><b>Phase 5</b> in progress — Leadership</span></div>
+          <div class="act-item"><div class="act-icon purple">★</div><span class="act-text">New strength unlocked: <b>Ethical Foundation</b></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="click-hint">Click to expand full profile →</div>
+
+    <!-- EXPANDED ENTREPRENEUR -->
+    <div class="expanded-content" id="entExpanded">
+      <button class="back-btn" onclick="event.stopPropagation();collapsePane()">← Back to Dashboard</button>
+      <div class="exp-section"><h3>Your Entrepreneur Radar</h3><p class="exp-sub">All 12 entrepreneur dimensions compared against the average assessed founder</p><div class="exp-radar"><canvas id="radarEntFull"></canvas></div></div>
+      <div class="exp-section">
+        <div class="exp-phase-header"><span class="eph-icon">🌱</span><h3>Phase 1: Self-Discovery & Purpose</h3><span class="eph-score" style="color:#22c55e">88</span></div>
+        <div class="exp-grid">
+          <div class="exp-card"><div class="ec-top"><h4>Motivation & Drive</h4><span class="ec-score green">92</span></div><div class="ec-bar"><div class="ec-fill" style="width:92%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,0.3)"></div></div><div class="ec-desc">Exceptional intrinsic motivation. Your "why" is deeply rooted in purpose, not just profit.</div><div class="ec-subs"><div class="mini-bar"><span class="label">Core Drivers</span><div class="track"><div class="fill green" style="width:95%"></div></div><span class="val">95</span></div><div class="mini-bar"><span class="label">Failure Resilience</span><div class="track"><div class="fill green" style="width:90%"></div></div><span class="val">90</span></div><div class="mini-bar"><span class="label">Entrepreneurial..</span><div class="track"><div class="fill green" style="width:91%"></div></div><span class="val">91</span></div></div></div>
+          <div class="exp-card"><div class="ec-top"><h4>Personality & Work Style</h4><span class="ec-score green">85</span></div><div class="ec-bar"><div class="ec-fill" style="width:85%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,0.3)"></div></div><div class="ec-desc">Strong decision-making with healthy risk tolerance. You thrive under pressure.</div><div class="ec-subs"><div class="mini-bar"><span class="label">Risk Tolerance</span><div class="track"><div class="fill green" style="width:82%"></div></div><span class="val">82</span></div><div class="mini-bar"><span class="label">Stress Manage..</span><div class="track"><div class="fill green" style="width:88%"></div></div><span class="val">88</span></div><div class="mini-bar"><span class="label">Decision Making</span><div class="track"><div class="fill green" style="width:84%"></div></div><span class="val">84</span></div></div></div>
+          <div class="exp-card"><div class="ec-top"><h4>Values & Ethics</h4><span class="ec-score green">90</span></div><div class="ec-bar"><div class="ec-fill" style="width:90%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,0.3)"></div></div><div class="ec-desc">Strong ethical foundation. Your values attract values-aligned customers and investors.</div><div class="ec-subs"><div class="mini-bar"><span class="label">Ethical Standar..</span><div class="track"><div class="fill green" style="width:94%"></div></div><span class="val">94</span></div><div class="mini-bar"><span class="label">Value Alignment</span><div class="track"><div class="fill green" style="width:87%"></div></div><span class="val">87</span></div></div></div>
+          <div class="exp-card"><div class="ec-top"><h4>Self-Awareness</h4><span class="ec-score green">86</span></div><div class="ec-bar"><div class="ec-fill" style="width:86%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,0.3)"></div></div><div class="ec-desc">High self-awareness — the #1 trait investors look for. Foundation of coachability.</div><div class="ec-subs"><div class="mini-bar"><span class="label">Strengths Clarity</span><div class="track"><div class="fill green" style="width:89%"></div></div><span class="val">89</span></div><div class="mini-bar"><span class="label">Growth Awaren..</span><div class="track"><div class="fill green" style="width:83%"></div></div><span class="val">83</span></div></div></div>
+          <div class="exp-card"><div class="ec-top"><h4>Life Impact & Support</h4><span class="ec-score orange">80</span></div><div class="ec-bar"><div class="ec-fill" style="width:80%;background:#f97316;box-shadow:0 0 8px rgba(249,115,22,0.3)"></div></div><div class="ec-desc">Good support system. Family is supportive and you're willing to commit the time.</div><div class="ec-subs"><div class="mini-bar"><span class="label">Family Support</span><div class="track"><div class="fill green" style="width:80%"></div></div><span class="val">80</span></div><div class="mini-bar"><span class="label">Time Commitm..</span><div class="track"><div class="fill green" style="width:85%"></div></div><span class="val">85</span></div><div class="mini-bar"><span class="label">Work-Life Bala..</span><div class="track"><div class="fill orange" style="width:76%"></div></div><span class="val">76</span></div></div></div>
+          <div class="exp-card"><div class="ec-top"><h4>Resources & Background</h4><span class="ec-score orange">74</span></div><div class="ec-bar"><div class="ec-fill" style="width:74%;background:#f97316;box-shadow:0 0 8px rgba(249,115,22,0.3)"></div></div><div class="ec-desc">Moderate resources. Financial runway and professional network could be stronger.</div><div class="ec-subs"><div class="mini-bar"><span class="label">Financial Runw..</span><div class="track"><div class="fill orange" style="width:65%"></div></div><span class="val">65</span></div><div class="mini-bar"><span class="label">Industry Experi..</span><div class="track"><div class="fill orange" style="width:72%"></div></div><span class="val">72</span></div><div class="mini-bar"><span class="label">Prof. Network</span><div class="track"><div class="fill orange" style="width:68%"></div></div><span class="val">68</span></div><div class="mini-bar"><span class="label">Prior Entrepren..</span><div class="track"><div class="fill green" style="width:80%"></div></div><span class="val">80</span></div></div></div>
+        </div>
+      </div>
+      <div class="exp-section">
+        <div class="exp-phase-header"><span class="eph-icon">🎯</span><h3>Phase 2: Passion, Skills & Vision</h3><span class="eph-score" style="color:#22c55e">83</span></div>
+        <div class="exp-grid">
+          <div class="exp-card"><div class="ec-top"><h4>Passion Intensity</h4><span class="ec-score green">88</span></div><div class="ec-bar"><div class="ec-fill" style="width:88%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,0.3)"></div></div><div class="ec-desc">Deep passion translates to authentic storytelling and customer empathy.</div></div>
+          <div class="exp-card"><div class="ec-top"><h4>Skill Alignment</h4><span class="ec-score orange">76</span></div><div class="ec-bar"><div class="ec-fill" style="width:76%;background:#f97316;box-shadow:0 0 8px rgba(249,115,22,0.3)"></div></div><div class="ec-desc">Good technical and leadership skills. Sales skills are the gap to address.</div><div class="ec-subs"><div class="mini-bar"><span class="label">Technical</span><div class="track"><div class="fill green" style="width:82%"></div></div><span class="val">82</span></div><div class="mini-bar"><span class="label">Leadership</span><div class="track"><div class="fill orange" style="width:78%"></div></div><span class="val">78</span></div><div class="mini-bar"><span class="label">Sales</span><div class="track"><div class="fill orange" style="width:68%"></div></div><span class="val">68</span></div></div></div>
+          <div class="exp-card" style="grid-column:1/-1;max-width:50%"><div class="ec-top"><h4>Vision Clarity</h4><span class="ec-score green">85</span></div><div class="ec-bar"><div class="ec-fill" style="width:85%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,0.3)"></div></div><div class="ec-desc">You can clearly articulate where your business is going. This clarity attracts talent and investors.</div></div>
+        </div>
+      </div>
+      <div class="exp-section">
+        <div class="exp-phase-header"><span class="eph-icon">👑</span><h3>Phase 5: Leadership & Culture</h3><span class="eph-score" style="color:#f97316">65</span></div>
+        <div class="exp-grid">
+          <div class="exp-card"><div class="ec-top"><h4>Leadership Style</h4><span class="ec-score orange">68</span></div><div class="ec-bar"><div class="ec-fill" style="width:68%;background:#f97316;box-shadow:0 0 8px rgba(249,115,22,0.3)"></div></div><div class="ec-desc">Collaborative leadership. You inspire through vision but need to develop delegation skills.</div></div>
+          <div class="exp-card"><div class="ec-top"><h4>Team Building</h4><span class="ec-score red">55</span></div><div class="ec-bar"><div class="ec-fill" style="width:55%;background:#ef4444;box-shadow:0 0 8px rgba(239,68,68,0.3)"></div></div><div class="ec-desc">Hiring strategy and team structure need more definition. Define your first 3 hires.</div><div class="ec-subs"><div class="mini-bar"><span class="label">Hiring Strategy</span><div class="track"><div class="fill red" style="width:52%"></div></div><span class="val">52</span></div><div class="mini-bar"><span class="label">Team Structure</span><div class="track"><div class="fill red" style="width:58%"></div></div><span class="val">58</span></div></div></div>
+          <div class="exp-card" style="grid-column:1/-1;max-width:50%"><div class="ec-top"><h4>Culture & Communication</h4><span class="ec-score orange">62</span></div><div class="ec-bar"><div class="ec-fill" style="width:62%;background:#f97316;box-shadow:0 0 8px rgba(249,115,22,0.3)"></div></div><div class="ec-desc">You feel your values strongly but haven't articulated them into actionable culture principles yet.</div><div class="ec-subs"><div class="mini-bar"><span class="label">Culture Definitio..</span><div class="track"><div class="fill red" style="width:56%"></div></div><span class="val">56</span></div><div class="mini-bar"><span class="label">Communication</span><div class="track"><div class="fill orange" style="width:68%"></div></div><span class="val">68</span></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: VENTURE -->
+  <div class="pane ven" id="paneVen" onclick="expandPane('ven')">
+    <div class="pane-header">
+      <span class="glow-dot blue"></span>
+      <div><div class="p-title blue">Venture Profile</div><div class="p-sub">The Idea</div></div>
+      <div class="p-score blue">60</div>
+    </div>
+    <div class="compact-grid">
+      <div class="glass"><div class="card-label">Venture Radar</div><div class="radar-compact"><canvas id="radarVenCompact"></canvas></div></div>
+      <div class="glass">
+        <div class="card-label">Key Dimensions</div>
+        <div class="mini-bar"><span class="label">Business Model</span><div class="track"><div class="fill blue" style="width:70%"></div></div><span class="val">70</span></div>
+        <div class="mini-bar"><span class="label">Positioning</span><div class="track"><div class="fill blue" style="width:67%"></div></div><span class="val">67</span></div>
+        <div class="mini-bar"><span class="label">Strategy</span><div class="track"><div class="fill blue" style="width:66%"></div></div><span class="val">66</span></div>
+        <div class="mini-bar"><span class="label">Market Demand</span><div class="track"><div class="fill blue" style="width:66%"></div></div><span class="val">66</span></div>
+        <div class="mini-bar"><span class="label">Market Sizing</span><div class="track"><div class="fill red" style="width:55%"></div></div><span class="val">55</span></div>
+        <div class="mini-bar"><span class="label">Validation</span><div class="track"><div class="fill red" style="width:48%"></div></div><span class="val">48</span></div>
+      </div>
+      <div class="glass">
+        <div class="card-label">Market Traction Heatmap</div>
+        <div class="heatmap">
+          <div class="h-head"></div><div class="h-head">Model</div><div class="h-head">Strategy</div><div class="h-head">Market</div><div class="h-head">Valid.</div><div class="h-head">Compet.</div><div class="h-head">Sizing</div>
+          <div class="h-label">Strategic</div><div class="h-cell" style="background:rgba(59,130,246,0.5)">68</div><div class="h-cell" style="background:rgba(59,130,246,0.4)">63</div><div class="h-cell" style="background:rgba(59,130,246,0.35)">60</div><div class="h-cell" style="background:rgba(239,68,68,0.35)">44</div><div class="h-cell" style="background:rgba(239,68,68,0.3)">50</div><div class="h-cell" style="background:rgba(239,68,68,0.3)">50</div>
+          <div class="h-label">Behavioral</div><div class="h-cell" style="background:rgba(59,130,246,0.55)">73</div><div class="h-cell" style="background:rgba(59,130,246,0.5)">70</div><div class="h-cell" style="background:rgba(59,130,246,0.45)">68</div><div class="h-cell" style="background:rgba(239,68,68,0.3)">52</div><div class="h-cell" style="background:rgba(239,68,68,0.3)">58</div><div class="h-cell" style="background:rgba(239,68,68,0.3)">58</div>
+          <div class="h-label">Predictive</div><div class="h-cell" style="background:rgba(59,130,246,0.5)">70</div><div class="h-cell" style="background:rgba(59,130,246,0.45)">66</div><div class="h-cell" style="background:rgba(59,130,246,0.4)">64</div><div class="h-cell" style="background:rgba(239,68,68,0.35)">48</div><div class="h-cell" style="background:rgba(239,68,68,0.3)">54</div><div class="h-cell" style="background:rgba(239,68,68,0.3)">54</div>
+        </div>
+      </div>
+      <div class="glass">
+        <div class="card-label">Validation Status</div>
+        <div class="donut-wrap">
+          <svg viewBox="0 0 80 80"><circle class="dbg" cx="40" cy="40" r="34"/><circle class="dfg" cx="40" cy="40" r="34" stroke="#3b82f6" stroke-dasharray="214" stroke-dashoffset="86" style="filter:drop-shadow(0 0 6px rgba(59,130,246,0.4))"/></svg>
+          <div class="donut-center"><div class="d-val">60%</div><div class="d-sub">Validated</div></div>
+        </div>
+        <div style="margin-top:8px">
+          <div class="mini-bar"><span class="label">Interviews</span><div class="track"><div class="fill red" style="width:42%"></div></div><span class="val">4/20</span></div>
+          <div class="mini-bar"><span class="label">Competitors</span><div class="track"><div class="fill orange" style="width:60%"></div></div><span class="val">3/5</span></div>
+        </div>
+      </div>
+      <div class="glass">
+        <div class="card-label">Runway Health</div>
+        <div style="text-align:center;margin-bottom:8px"><div style="font-size:24px;font-weight:800;color:#fff">12<span style="font-size:12px;color:rgba(255,255,255,0.4);font-weight:400">mo</span></div><div style="font-size:10px;color:rgba(255,255,255,0.3)">Available Runway</div></div>
+        <div style="text-align:center;margin-bottom:8px"><div style="font-size:16px;font-weight:700;color:#ef4444">18<span style="font-size:11px;color:rgba(239,68,68,0.6);font-weight:400">mo needed</span></div><div style="font-size:10px;color:rgba(255,255,255,0.3)">Est. Time to Profit</div></div>
+        <div class="mini-bar"><span class="label" style="width:auto;color:#ef4444;font-weight:600">Gap: 6mo</span></div>
+      </div>
+      <div class="glass card-wide"><div class="card-label">Assessment Progress</div>
+        <div class="phase-pills"><span class="phase-pill progress">Phase 2 ◐</span><span class="phase-pill progress">Phase 3 ◐</span><span class="phase-pill progress">Phase 4 ◐</span><span class="phase-pill locked">Phase 6 🔒</span></div>
+        <div style="margin-top:8px"><div class="mini-bar"><span class="label">Completion</span><div class="track"><div class="fill blue" style="width:52%"></div></div><span class="val">52%</span></div></div>
+      </div>
+    </div>
+    <div class="click-hint">Click to expand full profile →</div>
+
+    <!-- EXPANDED VENTURE -->
+    <div class="expanded-content" id="venExpanded">
+      <button class="back-btn" onclick="event.stopPropagation();collapsePane()">← Back to Dashboard</button>
+      <div class="exp-section"><h3>Your Venture Radar</h3><p class="exp-sub">All 8 venture dimensions compared against the average assessed venture</p><div class="exp-radar"><canvas id="radarVenFull"></canvas></div></div>
+      <div class="exp-section">
+        <div class="exp-phase-header"><span class="eph-icon">🎯</span><h3>Phase 2: Market Opportunity</h3><span class="eph-score" style="color:#f97316">63</span></div>
+        <div class="exp-grid">
+          <div class="exp-card"><div class="ec-top"><h4>Market Demand Signals</h4><span class="ec-score orange">66</span></div><div class="ec-bar"><div class="ec-fill" style="width:66%;background:#f97316;box-shadow:0 0 8px rgba(249,115,22,0.3)"></div></div><div class="ec-desc">Positive demand signals, but you need more data to confirm market timing and size.</div></div>
+          <div class="exp-card"><div class="ec-top"><h4>Problem-Solution Fit</h4><span class="ec-score orange">60</span></div><div class="ec-bar"><div class="ec-fill" style="width:60%;background:#f97316;box-shadow:0 0 8px rgba(249,115,22,0.3)"></div></div><div class="ec-desc">Your solution addresses a real problem, but the fit needs tighter validation.</div></div>
+        </div>
+      </div>
+      <div class="exp-section">
+        <div class="exp-phase-header"><span class="eph-icon">♕</span><h3>Phase 3: Strategy Development</h3><span class="eph-score" style="color:#f97316">68</span></div>
+        <div class="exp-grid">
+          <div class="exp-card"><div class="ec-top"><h4>Business Model Design</h4><span class="ec-score orange">70</span></div><div class="ec-bar"><div class="ec-fill" style="width:70%;background:#3b82f6;box-shadow:0 0 8px rgba(59,130,246,0.3)"></div></div><div class="ec-desc">Revenue model is defined but pricing strategy needs market validation.</div><div class="ec-subs"><div class="mini-bar"><span class="label">Revenue Model</span><div class="track"><div class="fill blue" style="width:74%"></div></div><span class="val">74</span></div><div class="mini-bar"><span class="label">Pricing Strategy</span><div class="track"><div class="fill orange" style="width:62%"></div></div><span class="val">62</span></div><div class="mini-bar"><span class="label">Key Activities</span><div class="track"><div class="fill blue" style="width:72%"></div></div><span class="val">72</span></div></div></div>
+          <div class="exp-card"><div class="ec-top"><h4>Strategic Thinking</h4><span class="ec-score orange">66</span></div><div class="ec-bar"><div class="ec-fill" style="width:66%;background:#f97316;box-shadow:0 0 8px rgba(249,115,22,0.3)"></div></div><div class="ec-desc">Good at best-case thinking but scenario planning for worst-case is weak.</div><div class="ec-subs"><div class="mini-bar"><span class="label">Scenario Planning</span><div class="track"><div class="fill orange" style="width:62%"></div></div><span class="val">62</span></div><div class="mini-bar"><span class="label">Adaptability</span><div class="track"><div class="fill blue" style="width:70%"></div></div><span class="val">70</span></div></div></div>
+          <div class="exp-card" style="grid-column:1/-1;max-width:50%"><div class="ec-top"><h4>Competitive Positioning</h4><span class="ec-score orange">67</span></div><div class="ec-bar"><div class="ec-fill" style="width:67%;background:#f97316;box-shadow:0 0 8px rgba(249,115,22,0.3)"></div></div><div class="ec-desc">You know your differentiators but haven't built strong enough barriers to entry.</div><div class="ec-subs"><div class="mini-bar"><span class="label">Differentiation</span><div class="track"><div class="fill blue" style="width:72%"></div></div><span class="val">72</span></div><div class="mini-bar"><span class="label">Barriers to Entry</span><div class="track"><div class="fill red" style="width:58%"></div></div><span class="val">58</span></div></div></div>
+        </div>
+      </div>
+      <div class="exp-section">
+        <div class="exp-phase-header"><span class="eph-icon">🔍</span><h3>Phase 4: Market Intelligence</h3><span class="eph-score" style="color:#ef4444">52</span></div>
+        <div class="exp-grid">
+          <div class="exp-card"><div class="ec-top"><h4>Customer Validation</h4><span class="ec-score red">48</span></div><div class="ec-bar"><div class="ec-fill" style="width:48%;background:#ef4444;box-shadow:0 0 8px rgba(239,68,68,0.3)"></div></div><div class="ec-desc">You need significantly more customer interviews. Aim for 20+ structured conversations.</div><div class="ec-subs"><div class="mini-bar"><span class="label">Interviews</span><div class="track"><div class="fill red" style="width:42%"></div></div><span class="val">42</span></div><div class="mini-bar"><span class="label">Feedback Quality</span><div class="track"><div class="fill red" style="width:50%"></div></div><span class="val">50</span></div><div class="mini-bar"><span class="label">Payment Intent</span><div class="track"><div class="fill red" style="width:52%"></div></div><span class="val">52</span></div></div></div>
+          <div class="exp-card"><div class="ec-top"><h4>Competitive Analysis</h4><span class="ec-score red">54</span></div><div class="ec-bar"><div class="ec-fill" style="width:54%;background:#ef4444;box-shadow:0 0 8px rgba(239,68,68,0.3)"></div></div><div class="ec-desc">Competitor mapping is incomplete. Map 5+ direct and 3+ indirect competitors.</div></div>
+          <div class="exp-card" style="grid-column:1/-1;max-width:50%"><div class="ec-top"><h4>Market Sizing & Trends</h4><span class="ec-score red">55</span></div><div class="ec-bar"><div class="ec-fill" style="width:55%;background:#ef4444;box-shadow:0 0 8px rgba(239,68,68,0.3)"></div></div><div class="ec-desc">TAM/SAM/SOM estimates are rough. These numbers matter for investor conversations.</div></div>
+        </div>
+      </div>
+      <div class="exp-section">
+        <div class="exp-phase-header"><span class="eph-icon">🤖</span><h3>Phase 6: AI-Powered Future-Proofing</h3><span class="eph-score" style="color:rgba(255,255,255,0.3)">--</span></div>
+        <div class="locked-phase">🔒 Phase Not Started<br><span style="font-size:12px">Complete this phase to evaluate your venture's technology and AI readiness.</span><br><a class="lock-btn">Begin Phase 6 →</a></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /panes-row -->
+
+
+<!-- ============================================================
+     CONNECTING THE DOTS — ALIGNMENT ANALYSIS
+     ============================================================ -->
+<div class="alignment-section" id="alignmentSection">
+
+  <!-- Divider -->
+  <div class="section-divider">
+    <div class="div-line"></div>
+    <div class="div-label">Connecting the Dots</div>
+    <div class="div-line"></div>
+  </div>
+
+  <!-- Header -->
+  <div class="align-header">
+    <h2>Where <span class="o">You</span> and <span class="b">Your Idea</span> <span class="p">Align</span></h2>
+    <p class="ah-sub">Our AI cross-references your entrepreneur profile with your venture profile to uncover where your personal traits reinforce your business — and where dangerous gaps exist.</p>
+  </div>
+
+  <!-- Alignment Overview -->
+  <div class="align-overview">
+    <div class="ao-pillar">
+      <div class="ao-tag orange">Entrepreneur</div>
+      <div class="ao-big orange">84</div>
+      <div class="ao-name">The Founder</div>
+    </div>
+    <div class="ao-center">
+      <div class="ao-venn">
+        <div class="venn-circle left"></div>
+        <div class="venn-circle right"></div>
+        <div class="venn-score"><div class="vs-num">68%</div><div class="vs-label">Alignment</div></div>
+      </div>
+      <div class="ao-stats">
+        <div class="ao-stat"><div class="as-num green">5</div><div class="as-label">Sweet Spots</div></div>
+        <div class="ao-stat"><div class="as-num red">4</div><div class="as-label">Risk Zones</div></div>
+        <div class="ao-stat"><div class="as-num purple">3</div><div class="as-label">Untapped</div></div>
+      </div>
+    </div>
+    <div class="ao-pillar">
+      <div class="ao-tag blue">Venture</div>
+      <div class="ao-big blue">60</div>
+      <div class="ao-name">The Idea</div>
+    </div>
+  </div>
+
+  <!-- ===== SWEET SPOTS ===== -->
+  <div class="cat-header">
+    <span class="ch-icon">✦</span>
+    <h3 style="color:#22c55e">Sweet Spots — Where You Reinforce Your Venture</h3>
+    <span class="ch-count">5 found</span>
+  </div>
+
+  <div class="conn-card sweet">
+    <div class="cc-row">
+      <div class="cc-side"><div class="cc-tag orange">Entrepreneur</div><div class="cc-dim">Passion Intensity</div><div class="cc-score-val green">88</div></div>
+      <div class="cc-mid"><div class="cc-connector sweet"></div><div class="cc-badge sweet">Reinforces</div></div>
+      <div class="cc-side" style="text-align:right"><div class="cc-tag blue">Venture</div><div class="cc-dim">Problem-Solution Fit</div><div class="cc-score-val orange">60</div></div>
+    </div>
+    <div class="cc-insight"><b>Your deep passion for this domain gives you authentic customer empathy</b> — something that can't be faked or hired. Founders who work in their passion domain are <span class="highlight green">2.4x more likely</span> to achieve product-market fit because they intuitively understand the pain points.</div>
+  </div>
+
+  <div class="conn-card sweet">
+    <div class="cc-row">
+      <div class="cc-side"><div class="cc-tag orange">Entrepreneur</div><div class="cc-dim">Vision Clarity</div><div class="cc-score-val green">85</div></div>
+      <div class="cc-mid"><div class="cc-connector sweet"></div><div class="cc-badge sweet">Anchors</div></div>
+      <div class="cc-side" style="text-align:right"><div class="cc-tag blue">Venture</div><div class="cc-dim">Strategic Thinking</div><div class="cc-score-val orange">66</div></div>
+    </div>
+    <div class="cc-insight"><b>Your clear long-term vision anchors your strategic decisions</b> even when the strategy itself is still developing. While your scenario planning needs work, your vision ensures you're always building toward the right destination.</div>
+  </div>
+
+  <div class="conn-card sweet">
+    <div class="cc-row">
+      <div class="cc-side"><div class="cc-tag orange">Entrepreneur</div><div class="cc-dim">Values & Ethics</div><div class="cc-score-val green">90</div></div>
+      <div class="cc-mid"><div class="cc-connector sweet"></div><div class="cc-badge sweet">Differentiates</div></div>
+      <div class="cc-side" style="text-align:right"><div class="cc-tag blue">Venture</div><div class="cc-dim">Competitive Positioning</div><div class="cc-score-val orange">67</div></div>
+    </div>
+    <div class="cc-insight"><b>Your strong ethical stance can become a genuine market differentiator.</b> In a market where trust is scarce, your values-driven approach attracts values-aligned customers who become loyal advocates. This is a <span class="highlight green">sustainable competitive advantage</span> that competitors can't easily copy.</div>
+  </div>
+
+  <div class="conn-card sweet">
+    <div class="cc-row">
+      <div class="cc-side"><div class="cc-tag orange">Entrepreneur</div><div class="cc-dim">Industry Experience</div><div class="cc-score-val orange">72</div></div>
+      <div class="cc-mid"><div class="cc-connector sweet"></div><div class="cc-badge sweet">Informs</div></div>
+      <div class="cc-side" style="text-align:right"><div class="cc-tag blue">Venture</div><div class="cc-dim">Competitive Analysis</div><div class="cc-score-val red">54</div></div>
+    </div>
+    <div class="cc-insight"><b>Your industry knowledge gives you insider understanding of competitors</b> that desk research alone can't provide. Even though your formal competitive analysis is incomplete, your lived experience fills gaps that pure data can't.</div>
+  </div>
+
+  <div class="conn-card sweet">
+    <div class="cc-row">
+      <div class="cc-side"><div class="cc-tag orange">Entrepreneur</div><div class="cc-dim">Risk Tolerance</div><div class="cc-score-val green">82</div></div>
+      <div class="cc-mid"><div class="cc-connector sweet"></div><div class="cc-badge sweet">Enables</div></div>
+      <div class="cc-side" style="text-align:right"><div class="cc-tag blue">Venture</div><div class="cc-dim">Business Model Design</div><div class="cc-score-val orange">70</div></div>
+    </div>
+    <div class="cc-insight"><b>Your comfort with risk allows you to pursue innovative revenue models</b> rather than defaulting to safe but undifferentiated pricing. This is critical for a venture that needs to stand out in its business model design.</div>
+  </div>
+
+  <!-- ===== RISK ZONES ===== -->
+  <div class="cat-header">
+    <span class="ch-icon">⚠</span>
+    <h3 style="color:#ef4444">Risk Zones — Where Gaps Compound</h3>
+    <span class="ch-count">4 detected</span>
+  </div>
+
+  <div class="conn-card risk">
+    <div class="cc-row">
+      <div class="cc-side"><div class="cc-tag orange">Entrepreneur</div><div class="cc-dim">Financial Runway</div><div class="cc-score-val red">65</div></div>
+      <div class="cc-mid"><div class="cc-connector risk"></div><div class="cc-badge risk">Critical Gap</div></div>
+      <div class="cc-side" style="text-align:right"><div class="cc-tag blue">Venture</div><div class="cc-dim">Time to Profitability</div><div class="cc-score-val red">Est. 18mo</div></div>
+    </div>
+    <div class="cc-insight"><b>Your 12-month runway doesn't cover the estimated 18 months to profitability.</b> This is a <span class="highlight red">6-month funding gap</span> that must be addressed before launch. Options: extend runway through part-time income, reduce burn rate, secure bridge funding, or restructure the business model for faster revenue.</div>
+    <div class="cc-action risk-btn" onclick="event.stopPropagation()">⚡ Address This — View Options</div>
+  </div>
+
+  <div class="conn-card risk">
+    <div class="cc-row">
+      <div class="cc-side"><div class="cc-tag orange">Entrepreneur</div><div class="cc-dim">Sales Skills</div><div class="cc-score-val orange">68</div></div>
+      <div class="cc-mid"><div class="cc-connector risk"></div><div class="cc-badge risk">Compounding</div></div>
+      <div class="cc-side" style="text-align:right"><div class="cc-tag blue">Venture</div><div class="cc-dim">Customer Validation</div><div class="cc-score-val red">48</div></div>
+    </div>
+    <div class="cc-insight"><b>Weak sales skills combined with low customer validation creates a compounding risk.</b> You need to conduct 20+ customer interviews, but your discomfort with selling makes outreach harder. This is the <span class="highlight red">#1 risk</span> to address — without customer validation, everything else is assumptions.</div>
+    <div class="cc-action risk-btn" onclick="event.stopPropagation()">⚡ Address This — Start Interview Sprint</div>
+  </div>
+
+  <div class="conn-card risk">
+    <div class="cc-row">
+      <div class="cc-side"><div class="cc-tag orange">Entrepreneur</div><div class="cc-dim">Team Building</div><div class="cc-score-val red">55</div></div>
+      <div class="cc-mid"><div class="cc-connector risk"></div><div class="cc-badge risk">Bottleneck</div></div>
+      <div class="cc-side" style="text-align:right"><div class="cc-tag blue">Venture</div><div class="cc-dim">Business Model</div><div class="cc-score-val orange">70</div></div>
+    </div>
+    <div class="cc-insight"><b>Your business model requires a team to execute, but your team-building skills are underdeveloped.</b> You've designed a business that needs at least 3 people to operate, yet you haven't defined your first hires. This creates a <span class="highlight red">scaling bottleneck</span> — the idea can't grow beyond what you alone can do.</div>
+    <div class="cc-action risk-btn" onclick="event.stopPropagation()">⚡ Address This — Define First 3 Hires</div>
+  </div>
+
+  <div class="conn-card risk">
+    <div class="cc-row">
+      <div class="cc-side"><div class="cc-tag orange">Entrepreneur</div><div class="cc-dim">Prof. Network</div><div class="cc-score-val orange">68</div></div>
+      <div class="cc-mid"><div class="cc-connector risk"></div><div class="cc-badge risk">Limiting</div></div>
+      <div class="cc-side" style="text-align:right"><div class="cc-tag blue">Venture</div><div class="cc-dim">Market Sizing</div><div class="cc-score-val red">55</div></div>
+    </div>
+    <div class="cc-insight"><b>Limited professional network combined with rough market sizing makes it harder to validate assumptions.</b> You need industry contacts to pressure-test your TAM/SAM/SOM estimates. Without a strong network, your market numbers remain theoretical.</div>
+    <div class="cc-action risk-btn" onclick="event.stopPropagation()">⚡ Address This — Expand Network</div>
+  </div>
+
+  <!-- ===== UNTAPPED POTENTIAL ===== -->
+  <div class="cat-header">
+    <span class="ch-icon">💎</span>
+    <h3 style="color:#a855f7">Untapped Potential — Strengths You Haven't Leveraged Yet</h3>
+    <span class="ch-count">3 identified</span>
+  </div>
+
+  <div class="conn-card potential">
+    <div class="cc-row">
+      <div class="cc-side"><div class="cc-tag orange">Your Strength</div><div class="cc-dim">Motivation & Drive</div><div class="cc-score-val green">92</div></div>
+      <div class="cc-mid"><div class="cc-connector potential"></div><div class="cc-badge potential">Can Boost</div></div>
+      <div class="cc-side" style="text-align:right"><div class="cc-tag blue">Venture Gap</div><div class="cc-dim">Customer Interviews</div><div class="cc-score-val red">42</div></div>
+    </div>
+    <div class="cc-insight"><b>Channel your exceptional drive into a structured customer interview sprint.</b> You have the persistence to reach out to 50 people to get 20 interviews — most founders give up after 5 rejections. The fix is simple but requires the persistence you already have. <span class="highlight purple">Estimated impact: +15 to Validation score</span></div>
+  </div>
+
+  <div class="conn-card potential">
+    <div class="cc-row">
+      <div class="cc-side"><div class="cc-tag orange">Your Strength</div><div class="cc-dim">Self-Awareness</div><div class="cc-score-val green">86</div></div>
+      <div class="cc-mid"><div class="cc-connector potential"></div><div class="cc-badge potential">Can Boost</div></div>
+      <div class="cc-side" style="text-align:right"><div class="cc-tag blue">Venture Gap</div><div class="cc-dim">Scenario Planning</div><div class="cc-score-val orange">62</div></div>
+    </div>
+    <div class="cc-insight"><b>Your high self-awareness means you can honestly assess worst-case scenarios</b> — something most founders avoid. Use this trait to build pre-mortem exercises: "What could kill this business?" Your honesty with yourself is a strategic asset. <span class="highlight purple">Estimated impact: +10 to Strategy score</span></div>
+  </div>
+
+  <div class="conn-card potential">
+    <div class="cc-row">
+      <div class="cc-side"><div class="cc-tag orange">Your Strength</div><div class="cc-dim">Stress Management</div><div class="cc-score-val green">88</div></div>
+      <div class="cc-mid"><div class="cc-connector potential"></div><div class="cc-badge potential">Can Boost</div></div>
+      <div class="cc-side" style="text-align:right"><div class="cc-tag blue">Venture Gap</div><div class="cc-dim">Phase 6: AI Readiness</div><div class="cc-score-val" style="color:rgba(255,255,255,0.3)">--</div></div>
+    </div>
+    <div class="cc-insight"><b>Your resilience under pressure means you can handle the uncertainty of AI disruption analysis.</b> Phase 6 asks hard questions about how AI could disrupt your venture — many founders avoid it out of fear. Your stress management skills make you uniquely equipped to face this honestly. <span class="highlight purple">Unlock by starting Phase 6</span></div>
+  </div>
+
+  <!-- ===== BUSINESS BUILDER READINESS ===== -->
+  <div class="readiness">
+    <h3>🔓 Business Builder Readiness</h3>
+    <p class="r-sub">When both profiles meet their targets, our AI can design your actual business components</p>
+    <div class="readiness-bars">
+      <div class="r-item">
+        <div class="r-label orange">Entrepreneur Score</div>
+        <div class="r-bar"><div class="r-fill orange" style="width:84%"></div></div>
+        <div class="r-vals"><span class="r-current">84</span><span class="r-target">Target: 75</span></div>
+        <div class="r-check pass">✓ Passed</div>
+      </div>
+      <div class="r-item">
+        <div class="r-label blue">Venture Score</div>
+        <div class="r-bar"><div class="r-fill blue" style="width:60%"></div></div>
+        <div class="r-vals"><span class="r-current">60</span><span class="r-target">Target: 70</span></div>
+        <div class="r-check fail">✗ 10 points to go</div>
+      </div>
+      <div class="r-item">
+        <div class="r-label purple">Alignment Score</div>
+        <div class="r-bar"><div class="r-fill purple" style="width:68%"></div></div>
+        <div class="r-vals"><span class="r-current">68%</span><span class="r-target">Target: 60%</span></div>
+        <div class="r-check pass">✓ Passed</div>
+      </div>
+    </div>
+    <div class="unlock-msg locked">🔒 Venture score needs 10 more points to unlock Business Builder. Focus on Customer Validation and Market Intelligence.</div>
+  </div>
+
+</div><!-- /alignment-section -->
+
+</div><!-- /main-container -->
+
+<script>
+let currentExpanded = null;
+
+function expandPane(which){
+  if(currentExpanded) return;
+  currentExpanded = which;
+  const ent = document.getElementById('paneEnt');
+  const ven = document.getElementById('paneVen');
+  document.getElementById('mainHeader').style.display = 'none';
+  document.getElementById('alignmentSection').style.display = 'none';
+  document.body.classList.add('no-scroll');
+
+  if(which === 'ent'){
+    ent.classList.add('expanded');
+    ven.classList.add('collapsed');
+    setTimeout(()=>initEntFullRadar(),300);
+  } else {
+    ven.classList.add('expanded');
+    ent.classList.add('collapsed');
+    setTimeout(()=>initVenFullRadar(),300);
+  }
+}
+
+function collapsePane(){
+  currentExpanded = null;
+  const ent = document.getElementById('paneEnt');
+  const ven = document.getElementById('paneVen');
+  ent.classList.remove('expanded','collapsed');
+  ven.classList.remove('expanded','collapsed');
+  document.getElementById('mainHeader').style.display = '';
+  document.getElementById('alignmentSection').style.display = '';
+  document.body.classList.remove('no-scroll');
+  if(window._entFullChart){window._entFullChart.destroy();window._entFullChart=null}
+  if(window._venFullChart){window._venFullChart.destroy();window._venFullChart=null}
+}
+
+const radarOpts = ()=>({
+  responsive:true,
+  plugins:{legend:{display:false}},
+  scales:{r:{
+    grid:{color:'rgba(255,255,255,0.04)'},
+    angleLines:{color:'rgba(255,255,255,0.04)'},
+    pointLabels:{color:'rgba(255,255,255,0.4)',font:{size:9,family:'Inter'}},
+    ticks:{display:false},
+    suggestedMin:0,suggestedMax:100
+  }}
+});
+
+new Chart(document.getElementById('radarEntCompact'),{type:'radar',data:{
+  labels:['Drive','Personality','Values','Awareness','Support','Resources','Passion','Skills','Vision','Leadership','Team','Culture'],
+  datasets:[{data:[92,85,90,86,80,74,88,76,85,68,55,62],borderColor:'#f97316',backgroundColor:'rgba(249,115,22,0.1)',pointBackgroundColor:'#f97316',pointRadius:2,borderWidth:1.5}]
+},options:radarOpts()});
+
+new Chart(document.getElementById('radarVenCompact'),{type:'radar',data:{
+  labels:['Demand','Fit','Model','Strategy','Position','Validation','Analysis','Sizing'],
+  datasets:[{data:[66,60,70,66,67,48,54,55],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.1)',pointBackgroundColor:'#3b82f6',pointRadius:2,borderWidth:1.5}]
+},options:radarOpts()});
+
+function initEntFullRadar(){
+  if(window._entFullChart) return;
+  window._entFullChart = new Chart(document.getElementById('radarEntFull'),{type:'radar',data:{
+    labels:['Motivation','Personality','Values','Self-Awareness','Life Support','Resources','Passion','Skills','Vision','Leadership','Team Building','Culture'],
+    datasets:[
+      {label:'Your Score',data:[92,85,90,86,80,74,88,76,85,68,55,62],borderColor:'#f97316',backgroundColor:'rgba(249,115,22,0.12)',pointBackgroundColor:'#f97316',pointRadius:3,borderWidth:2},
+      {label:'Average Founder',data:[72,70,68,65,72,70,70,68,66,62,58,60],borderColor:'rgba(255,255,255,0.2)',backgroundColor:'rgba(255,255,255,0.03)',pointBackgroundColor:'rgba(255,255,255,0.3)',pointRadius:2,borderWidth:1}
+    ]
+  },options:radarOpts()});
+}
+
+function initVenFullRadar(){
+  if(window._venFullChart) return;
+  window._venFullChart = new Chart(document.getElementById('radarVenFull'),{type:'radar',data:{
+    labels:['Market Demand','Problem-Solution Fit','Business Model','Strategic Thinking','Positioning','Customer Validation','Competitive Analysis','Market Sizing'],
+    datasets:[
+      {label:'Your Score',data:[66,60,70,66,67,48,54,55],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.12)',pointBackgroundColor:'#3b82f6',pointRadius:3,borderWidth:2},
+      {label:'Average Venture',data:[62,58,60,55,56,55,52,50],borderColor:'rgba(255,255,255,0.2)',backgroundColor:'rgba(255,255,255,0.03)',pointBackgroundColor:'rgba(255,255,255,0.3)',pointRadius:2,borderWidth:1}
+    ]
+  },options:radarOpts()});
+}
+</script>
+</body>
+</html>
