@@ -252,58 +252,62 @@ CRITICAL RULES FOR CARDS:
 
 
 class InsightsReportService:
-    """Generate AI-powered full insights report for a user."""
+  """Generate AI-powered full insights report for a user."""
 
-    CACHE_TTL = 3600  # 1 hour
+  CACHE_TTL = 3600  # 1 hour
+  ENABLE_CACHE = False
 
-    def __init__(self):
-        self.groq_key = os.getenv("GROQ_API_KEY")
-        self.groq_model = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
-        self._redis = None
+  def __init__(self):
+    self.groq_key = os.getenv("GROQ_API_KEY")
+    self.groq_model = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
+    self._redis = None
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
+  # ------------------------------------------------------------------
+  # Public API
+  # ------------------------------------------------------------------
 
-    def generate_report(self, user_id: int, assessment_data: dict) -> dict:
-        """
-        Build or retrieve the full AI insights report.
+  def generate_report(self, user_id: int, assessment_data: dict) -> dict:
+    """
+    Build or retrieve the full AI insights report.
 
-        Args:
-            user_id: DB user id
-            assessment_data: dict with keys:
-                'phases'     — list of {id, name, progress, completed}
-                'responses'  — dict phase_id → list of response dicts
-        Returns:
-            Full report dict (see REPORT_SCHEMA above).
-        """
-        cache_key = self._cache_key(user_id, assessment_data)
+    Args:
+      user_id: DB user id
+      assessment_data: dict with keys:
+        'phases'     — list of {id, name, progress, completed}
+        'responses'  — dict phase_id → list of response dicts
+    Returns:
+      Full report dict (see REPORT_SCHEMA above).
+    """
+    cache_key = self._cache_key(user_id, assessment_data)
 
-        # Try cache first
-        cached = self._get_cache(cache_key)
-        if cached:
-            logger.info(f"[InsightsReport] Cache HIT for user {user_id}")
-            cached["_from_cache"] = True
-            return cached
+    if self.ENABLE_CACHE:
+      cached = self._get_cache(cache_key)
+      if cached:
+        logger.info(f"[InsightsReport] Cache HIT for user {user_id}")
+        cached["_from_cache"] = True
+        return cached
 
-        logger.info(f"[InsightsReport] Cache MISS for user {user_id} — calling AI")
+      logger.info(f"[InsightsReport] Cache MISS for user {user_id} — calling AI")
+    else:
+      logger.info(f"[InsightsReport] Cache disabled — generating fresh report for user {user_id}")
 
-        user_prompt = self._build_user_prompt(assessment_data)
-        report = self._call_groq(user_prompt)
+    user_prompt = self._build_user_prompt(assessment_data)
+    report = self._call_groq(user_prompt)
 
-        # Always stamp metadata
-        report["generated_at"] = _now_iso()
-        report["consensus"] = {
-            "models": [{"model": self.groq_model, "provider": "groq"}],
-            "confidence": self._calc_confidence(assessment_data),
-            "phases_analyzed": len(assessment_data.get("phases", [])),
-            "responses_analyzed": sum(
-                len(v) for v in assessment_data.get("responses", {}).values()
-            ),
-        }
+    # Always stamp metadata
+    report["generated_at"] = _now_iso()
+    report["consensus"] = {
+      "models": [{"model": self.groq_model, "provider": "groq"}],
+      "confidence": self._calc_confidence(assessment_data),
+      "phases_analyzed": len(assessment_data.get("phases", [])),
+      "responses_analyzed": sum(
+        len(v) for v in assessment_data.get("responses", {}).values()
+      ),
+    }
 
-        self._set_cache(cache_key, report)
-        return report
+    if self.ENABLE_CACHE:
+      self._set_cache(cache_key, report)
+    return report
 
     def invalidate_cache(self, user_id: int):
         """Bust all cached reports for this user."""
@@ -416,16 +420,46 @@ class InsightsReportService:
         return None
 
     def _cache_key(self, user_id: int, assessment_data: dict) -> str:
-        # Key includes a hash of phase completion state so cache busts on progress
-        state = json.dumps(
-            [
-                {"id": p.get("id"), "progress": p.get("progress"), "done": p.get("completed")}
-                for p in assessment_data.get("phases", [])
-            ],
-            sort_keys=True,
+      # Key includes phase state + response fingerprint so cache busts when
+      # answers change (not only when completion percentage changes).
+      phases_state = [
+        {
+          "id": p.get("id"),
+          "progress": p.get("progress"),
+          "done": p.get("completed"),
+        }
+        for p in assessment_data.get("phases", [])
+      ]
+
+      responses_state = {}
+      for phase_id, items in (assessment_data.get("responses", {}) or {}).items():
+        normalized_items = []
+        for item in items or []:
+          normalized_items.append({
+            "question_id": item.get("question_id"),
+            "section_id": item.get("section_id"),
+            "response_type": item.get("response_type"),
+            "response_value": item.get("response_value"),
+          })
+        responses_state[phase_id] = sorted(
+          normalized_items,
+          key=lambda row: (
+            str(row.get("question_id") or ""),
+            str(row.get("section_id") or ""),
+          ),
         )
-        h = hashlib.md5(state.encode()).hexdigest()[:8]
-        return f"insights:report:{user_id}:{h}"
+
+      state = json.dumps(
+        {
+          "v": 2,
+          "phases": sorted(phases_state, key=lambda p: str(p.get("id") or "")),
+          "responses": responses_state,
+        },
+        sort_keys=True,
+        default=str,
+      )
+      h = hashlib.md5(state.encode()).hexdigest()[:12]
+      return f"insights:report:{user_id}:{h}"
 
     def _get_cache(self, key: str) -> Optional[dict]:
         redis = self._get_redis()
