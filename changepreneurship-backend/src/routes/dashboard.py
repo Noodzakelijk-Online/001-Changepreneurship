@@ -1,4 +1,5 @@
 """Dashboard API - Executive summary and business insights"""
+import json
 from flask import Blueprint, request, jsonify, session, current_app
 from flask_cors import cross_origin
 from datetime import datetime
@@ -9,6 +10,7 @@ from ..services.dashboard_service import DashboardDataGenerator
 from ..services.test_data_generator import TestDataGenerator
 from ..services.complete_user_generator import CompleteUserGenerator
 from ..utils.auth import verify_session_token
+from ..utils.redis_client import get_redis_client
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -17,21 +19,50 @@ dashboard_service = DashboardDataGenerator()
 test_data_generator = TestDataGenerator()
 complete_user_generator = CompleteUserGenerator()
 
+_DASHBOARD_CACHE_TTL = 300  # 5 minutes
+
+
+def _dashboard_cache_key(user_id):
+    return f"dashboard:executive_summary:{user_id}"
+
 
 @dashboard_bp.route('/executive-summary', methods=['GET'])
 @dashboard_bp.route('/api/dashboard/executive-summary', methods=['GET'])
 @cross_origin()
 def get_executive_summary():
     """Get comprehensive executive summary for authenticated user"""
-    # Use proper session authentication
     user, user_session, error, status_code = verify_session_token()
     if error:
         return jsonify(error), status_code
-    
+
     current_app.logger.info(f"[Dashboard] Executive summary for user: {user.username} (ID: {user.id})")
-    
+
+    # Try Redis cache first
+    redis = get_redis_client()
+    cache_key = _dashboard_cache_key(user.id)
+    if redis:
+        try:
+            cached = redis.get(cache_key)
+            if cached:
+                current_app.logger.info(f"[Dashboard] Cache HIT for user {user.id}")
+                return jsonify({
+                    'success': True,
+                    'data': json.loads(cached),
+                    'generated_at': datetime.utcnow().isoformat(),
+                    'from_cache': True
+                })
+        except Exception as e:
+            current_app.logger.warning(f"[Dashboard] Redis read error: {e}")
+
     dashboard_data = dashboard_service.generate_executive_summary(user.id)
-    
+
+    # Store in cache
+    if redis:
+        try:
+            redis.set(cache_key, json.dumps(dashboard_data), ex=_DASHBOARD_CACHE_TTL)
+        except Exception as e:
+            current_app.logger.warning(f"[Dashboard] Redis write error: {e}")
+
     return jsonify({
         'success': True,
         'data': dashboard_data,
@@ -43,14 +74,21 @@ def get_executive_summary():
 @cross_origin()
 def refresh_executive_summary():
     """Refresh dashboard data for authenticated user"""
-    # Use proper session authentication
     user, user_session, error, status_code = verify_session_token()
     if error:
         return jsonify(error), status_code
-    
+
+    # Invalidate cache so fresh data is served on next GET
+    redis = get_redis_client()
+    if redis:
+        try:
+            redis.delete(_dashboard_cache_key(user.id))
+        except Exception as e:
+            current_app.logger.warning(f"[Dashboard] Cache invalidation error: {e}")
+
     current_app.logger.info(f"[Dashboard] Refreshing dashboard for user: {user.username} (ID: {user.id})")
     dashboard_data = dashboard_service.refresh_dashboard_data(user.id)
-    
+
     return jsonify({
         'success': True,
         'data': dashboard_data,
@@ -334,42 +372,6 @@ def export_complete_user(user_id):
         return jsonify({
             'success': False,
             'error': 'Failed to export user data',
-            'details': str(e)
-        }), 500
-
-@dashboard_bp.route('/api/dashboard/complete-user/fix-password/<int:user_id>', methods=['POST', 'OPTIONS'])
-@cross_origin()
-def fix_user_password(user_id):
-    """
-    Fix password hash for test user
-    """
-    if request.method == 'OPTIONS':
-        return '', 204
-    
-    try:
-        user = User.query.get(user_id)
-        if not user:
-            return jsonify({
-                'success': False,
-                'error': 'User not found'
-            }), 404
-        
-        # Update password hash
-        user.password_hash = generate_password_hash('test123')
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': f'Password updated for user {user.username}',
-            'user_id': user_id,
-            'username': user.username
-        }), 200
-        
-    except Exception as e:
-        current_app.logger.error(f"Password fix error: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': 'Failed to update password',
             'details': str(e)
         }), 500
 

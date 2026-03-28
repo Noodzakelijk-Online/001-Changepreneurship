@@ -64,6 +64,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         headers: this.getHeaders(),
+        credentials: 'include',
         ...options,
       });
       return await this.handleResponse(response);
@@ -120,31 +121,22 @@ class ApiService {
   }
 
   async register(userData) {
-    const res = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: "POST",
-      headers: this.getHeaders(),
+    const result = await this.request('/auth/register', {
+      method: 'POST',
       body: JSON.stringify(userData),
     });
-    const result = await this.handleResponse(res);
     if (result.success && result.data?.session_token)
-      this.setSession(
-        result.data.session_token,
-        result.data.user,
-        result.data.expires_at
-      );
+      this.setSession(result.data.session_token, result.data.user, result.data.expires_at);
     return result;
   }
 
   async login(credentials) {
     console.log('[API] Login request for:', credentials.username);
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: "POST",
-      headers: this.getHeaders(),
+    const result = await this.request('/auth/login', {
+      method: 'POST',
       body: JSON.stringify(credentials),
     });
-    const result = await this.handleResponse(res);
     console.log('[API] Login response:', result);
-    
     if (result.success && result.data?.session_token) {
       console.log('[API] Setting session with token:', result.data.session_token.substring(0, 20) + '...');
       this.setSession(
@@ -159,11 +151,7 @@ class ApiService {
 
   async logout() {
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: "POST",
-        headers: this.getHeaders(),
-      });
-      await this.handleResponse(res);
+      await this.request('/auth/logout', { method: 'POST' });
     } catch {
       // ignore network errors during logout
     } finally {
@@ -179,11 +167,7 @@ class ApiService {
       this.clearSession();
       return { success: false, error: "Session expired" };
     }
-    const res = await fetch(`${API_BASE_URL}/auth/verify`, {
-      method: "GET",
-      headers: this.getHeaders(),
-    });
-    const result = await this.handleResponse(res);
+    const result = await this.request('/auth/verify');
     if (result.success && result.data?.user)
       this.setSession(
         this.sessionToken,

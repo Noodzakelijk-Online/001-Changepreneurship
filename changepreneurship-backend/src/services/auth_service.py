@@ -13,9 +13,10 @@ class AuthService:
     """Handles authentication business logic"""
     
     EMAIL_PATTERN = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-    MIN_PASSWORD_LENGTH = 8
+    MIN_PASSWORD_LENGTH = 12
     MIN_USERNAME_LENGTH = 3
-    SESSION_EXPIRY_DAYS = 30
+    SESSION_EXPIRY_DAYS = 7
+    PASSWORD_SPECIAL_CHARS = re.compile(r'[!@#$%^&*()_+\-=\[\]{};:\'"\\|,.<>/?`~]')
 
     @staticmethod
     def validate_email(email: str) -> bool:
@@ -31,6 +32,10 @@ class AuthService:
             return False, "Password must contain at least one letter"
         if not re.search(r'[0-9]', password):
             return False, "Password must contain at least one number"
+        if not re.search(r'[A-Z]', password):
+            return False, "Password must contain at least one uppercase letter"
+        if not AuthService.PASSWORD_SPECIAL_CHARS.search(password):
+            return False, "Password must contain at least one special character (!@#$%^&* etc.)"
         return True, ""
 
     @staticmethod
@@ -51,12 +56,10 @@ class AuthService:
         if not valid:
             return None, msg
 
-        # Check duplicates
+        # Check duplicates — use generic message to prevent user enumeration
         existing = User.query.filter((User.username == username) | (User.email == email)).first()
         if existing:
-            if existing.username == username:
-                return None, "Username already exists"
-            return None, "Email already registered"
+            return None, "An account with this username or email already exists"
 
         # Create user and profile
         try:

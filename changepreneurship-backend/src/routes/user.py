@@ -18,8 +18,11 @@ def get_profile():
 
 @user_bp.route('/users', methods=['GET'])
 def get_users():
+    user, session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
     users = User.query.all()
-    return jsonify([user.to_dict() for user in users])
+    return jsonify([u.to_dict() for u in users])
 
 @user_bp.route('/users', methods=['POST'])
 def create_user():
@@ -39,11 +42,19 @@ def create_user():
 
 @user_bp.route('/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
+    current_user, session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
     user = User.query.get_or_404(user_id)
     return jsonify(user.to_dict())
 
 @user_bp.route('/users/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
+    current_user, session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+    if current_user.id != user_id:
+        return jsonify({'error': 'Forbidden'}), 403
     user = User.query.get_or_404(user_id)
     data = request.json
     user.username = data.get('username', user.username)
@@ -53,6 +64,11 @@ def update_user(user_id):
 
 @user_bp.route('/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
+    current_user, session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+    if current_user.id != user_id:
+        return jsonify({'error': 'Forbidden'}), 403
     user = User.query.get_or_404(user_id)
     db.session.delete(user)
     db.session.commit()
