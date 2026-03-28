@@ -1,0 +1,21 @@
+changepreneurship.duckdns.org {
+    # Admin: Redis GUI — protected with basic auth
+    # Generate hash: caddy hash-password --plaintext 'yourpassword'
+    handle /redis-ui/* {
+        basicauth {
+            admin {$CADDY_ADMIN_HASH}
+        }
+        uri strip_prefix /redis-ui
+        reverse_proxy redisinsight:5540
+    }
+
+    # API requests → Flask backend
+    handle /api/* {
+        reverse_proxy backend:5000
+    }
+
+    # Everything else → React frontend
+    handle {
+        reverse_proxy frontend:80
+    }
+}
