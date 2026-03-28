@@ -131,20 +131,16 @@ class ApiService {
   }
 
   async login(credentials) {
-    console.log('[API] Login request for:', credentials.username);
     const result = await this.request('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
-    console.log('[API] Login response:', result);
     if (result.success && result.data?.session_token) {
-      console.log('[API] Setting session with token:', result.data.session_token.substring(0, 20) + '...');
       this.setSession(
         result.data.session_token,
         result.data.user,
         result.data.expires_at
       );
-      console.log('[API] Session set. isAuthenticated():', this.isAuthenticated());
     }
     return result;
   }
@@ -192,142 +188,37 @@ class ApiService {
 
   // ==================== ASSESSMENT METHODS ====================
 
-  /**
-   * Get all assessment phases
-   * @returns {Promise<Object>} Assessment phases data
-   */
   async getAssessmentPhases() {
-    const response = await fetch(`${API_BASE_URL}/assessment/phases`, {
-      method: "GET",
-      headers: this.getHeaders(),
-    });
-
-    return this.handleResponse(response);
+    return this.request('/assessment/phases');
   }
 
-  /**
-   * Start a new assessment phase
-   * @param {string} phaseId - Assessment phase identifier
-   * @returns {Promise<Object>} Assessment start response
-   */
   async startAssessmentPhase(phaseId) {
-    const response = await fetch(
-      `${API_BASE_URL}/assessment/start/${phaseId}`,
-      {
-        method: "POST",
-        headers: this.getHeaders(),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request(`/assessment/start/${phaseId}`, { method: 'POST' });
   }
 
-  /**
-   * Save assessment response
-   * @param {string} assessmentId - Assessment identifier
-   * @param {Object} responseData - Response data
-   * @returns {Promise<Object>} Save response
-   */
   async saveAssessmentResponse(assessmentId, responseData) {
-    const response = await fetch(
-      `${API_BASE_URL}/assessment/${assessmentId}/response`,
-      {
-        method: "POST",
-        headers: this.getHeaders(),
-        body: JSON.stringify(responseData),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request(`/assessment/${assessmentId}/response`, {
+      method: 'POST',
+      body: JSON.stringify(responseData),
+    });
   }
 
-  /**
-   * Update assessment progress
-   * @param {string} assessmentId - Assessment identifier
-   * @param {Object} progressData - Progress data
-   * @returns {Promise<Object>} Update response
-   */
-  async updateAssessmentProgress(assessmentId, progressData) {
-    const response = await fetch(
-      `${API_BASE_URL}/assessment/${assessmentId}/progress`,
-      {
-        method: "PUT",
-        headers: this.getHeaders(),
-        body: JSON.stringify(progressData),
-      }
-    );
-
-    return this.handleResponse(response);
-  }
-
-  /**
-   * Save assessment response
-   * @param {number} assessmentId - Assessment ID
-   * @param {Object} responseData - Response data {question_id, response_value, section_id, response_type, question_text}
-   * @returns {Promise<Object>} Save response result
-   */
-  async saveAssessmentResponse(assessmentId, responseData) {
-    const response = await fetch(
-      `${API_BASE_URL}/assessment/${assessmentId}/response`,
-      {
-        method: "POST",
-        headers: this.getHeaders(),
-        body: JSON.stringify(responseData),
-      }
-    );
-
-    return this.handleResponse(response);
-  }
-
-  /**
-   * Update assessment progress percentage
-   * @param {string} assessmentId - Assessment identifier
-   * @param {number} progressPercentage - Progress percentage (0-100)
-   * @returns {Promise<Object>} Update result
-   */
   async updateAssessmentProgress(assessmentId, progressPercentage) {
-    const response = await fetch(
-      `${API_BASE_URL}/assessment/${assessmentId}/progress`,
-      {
-        method: "PUT",
-        headers: this.getHeaders(),
-        body: JSON.stringify({ progress_percentage: progressPercentage }),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request(`/assessment/${assessmentId}/progress`, {
+      method: 'PUT',
+      body: JSON.stringify({ progress_percentage: progressPercentage }),
+    });
   }
 
-  /**
-   * Get assessment responses
-   * @param {string} assessmentId - Assessment identifier
-   * @returns {Promise<Object>} Assessment responses
-   */
   async getAssessmentResponses(assessmentId) {
-    const response = await fetch(
-      `${API_BASE_URL}/assessment/${assessmentId}/responses`,
-      {
-        method: "GET",
-        headers: this.getHeaders(),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request(`/assessment/${assessmentId}/responses`);
   }
 
-  /**
-   * Update entrepreneur profile
-   * @param {Object} profileData - Profile data
-   * @returns {Promise<Object>} Update response
-   */
   async updateEntrepreneurProfile(profileData) {
-    const response = await fetch(`${API_BASE_URL}/assessment/profile/update`, {
-      method: "PUT",
-      headers: this.getHeaders(),
+    return this.request('/assessment/profile/update', {
+      method: 'PUT',
       body: JSON.stringify(profileData),
     });
-
-    return this.handleResponse(response);
   }
 
   // ==================== ANALYTICS METHODS ====================
@@ -337,15 +228,7 @@ class ApiService {
    * @returns {Promise<Object>} Dashboard data
    */
   async getDashboardOverview() {
-    const response = await fetch(
-      `${API_BASE_URL}/analytics/dashboard/overview`,
-      {
-        method: "GET",
-        headers: this.getHeaders(),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request('/analytics/dashboard/overview');
   }
 
   /**
@@ -354,15 +237,7 @@ class ApiService {
    * @returns {Promise<Object>} Progress history data
    */
   async getProgressHistory(days = 30) {
-    const response = await fetch(
-      `${API_BASE_URL}/analytics/dashboard/progress-history?days=${days}`,
-      {
-        method: "GET",
-        headers: this.getHeaders(),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request(`/analytics/dashboard/progress-history?days=${days}`);
   }
 
   /**
@@ -370,15 +245,7 @@ class ApiService {
    * @returns {Promise<Object>} Profile analytics data
    */
   async getEntrepreneurProfileAnalytics() {
-    const response = await fetch(
-      `${API_BASE_URL}/analytics/dashboard/entrepreneur-profile`,
-      {
-        method: "GET",
-        headers: this.getHeaders(),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request('/analytics/dashboard/entrepreneur-profile');
   }
 
   /**
@@ -411,15 +278,7 @@ class ApiService {
    * @returns {Promise<Object>} Assessment statistics
    */
   async getAssessmentStatistics() {
-    const response = await fetch(
-      `${API_BASE_URL}/analytics/dashboard/assessment-stats`,
-      {
-        method: "GET",
-        headers: this.getHeaders(),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request('/analytics/dashboard/assessment-stats');
   }
 
   async searchPrinciples(query, limit = 5) {

@@ -346,9 +346,6 @@ const validatePhase = (phase) => {
     "business_prototype_testing",
   ];
   if (!validPhases.includes(phase)) {
-    console.warn(
-      `Invalid phase: ${phase}. Valid phases: ${validPhases.join(", ")}`
-    );
     return false;
   }
   return true;
@@ -370,12 +367,7 @@ export function AssessmentProvider({ children }) {
 
   // Sync authenticated users with backend data - BACKEND IS SINGLE SOURCE OF TRUTH
   useEffect(() => {
-    console.log('[SYNC useEffect] Triggered with:', { isAuthenticated, userId: user?.id, username: user?.username });
-    
-    if (!isAuthenticated || !user?.id) {
-      console.log('[SYNC useEffect] Skipping - not authenticated or no user ID');
-      return;
-    }
+    if (!isAuthenticated || !user?.id) return;
     
     let isCancelled = false;
 
@@ -416,7 +408,7 @@ export function AssessmentProvider({ children }) {
       try {
         const response = await fetch(
           `${apiService.getApiBaseUrl()}/dashboard/complete-user/export/${user.id}`,
-          { headers: apiService.getHeaders() }
+          { headers: apiService.getHeaders(), credentials: 'include' }
         );
         if (!response.ok) return false;
         const exportData = await response.json();
@@ -444,12 +436,9 @@ export function AssessmentProvider({ children }) {
 
     const syncFromServer = async () => {
       try {
-        console.log('[SYNC] Starting syncFromServer for user:', user?.username);
         const phasesResult = await apiService.getAssessmentPhases();
-        console.log('[SYNC] Phases result:', phasesResult);
         
         if (!phasesResult.success || !phasesResult.data?.phases) {
-          console.log('[SYNC] Invalid phases result, attempting sarah_chen fallback');
           if (user.username === "sarah_chen_founder") {
             await hydrateFromCompleteExport();
           }
@@ -472,30 +461,18 @@ export function AssessmentProvider({ children }) {
             };
 
             if (phase.assessment_id) {
-              console.log(`[SYNC] Fetching responses for phase ${phase.id}, assessment_id=${phase.assessment_id}`);
               const responsesResult = await apiService.getAssessmentResponses(
                 phase.assessment_id
               );
-              console.log(`[SYNC] Responses result for ${phase.id}:`, {
-                success: responsesResult.success,
-                responseCount: responsesResult.data?.responses?.length,
-                sampleResponse: responsesResult.data?.responses?.[0]
-              });
               
               if (
                 responsesResult.success &&
                 Array.isArray(responsesResult.data?.responses)
               ) {
-                console.log(`[SYNC] Found ${responsesResult.data.responses.length} responses for ${phase.id}`);
                 baseData.responses = groupResponsesBySection(
                   responsesResult.data.responses
                 );
-                console.log(`[SYNC] Grouped responses for ${phase.id}:`, Object.keys(baseData.responses), baseData.responses);
-              } else {
-                console.log(`[SYNC] No valid responses for ${phase.id}`, responsesResult);
               }
-            } else {
-              console.log(`[SYNC] No assessment_id for phase ${phase.id}`);
             }
 
             phasePayloads[phase.id] = {
@@ -506,9 +483,7 @@ export function AssessmentProvider({ children }) {
 
         if (isCancelled) return;
 
-        console.log('[SYNC] Dispatching phasePayloads:', phasePayloads);
         assignPhaseData(phasePayloads);
-        console.log('[SYNC] Sync completed successfully');
       } catch (error) {
         console.error("Failed to sync assessment data from backend:", error);
         if (user?.username === "sarah_chen_founder") {
@@ -517,8 +492,6 @@ export function AssessmentProvider({ children }) {
       }
     };
 
-    // Always sync from server when authenticated
-    console.log('[SYNC useEffect] Calling syncFromServer...');
     syncFromServer();
     
     return () => {
@@ -551,12 +524,10 @@ export function AssessmentProvider({ children }) {
         
         // If no assessment exists for this phase, start it
         if (!assessmentId) {
-          console.log(`[AssessmentContext] No assessment for ${phase}, starting new one...`);
           const startResult = await apiService.startAssessmentPhase(phase);
           
           if (startResult.success && startResult.data?.assessment) {
             assessmentId = startResult.data.assessment.id;
-            console.log(`[AssessmentContext] Created assessment ${assessmentId} for ${phase}`);
             
             // Update local state with assessment ID
             dispatch({
@@ -571,14 +542,11 @@ export function AssessmentProvider({ children }) {
               },
             });
           } else {
-            console.error(`[AssessmentContext] Failed to start assessment:`, startResult.error);
             return;
           }
         }
         
         if (assessmentId) {
-          console.log(`[AssessmentContext] Saving response to backend: assessment=${assessmentId}, question=${questionId}`);
-          
           const responseData = {
             question_id: questionId,
             response_value: typeof answer === 'object' ? JSON.stringify(answer) : String(answer),
@@ -589,13 +557,9 @@ export function AssessmentProvider({ children }) {
           
           const result = await apiService.saveAssessmentResponse(assessmentId, responseData);
           
-          if (result.success) {
-            console.log(`[AssessmentContext] Response saved successfully`);
-          } else {
+          if (!result.success) {
             console.error(`[AssessmentContext] Failed to save response:`, result.error);
           }
-        } else {
-          console.warn(`[AssessmentContext] No assessmentId for phase ${phase}, cannot save to backend`);
         }
       } catch (error) {
         console.error(`[AssessmentContext] Error saving response:`, error);
@@ -619,14 +583,9 @@ export function AssessmentProvider({ children }) {
           assessmentId,
           Math.round(progress)
         );
-        console.log(
-          `[AssessmentContext] Updated backend progress for ${phase}: ${progress}% (assessment_id=${assessmentId})`
-        );
       } catch (error) {
         console.error(`[AssessmentContext] Error updating progress:`, error);
       }
-    } else {
-      console.log(`[AssessmentContext] No assessmentId for ${phase}, skipping progress update to backend`);
     }
   };
 
