@@ -5,7 +5,7 @@ from pathlib import Path
 import requests
 
 BASE_URL = "http://localhost:5000"
-PASSWORD = "Test1234!"
+PASSWORD = "TestPassword1!"
 
 PHASE_ID_MAP = {
     "Self Discovery Assessment": "self_discovery",
@@ -24,10 +24,10 @@ def main() -> None:
     user_data = data["user"]
 
     users_resp = requests.get(f"{BASE_URL}/api/users", timeout=20)
-    users_resp.raise_for_status()
-    for user in users_resp.json():
-        if user.get("username") == user_data["username"] or user.get("email") == user_data["email"]:
-            requests.delete(f"{BASE_URL}/api/users/{user['id']}", timeout=20).raise_for_status()
+    if users_resp.status_code == 200:
+        for user in users_resp.json():
+            if user.get("username") == user_data["username"] or user.get("email") == user_data["email"]:
+                requests.delete(f"{BASE_URL}/api/users/{user['id']}", timeout=20)
 
     reg_payload = {
         "username": user_data["username"],
@@ -35,7 +35,10 @@ def main() -> None:
         "password": PASSWORD,
     }
     reg_resp = requests.post(f"{BASE_URL}/api/auth/register", json=reg_payload, timeout=20)
-    reg_resp.raise_for_status()
+    if reg_resp.status_code == 409:
+        print("User already exists, skipping registration...")
+    else:
+        reg_resp.raise_for_status()
 
     login_resp = requests.post(
         f"{BASE_URL}/api/auth/login",
