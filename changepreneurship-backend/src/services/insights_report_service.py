@@ -278,9 +278,10 @@ class InsightsReportService:
     Returns:
       Full report dict (see REPORT_SCHEMA above).
     """
-    cache_key = self._cache_key(user_id, assessment_data)
+    cache_key = None
 
     if self.ENABLE_CACHE:
+      cache_key = self._cache_key(user_id, assessment_data)
       cached = self._get_cache(cache_key)
       if cached:
         logger.info(f"[InsightsReport] Cache HIT for user {user_id}")
