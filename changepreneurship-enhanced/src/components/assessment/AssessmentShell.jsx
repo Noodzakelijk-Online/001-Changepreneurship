@@ -500,14 +500,75 @@ const AssessmentShell = ({
           </div>
         ) : currentQ ? (
           <>
-            {/* Stage + question counter */}
-            <div className="flex items-center gap-3 mb-8">
-              <div className="px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 text-xs uppercase tracking-wide font-semibold">
-                Stage {phaseNumber} — {phaseName}
+            {/* ── Question progress rail ── */}
+            <div className="mb-10">
+              {/* Stage badge row */}
+              <div className="flex items-center gap-3 mb-5">
+                <div className="px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 text-xs uppercase tracking-wide font-semibold">
+                  Stage {phaseNumber} — {phaseName}
+                </div>
+                <span className="text-gray-600 text-xs">
+                  {questionIndex + 1} / {questions.length}
+                </span>
+                <div className="flex-1 h-px bg-gray-800/60" />
+                <span className="text-xs text-gray-600">
+                  {Math.round(((questionIndex + (hasResponse ? 1 : 0)) / questions.length) * 100)}% complete
+                </span>
               </div>
-              <span className="text-gray-600 text-xs">
-                Question {questionIndex + 1} of {questions.length}
-              </span>
+
+              {/* Connected node rail */}
+              <div className="relative flex items-center">
+                {/* Background track line */}
+                <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-px bg-gray-800 z-0" />
+
+                {/* Filled progress line */}
+                <div
+                  className="absolute left-0 top-1/2 -translate-y-1/2 h-px bg-gradient-to-r from-emerald-500/70 to-cyan-500 z-0 transition-all duration-500"
+                  style={{
+                    width: questions.length > 1
+                      ? `${(questionIndex / (questions.length - 1)) * 100}%`
+                      : '0%'
+                  }}
+                />
+
+                {/* Nodes */}
+                <div className="relative z-10 flex items-center justify-between w-full">
+                  {questions.map((q, qi) => {
+                    const qResp = sectionResponse[q.id]
+                    const isAnswered = qResp !== undefined && qResp !== '' &&
+                      !(Array.isArray(qResp) && qResp.length === 0)
+                    const isCurrent = qi === questionIndex
+                    const isPast = qi < questionIndex
+
+                    return (
+                      <button
+                        key={q.id}
+                        type="button"
+                        onClick={() => setQuestionIndex(qi)}
+                        title={`Question ${qi + 1}`}
+                        className="flex flex-col items-center gap-1.5 group"
+                      >
+                        {/* Node circle */}
+                        <div className={`relative flex items-center justify-center rounded-full transition-all duration-200 ${
+                          isCurrent
+                            ? 'w-9 h-9 bg-gradient-to-br from-cyan-500 to-purple-500 shadow-lg shadow-cyan-500/40 ring-4 ring-cyan-500/20'
+                            : isAnswered
+                            ? 'w-7 h-7 bg-emerald-500/20 border-2 border-emerald-500/60 hover:border-emerald-400'
+                            : 'w-7 h-7 bg-gray-900 border-2 border-gray-700 hover:border-gray-500'
+                        }`}>
+                          {isAnswered && !isCurrent ? (
+                            <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
+                          ) : (
+                            <span className={`text-xs font-bold ${isCurrent ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'}`}>
+                              {qi + 1}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Question */}
