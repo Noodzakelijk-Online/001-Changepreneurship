@@ -1,13 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PRODUCT_CONCEPT_TESTING_QUESTIONS } from "./ComprehensiveQuestionBank.jsx";
 import { Lightbulb } from "lucide-react";
 import { useAssessment } from "../../contexts/AssessmentContext";
 import AssessmentShell from "./AssessmentShell";
 
 const ProductConceptTesting = () => {
-  const { updateResponse, completePhase, updatePhase } = useAssessment();
+  const { assessmentData, updateResponse, completePhase, updatePhase } = useAssessment();
   const [sectionProgress, setSectionProgress] = useState({});
-  const [responses, setResponses] = useState({ general: {} });
+  const phaseData = assessmentData['product_concept_testing'] || {};
+  const responses = phaseData.responses || {};
+
+  useEffect(() => {
+    const answered = Object.keys(responses.general || {}).length;
+    setSectionProgress({ general: Math.round((answered / PRODUCT_CONCEPT_TESTING_QUESTIONS.length) * 100) });
+  }, [phaseData]);
 
   const sections = [{
     id: 'general',
@@ -17,10 +23,6 @@ const ProductConceptTesting = () => {
   }];
 
   const handleResponse = (sectionId, questionId, answer) => {
-    setResponses(prev => ({
-      ...prev,
-      [sectionId]: { ...prev[sectionId], [questionId]: answer }
-    }));
     updateResponse('product_concept_testing', questionId, answer, sectionId);
     const answered = Object.keys({ ...(responses[sectionId] || {}), [questionId]: answer }).length;
     const total = PRODUCT_CONCEPT_TESTING_QUESTIONS.length;

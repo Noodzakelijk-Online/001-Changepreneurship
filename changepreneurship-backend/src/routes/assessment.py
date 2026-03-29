@@ -20,7 +20,10 @@ PHASE_QUESTION_TOTALS = {
 def recompute_assessment_status(assessment, force_complete=False):
     response_count = AssessmentResponse.query.filter_by(assessment_id=assessment.id).count()
     total_questions = PHASE_QUESTION_TOTALS.get(assessment.phase_id) or 1
-    progress = min(100.0, round((response_count / total_questions) * 100, 2))
+    if force_complete:
+        progress = 100.0
+    else:
+        progress = min(100.0, round((response_count / total_questions) * 100, 2))
 
     assessment.progress_percentage = progress
     metadata = assessment.get_assessment_data() or {}

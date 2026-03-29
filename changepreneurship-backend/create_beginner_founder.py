@@ -81,6 +81,7 @@ def create_user_with_assessments(password: str = "Test1234!") -> tuple[User, int
         assessment_count += 1
 
         for response in assessment_data.get("responses", []):
+            rv = response.get("response_value", "")
             db.session.add(
                 AssessmentResponse(
                     assessment_id=assessment.id,
@@ -88,7 +89,7 @@ def create_user_with_assessments(password: str = "Test1234!") -> tuple[User, int
                     question_id=response["question_id"],
                     question_text=response["question_text"],
                     response_type=response["response_type"],
-                    response_value=str(response.get("response_value", "")),
+                    response_value=json.dumps(rv) if isinstance(rv, (dict, list)) else str(rv),
                 )
             )
             response_count += 1

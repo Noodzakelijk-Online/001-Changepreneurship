@@ -1,13 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BUSINESS_DEVELOPMENT_QUESTIONS } from "./ComprehensiveQuestionBank.jsx";
 import { TrendingUp } from "lucide-react";
 import { useAssessment } from "../../contexts/AssessmentContext";
 import AssessmentShell from "./AssessmentShell";
 
 const BusinessDevelopmentDecisionMaking = () => {
-  const { updateResponse, completePhase, updatePhase } = useAssessment();
+  const { assessmentData, updateResponse, completePhase, updatePhase } = useAssessment();
   const [sectionProgress, setSectionProgress] = useState({});
-  const [responses, setResponses] = useState({ general: {} });
+  const phaseData = assessmentData['business_development'] || {};
+  const responses = phaseData.responses || {};
+
+  useEffect(() => {
+    const answered = Object.keys(responses.general || {}).length;
+    setSectionProgress({ general: Math.round((answered / BUSINESS_DEVELOPMENT_QUESTIONS.length) * 100) });
+  }, [phaseData]);
 
   const sections = [{
     id: 'general',
@@ -17,10 +23,6 @@ const BusinessDevelopmentDecisionMaking = () => {
   }];
 
   const handleResponse = (sectionId, questionId, answer) => {
-    setResponses(prev => ({
-      ...prev,
-      [sectionId]: { ...prev[sectionId], [questionId]: answer }
-    }));
     updateResponse('business_development', questionId, answer, sectionId);
     const answered = Object.keys({ ...(responses[sectionId] || {}), [questionId]: answer }).length;
     const total = BUSINESS_DEVELOPMENT_QUESTIONS.length;

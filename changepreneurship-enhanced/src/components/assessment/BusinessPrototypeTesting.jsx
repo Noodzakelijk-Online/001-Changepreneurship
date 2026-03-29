@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BUSINESS_PROTOTYPE_TESTING_QUESTIONS } from "./ComprehensiveQuestionBank.jsx";
 import { Lightbulb } from "lucide-react";
 import { useAssessment } from "../../contexts/AssessmentContext";
@@ -6,10 +6,16 @@ import { useNavigate } from "react-router-dom";
 import AssessmentShell from "./AssessmentShell";
 
 const BusinessPrototypeTesting = () => {
-  const { updateResponse, completePhase } = useAssessment();
+  const { assessmentData, updateResponse, completePhase } = useAssessment();
   const navigate = useNavigate();
   const [sectionProgress, setSectionProgress] = useState({});
-  const [responses, setResponses] = useState({ general: {} });
+  const phaseData = assessmentData['business_prototype_testing'] || {};
+  const responses = phaseData.responses || {};
+
+  useEffect(() => {
+    const answered = Object.keys(responses.general || {}).length;
+    setSectionProgress({ general: Math.round((answered / BUSINESS_PROTOTYPE_TESTING_QUESTIONS.length) * 100) });
+  }, [phaseData]);
 
   const sections = [{
     id: 'general',
@@ -19,10 +25,6 @@ const BusinessPrototypeTesting = () => {
   }];
 
   const handleResponse = (sectionId, questionId, answer) => {
-    setResponses(prev => ({
-      ...prev,
-      [sectionId]: { ...prev[sectionId], [questionId]: answer }
-    }));
     updateResponse('business_prototype_testing', questionId, answer, sectionId);
     const answered = Object.keys({ ...(responses[sectionId] || {}), [questionId]: answer }).length;
     const total = BUSINESS_PROTOTYPE_TESTING_QUESTIONS.length;
