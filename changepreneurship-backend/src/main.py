@@ -7,6 +7,7 @@ from flask import Flask, send_from_directory, jsonify, request
 from flask_cors import CORS
 from flask_migrate import Migrate
 from sqlalchemy import inspect
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from src.models.assessment import db
 from src.utils.limiter import limiter
@@ -25,6 +26,8 @@ from src.routes.ai_recommendations import ai_recommendations_bp
 from src.routes.ai_routes import ai_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), "static"))
+# Trust exactly 1 proxy (Caddy) so get_remote_address returns the real client IP
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 # Configuration — SECRET_KEY must be set via environment variable in production
 _secret_key = os.getenv("SECRET_KEY")
