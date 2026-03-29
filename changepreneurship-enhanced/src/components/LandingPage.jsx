@@ -38,13 +38,13 @@ const LandingPage = () => {
   }
   // Merge static icon/color styling with central PHASES metadata
   const phaseVisual = {
-    self_discovery: { icon: User, color: 'from-orange-500 to-red-600', landingTitle: 'Self-Discovery Assessment' },
-    idea_discovery: { icon: Lightbulb, color: 'from-blue-500 to-purple-600' },
-    market_research: { icon: Search, color: 'from-green-500 to-teal-600' },
-    business_pillars: { icon: Building, color: 'from-purple-500 to-pink-600', landingTitle: 'Business Pillars Planning' },
-    product_concept_testing: { icon: Target, color: 'from-indigo-500 to-purple-600' },
-    business_development: { icon: TrendingUp, color: 'from-emerald-500 to-teal-600' },
-    business_prototype_testing: { icon: Zap, color: 'from-rose-500 to-pink-600' }
+    self_discovery: { icon: User, color: 'from-orange-500 to-red-600', landingTitle: 'Self-Discovery Assessment', landingDescription: 'Understand your strengths, values, and entrepreneurial motivation before committing to a venture' },
+    idea_discovery: { icon: Lightbulb, color: 'from-blue-500 to-purple-600', landingDescription: 'Evaluate your business idea against real-world criteria and identify your target customer' },
+    market_research: { icon: Search, color: 'from-green-500 to-teal-600', landingDescription: 'Validate demand through customer research and competitive landscape analysis' },
+    business_pillars: { icon: Building, color: 'from-purple-500 to-pink-600', landingTitle: 'Business Pillars Planning', landingDescription: 'Define your revenue model, pricing strategy, and key operational elements' },
+    product_concept_testing: { icon: Target, color: 'from-indigo-500 to-purple-600', landingDescription: 'Test your product concept with potential customers to refine your offering' },
+    business_development: { icon: TrendingUp, color: 'from-emerald-500 to-teal-600', landingDescription: 'Build your go-to-market strategy and growth framework' },
+    business_prototype_testing: { icon: Zap, color: 'from-rose-500 to-pink-600', landingDescription: 'Validate your prototype and gather actionable feedback before full launch' }
   }
 
   const features = PHASES.map((p) => {
@@ -54,7 +54,7 @@ const LandingPage = () => {
       slug: p.slug,
       icon: visual.icon || User,
       title: visual.landingTitle || p.title,
-      description: '', // original long descriptions could be restored or centralized later
+      description: visual.landingDescription || '',
       duration: p.duration,
       color: visual.color || 'from-primary to-accent',
       phase: p.category
@@ -74,8 +74,8 @@ const LandingPage = () => {
     },
     {
       icon: Users,
-      title: 'Investor Matching',
-      description: 'Connect with investors who align with your business vision'
+      title: 'Structured Progress',
+      description: 'Track your journey across all 7 phases with clear milestones and completion metrics'
     },
     {
       icon: Zap,
@@ -164,15 +164,15 @@ const LandingPage = () => {
         {/* Content */}
         <div className="container mx-auto px-6 text-center relative z-10 pt-20">
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight">
-            <span className="block text-white drop-shadow-2xl">From Idea to IPO,</span>
+            <span className="block text-white drop-shadow-2xl">Know Yourself.</span>
             <span className="block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent drop-shadow-2xl">
-              Autonomously.
+              Validate Your Idea.
             </span>
           </h1>
           
           <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
-            The world's first cognitive venture architecture. Orchestrate AI agents to
-            <br />validate, build, and scale your business in real-time.
+            A structured 7-stage assessment that evaluates your entrepreneurial mindset,
+            <br />validates your business idea, and delivers AI-powered insights to guide your next move.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
@@ -213,27 +213,124 @@ const LandingPage = () => {
           </div>
 
           {/* Tech badge */}
-          <div className="mt-16 flex items-center justify-center gap-8 text-gray-500 text-sm">
-            <span className="uppercase tracking-wider">Powered by Next-Gen Intelligence</span>
-            <div className="flex gap-4">
-              <div className="w-8 h-8 rounded border border-gray-700 flex items-center justify-center hover:border-cyan-500/50 transition-colors">
-                <span className="text-xs">AI</span>
-              </div>
-              <div className="w-8 h-8 rounded-full border border-gray-700 flex items-center justify-center hover:border-cyan-500/50 transition-colors">
-                <span className="text-xs">◇</span>
-              </div>
-              <div className="w-8 h-8 rounded border border-gray-700 rotate-45 flex items-center justify-center hover:border-cyan-500/50 transition-colors">
-                <span className="text-xs -rotate-45">▢</span>
-              </div>
-              <div className="w-8 h-8 border border-gray-700 flex items-center justify-center hover:border-cyan-500/50 transition-colors">
-                <span className="text-xs">□</span>
-              </div>
+          <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-6 text-sm">
+            <div className="flex items-center gap-2 text-gray-500">
+              <CheckCircle className="h-4 w-4 text-cyan-500" />
+              <span>500+ assessment questions</span>
+            </div>
+            <div className="flex items-center gap-2 text-gray-500">
+              <CheckCircle className="h-4 w-4 text-cyan-500" />
+              <span>AI insights report</span>
+            </div>
+            <div className="flex items-center gap-2 text-gray-500">
+              <CheckCircle className="h-4 w-4 text-cyan-500" />
+              <span>Free to start</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* How It Works Section */}
+      <section className="py-28 px-6 bg-black relative overflow-hidden">
+        {/* Subtle background glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute left-1/4 top-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute right-1/4 top-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="container mx-auto relative z-10">
+          <div className="text-center mb-20">
+            <div className="inline-block px-4 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 mb-6">
+              <span className="text-cyan-400 text-sm uppercase tracking-widest">How It Works</span>
+            </div>
+            <h2 className="text-5xl font-bold mb-4 text-white">
+              Three steps to clarity
+            </h2>
+            <p className="text-lg text-gray-500 max-w-xl mx-auto">
+              From your first answer to a personalized AI strategy — in under an hour.
+            </p>
+          </div>
+
+          {/* Steps */}
+          <div className="relative">
+            {/* Connecting line */}
+            <div className="hidden lg:block absolute top-[52px] left-[calc(16.66%+32px)] right-[calc(16.66%+32px)] h-px bg-gradient-to-r from-cyan-500/40 via-purple-500/40 to-pink-500/40"></div>
+
+            <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
+              {/* Step 1 */}
+              <div className="group flex flex-col items-center text-center">
+                <div className="relative mb-8">
+                  <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-xl group-hover:bg-cyan-500/40 transition-all duration-500"></div>
+                  <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <User className="h-7 w-7 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-black border border-cyan-500/50 flex items-center justify-center">
+                    <span className="text-xs font-bold text-cyan-400">1</span>
+                  </div>
+                </div>
+                <div className="bg-gradient-to-b from-gray-900 to-black border border-gray-800 group-hover:border-cyan-500/40 rounded-2xl p-8 w-full transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-cyan-500/10">
+                  <h3 className="text-xl font-bold text-white mb-3">Assess Yourself</h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    Answer structured questions about your mindset, values, risk tolerance, and entrepreneurial motivation. Understand who you are as a founder before choosing an idea.
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-2 justify-center">
+                    <span className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs">Self-Discovery</span>
+                    <span className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs">Values & Strengths</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className="group flex flex-col items-center text-center lg:mt-8">
+                <div className="relative mb-8">
+                  <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-xl group-hover:bg-purple-500/40 transition-all duration-500"></div>
+                  <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <Lightbulb className="h-7 w-7 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-black border border-purple-500/50 flex items-center justify-center">
+                    <span className="text-xs font-bold text-purple-400">2</span>
+                  </div>
+                </div>
+                <div className="bg-gradient-to-b from-gray-900 to-black border border-gray-800 group-hover:border-purple-500/40 rounded-2xl p-8 w-full transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-purple-500/10">
+                  <h3 className="text-xl font-bold text-white mb-3">Validate Your Idea</h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    Work through 6 additional stages — from market research and customer validation to business modeling and prototype testing. Each phase builds on the last.
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-2 justify-center">
+                    <span className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs">Market Research</span>
+                    <span className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs">Customer Validation</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="group flex flex-col items-center text-center">
+                <div className="relative mb-8">
+                  <div className="absolute inset-0 bg-pink-500/20 rounded-full blur-xl group-hover:bg-pink-500/40 transition-all duration-500"></div>
+                  <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg shadow-pink-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <Brain className="h-7 w-7 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-black border border-pink-500/50 flex items-center justify-center">
+                    <span className="text-xs font-bold text-pink-400">3</span>
+                  </div>
+                </div>
+                <div className="bg-gradient-to-b from-gray-900 to-black border border-gray-800 group-hover:border-pink-500/40 rounded-2xl p-8 w-full transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-pink-500/10">
+                  <h3 className="text-xl font-bold text-white mb-3">Get Your AI Report</h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    Receive a personalized AI-generated insights report — your founder profile, idea viability score, identified risks, and concrete next steps tailored to your data.
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-2 justify-center">
+                    <span className="px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs">AI Insights</span>
+                    <span className="px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs">Action Plan</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7-Stage Architecture Section */}
       <section className="py-20 px-6 bg-black">
         <div className="container mx-auto">
           <div className="text-center mb-16">
@@ -326,10 +423,10 @@ const LandingPage = () => {
               <span className="text-purple-400 text-sm uppercase tracking-wider">Advantages</span>
             </div>
             <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-              Enterprise-Grade Intelligence
+              Built for Serious Founders
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Built on proven frameworks and powered by AI to maximize your success probability
+              Evidence-based frameworks and AI analysis so you build the right thing from day one
             </p>
           </div>
           
@@ -383,9 +480,9 @@ const LandingPage = () => {
             </div>
             <div className="group">
               <div className="text-5xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform">
-                1000+
+                7
               </div>
-              <div className="text-gray-400 text-sm uppercase tracking-wider">Capital Partners</div>
+              <div className="text-gray-400 text-sm uppercase tracking-wider">Assessment Stages</div>
             </div>
           </div>
         </div>
@@ -401,10 +498,10 @@ const LandingPage = () => {
         
         <div className="container mx-auto text-center relative z-10">
           <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-            Ready to Build the Future?
+            Ready to Find Out If You're Built for This?
           </h2>
           <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-            Join the next generation of entrepreneurs leveraging AI-powered intelligence
+            Most founders skip self-assessment and waste months on the wrong idea. Don't.
           </p>
           {isAuthenticated ? (
             <Link to="/assessment">
@@ -422,7 +519,7 @@ const LandingPage = () => {
               className="text-lg px-12 py-8 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white border-0 shadow-2xl shadow-cyan-500/50 rounded-full font-semibold transform hover:scale-105 transition-transform"
               onClick={() => handleAuthAction('register')}
             >
-              Initialize Your Journey
+              Start Your Assessment
               <ArrowRight className="ml-3 h-6 w-6" />
             </Button>
           )}
