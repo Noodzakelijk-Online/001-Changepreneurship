@@ -28,8 +28,17 @@ def to_phase_id(phase_name: str) -> str:
 
 
 def load_fixture() -> dict:
-    project_root = Path(__file__).resolve().parent.parent
-    fixture_path = project_root / "beginner_founder_complete_data.json"
+    script_dir = Path(__file__).resolve().parent
+    # Look next to this script first (Docker), then one level up (local dev)
+    for candidate in [
+        script_dir / "beginner_founder_complete_data.json",
+        script_dir.parent / "beginner_founder_complete_data.json",
+    ]:
+        if candidate.exists():
+            fixture_path = candidate
+            break
+    else:
+        raise FileNotFoundError("beginner_founder_complete_data.json not found")
     with fixture_path.open("r", encoding="utf-8") as f:
         return json.load(f)
 
