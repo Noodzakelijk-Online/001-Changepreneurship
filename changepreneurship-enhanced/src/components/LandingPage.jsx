@@ -19,7 +19,11 @@ import {
   Target,
   Zap,
   Shield,
-  Brain
+  Brain,
+  Sparkles,
+  BarChart3,
+  ChevronRight,
+  AlertTriangle
 } from 'lucide-react'
 import { PHASES, phaseIdToSlug } from '@/lib/assessmentPhases.js'
 
@@ -436,6 +440,152 @@ const LandingPage = () => {
               Your answers are saved after every question — come back anytime.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* AI Insights Preview Section */}
+      <section className="py-28 px-6 bg-black relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="container mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 mb-6">
+              <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+              <span className="text-cyan-400 text-sm uppercase tracking-widest">AI Report</span>
+            </div>
+            <h2 className="text-5xl font-bold mb-4 text-white">What you actually get</h2>
+            <p className="text-lg text-gray-500 max-w-xl mx-auto">
+              After completing all 7 stages, the platform generates a personalized report — here's a sample.
+            </p>
+          </div>
+
+          {/* 3 sample report cards */}
+          <div className="grid lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+
+            {/* Card 1 — Founder Archetype */}
+            <div className="bg-gradient-to-b from-gray-900 to-black border border-gray-800 rounded-2xl p-7 flex flex-col gap-5 hover:border-cyan-500/40 transition-all duration-500 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
+                    <Brain className="h-4 w-4 text-cyan-400" />
+                  </div>
+                  <span className="text-xs uppercase tracking-widest text-cyan-400 font-medium">Founder Archetype</span>
+                </div>
+
+                <div className="mb-4">
+                  <div className="text-2xl font-bold text-white mb-1">The Problem Solver</div>
+                  <p className="text-sm text-gray-500">You build because something frustrated you deeply. Execution-focused with high empathy for end users.</p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {['Empathy-Driven', 'Systems Thinker', 'User-Focused', 'Resilient'].map(t => (
+                    <span key={t} className="px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs">{t}</span>
+                  ))}
+                </div>
+
+                <div className="mt-5 pt-5 border-t border-gray-800">
+                  <div className="flex items-start gap-2.5">
+                    <Star className="h-4 w-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-xs text-gray-400">Best suited for B2C SaaS, EdTech, or HealthTech — sectors where direct user pain translates to clear product decisions.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2 — Idea Viability Score */}
+            <div className="bg-gradient-to-b from-gray-900 to-black border border-gray-800 rounded-2xl p-7 flex flex-col gap-5 hover:border-purple-500/40 transition-all duration-500 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                    <BarChart3 className="h-4 w-4 text-purple-400" />
+                  </div>
+                  <span className="text-xs uppercase tracking-widest text-purple-400 font-medium">Idea Viability Score</span>
+                </div>
+
+                <div className="flex items-end gap-3 mb-6">
+                  <span className="text-5xl font-bold text-white">73</span>
+                  <span className="text-2xl text-gray-600 pb-1">/100</span>
+                  <span className="ml-auto px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-medium">Strong</span>
+                </div>
+
+                <div className="space-y-3">
+                  {[
+                    { label: 'Founder–Market Fit', value: 86, color: 'bg-cyan-500' },
+                    { label: 'Market Demand', value: 81, color: 'bg-purple-500' },
+                    { label: 'Competitive Position', value: 70, color: 'bg-blue-500' },
+                    { label: 'Market Timing', value: 64, color: 'bg-indigo-400' },
+                  ].map(({ label, value, color }) => (
+                    <div key={label}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-400">{label}</span>
+                        <span className="text-xs text-gray-500">{value}%</span>
+                      </div>
+                      <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                        <div className={`h-full ${color} rounded-full`} style={{ width: `${value}%` }}></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3 — Action Plan */}
+            <div className="bg-gradient-to-b from-gray-900 to-black border border-gray-800 rounded-2xl p-7 flex flex-col gap-5 hover:border-pink-500/40 transition-all duration-500 group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="p-2 rounded-lg bg-pink-500/10 border border-pink-500/20">
+                    <Target className="h-4 w-4 text-pink-400" />
+                  </div>
+                  <span className="text-xs uppercase tracking-widest text-pink-400 font-medium">Priority Actions</span>
+                </div>
+
+                <div className="space-y-4">
+                  {[
+                    {
+                      num: '01',
+                      title: 'Run 10 discovery interviews',
+                      desc: 'Your market timing score needs real customer signal. Conduct 10 structured interviews within 3 weeks.',
+                      color: 'text-cyan-400',
+                      border: 'border-cyan-500/20'
+                    },
+                    {
+                      num: '02',
+                      title: 'Define your pricing model',
+                      desc: 'Revenue model ambiguity is your top risk. Choose between subscription or transactional before building.',
+                      color: 'text-purple-400',
+                      border: 'border-purple-500/20'
+                    },
+                    {
+                      num: '03',
+                      title: 'Build a no-code prototype',
+                      desc: 'Your founder–market fit is strong. Validate with a Figma or Webflow prototype in 2 weeks.',
+                      color: 'text-pink-400',
+                      border: 'border-pink-500/20'
+                    },
+                  ].map(({ num, title, desc, color, border }) => (
+                    <div key={num} className={`flex gap-3 p-3 rounded-xl border ${border} bg-white/[0.02]`}>
+                      <span className={`text-sm font-bold ${color} flex-shrink-0 w-6`}>{num}</span>
+                      <div>
+                        <div className="text-sm font-semibold text-white mb-0.5">{title}</div>
+                        <div className="text-xs text-gray-500 leading-relaxed">{desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sample disclaimer */}
+          <p className="text-center text-gray-700 text-xs mt-10">
+            Sample output — generated from real assessment responses. Your report reflects your actual data.
+          </p>
         </div>
       </section>
 
