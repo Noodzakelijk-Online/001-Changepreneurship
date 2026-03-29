@@ -1,97 +1,45 @@
 import React, { useState } from "react";
 import { BUSINESS_DEVELOPMENT_QUESTIONS } from "./ComprehensiveQuestionBank.jsx";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
-import { Badge } from "@/components/ui/badge.jsx";
-import { Button } from "@/components/ui/button.jsx";
-import { Textarea } from "@/components/ui/textarea.jsx";
-import { Input } from "@/components/ui/input.jsx";
-import { TrendingUp, CheckCircle, ArrowRight } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { useAssessment } from "../../contexts/AssessmentContext";
+import AssessmentShell from "./AssessmentShell";
 
 const BusinessDevelopmentDecisionMaking = () => {
-  const [responses, setResponses] = useState({});
   const { updateResponse, completePhase, updatePhase } = useAssessment();
+  const [sectionProgress, setSectionProgress] = useState({});
+  const [responses, setResponses] = useState({ general: {} });
 
-  const handleChange = (id, value) => {
-    setResponses((prev) => ({ ...prev, [id]: value }));
-    // Save to backend immediately
-    updateResponse('business_development', id, value, 'general');
-  };
+  const sections = [{
+    id: 'general',
+    title: 'Business Development',
+    icon: TrendingUp,
+    questions: BUSINESS_DEVELOPMENT_QUESTIONS,
+  }];
 
-  const handleNextPhase = () => {
-    completePhase('business_development');
-    updatePhase('business_prototype_testing');
+  const handleResponse = (sectionId, questionId, answer) => {
+    setResponses(prev => ({
+      ...prev,
+      [sectionId]: { ...prev[sectionId], [questionId]: answer }
+    }));
+    updateResponse('business_development', questionId, answer, sectionId);
+    const answered = Object.keys({ ...(responses[sectionId] || {}), [questionId]: answer }).length;
+    const total = BUSINESS_DEVELOPMENT_QUESTIONS.length;
+    setSectionProgress({ general: Math.round((answered / total) * 100) });
   };
 
   return (
-    <div className="space-y-6">
-      <Card className="border-l-4 border-l-primary">
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="text-xl flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" /> Business Development
-              </CardTitle>
-              <CardDescription className="mt-1">Strategic decision-making and resource optimization</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-8">
-          {BUSINESS_DEVELOPMENT_QUESTIONS.map((q, idx) => {
-            const answered = responses[q.id];
-            return (
-              <Card key={q.id} className="border relative">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <Badge variant="secondary">Question {idx + 1} of {BUSINESS_DEVELOPMENT_QUESTIONS.length}</Badge>
-                        {q.required && <Badge variant="destructive">Required</Badge>}
-                      </div>
-                      <CardTitle className="text-base font-semibold leading-snug">
-                        {q.question}
-                      </CardTitle>
-                    </div>
-                    {answered && <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />}
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  {q.type === 'textarea' && (
-                    <Textarea
-                      rows={4}
-                      placeholder="Enter your response..."
-                      value={responses[q.id] || ''}
-                      onChange={(e) => handleChange(q.id, e.target.value)}
-                      className="mt-2"
-                    />
-                  )}
-                  {q.type === 'text' && (
-                    <Input
-                      placeholder="Enter answer..."
-                      value={responses[q.id] || ''}
-                      onChange={(e) => handleChange(q.id, e.target.value)}
-                      className="mt-2"
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </CardContent>
-      </Card>
-
-      {/* Next Phase Button */}
-      <div className="flex justify-end">
-        <Button
-          size="lg"
-          onClick={handleNextPhase}
-          className="bg-orange-600 hover:bg-orange-700 text-white"
-        >
-          Next Phase: Business Prototype Testing
-          <ArrowRight className="h-4 w-4 ml-2" />
-        </Button>
-      </div>
-    </div>
+    <AssessmentShell
+      phaseName="Business Development"
+      phaseNumber={6}
+      sections={sections}
+      currentSection="general"
+      onSectionChange={() => {}}
+      responses={responses}
+      onResponse={handleResponse}
+      sectionProgress={sectionProgress}
+      onNext={() => { completePhase('business_development'); updatePhase('business_prototype_testing'); }}
+      nextLabel="Next Phase: Business Prototype Testing"
+    />
   );
 };
 

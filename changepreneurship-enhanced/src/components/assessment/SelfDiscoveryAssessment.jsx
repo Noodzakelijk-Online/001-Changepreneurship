@@ -1,20 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button.jsx";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card.jsx";
-import { Progress } from "@/components/ui/progress.jsx";
-import { Badge } from "@/components/ui/badge.jsx";
-// Tabs removed for custom card navigation style
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.jsx";
-import { Label } from "@/components/ui/label.jsx";
-import { Textarea } from "@/components/ui/textarea.jsx";
-import { Slider } from "@/components/ui/slider.jsx";
-import DragDropRanking from "@/components/ui/drag-drop-ranking.jsx";
 import {
   Heart,
   Target,
@@ -22,11 +6,8 @@ import {
   Compass,
   Brain,
   TrendingUp,
-  ArrowRight,
-  ArrowLeft,
   CheckCircle,
   AlertCircle,
-  Lightbulb,
 } from "lucide-react";
 import {
   useAssessment,
@@ -34,6 +15,7 @@ import {
 } from "../../contexts/AssessmentContext";
 import DataImportBanner from "../adaptive/DataImportBanner";
 import DataDrivenAdaptiveEngine from "../../contexts/DataDrivenAdaptiveEngine";
+import AssessmentShell from "./AssessmentShell";
 import api from "../../services/api.js";
 
 // Question definitions
@@ -255,14 +237,13 @@ const SelfDiscoveryAssessment = () => {
     setSectionProgress(loaded);
   }, [selfDiscoveryData]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Handle response updates (✅ argument order fix)
-  const handleResponse = (questionId, answer) => {
-    // updateResponse(phase, questionId, answer, section)
-    updateResponse("self_discovery", questionId, answer, currentSection);
+  // Handle response updates — signature expected by AssessmentShell: (sectionId, questionId, answer)
+  const handleResponse = (sectionId, questionId, answer) => {
+    updateResponse("self_discovery", questionId, answer, sectionId);
 
-    // Update section progress
-    const sectionQuestions = currentSectionData.questions;
-    const sectionResponses = responses[currentSection] || {};
+    const section = sections.find(s => s.id === sectionId);
+    const sectionQuestions = section?.questions || [];
+    const sectionResponses = responses[sectionId] || {};
     const answeredQuestions = Object.keys({
       ...sectionResponses,
       [questionId]: answer,
@@ -271,14 +252,13 @@ const SelfDiscoveryAssessment = () => {
 
     setSectionProgress((prev) => ({
       ...prev,
-      [currentSection]: progress,
+      [sectionId]: progress,
     }));
 
-    // Optional: Save progress to context to keep the global tracker accurate
     const totalSections = sections.filter((s) => s.id !== "results").length;
     const completedSections = Object.values({
       ...sectionProgress,
-      [currentSection]: progress,
+      [sectionId]: progress,
     }).filter((p) => p === 100).length;
     const overall = Math.round((completedSections / totalSections) * 100);
     updateProgress("self_discovery", overall);
@@ -383,380 +363,47 @@ const SelfDiscoveryAssessment = () => {
   }, [sectionProgress, currentSection, selfDiscoveryData.archetype, responses, calculateArchetype, sections]);
 
   return (
-    <div className="space-y-6">
-      {/* Data Import Banner */}
+    <>
       {showDataImport && (
         <DataImportBanner
           onDismiss={() => setShowDataImport(false)}
           onOptimize={handleOptimization}
         />
       )}
-
-      {/* Optimization Status */}
-      {isOptimized && (
-        <Card className="border-green-500 bg-green-50 dark:bg-green-950/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <div>
-                <div className="font-medium text-green-800 dark:text-green-200">
-                  Assessment Optimized
-                </div>
-                <div className="text-sm text-green-600 dark:text-green-400">
-                  {connectedSources.length} data source
-                  {connectedSources.length !== 1 ? "s" : ""} connected • Some
-                  answers pre-populated
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Progress Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-primary" />
-            Self Discovery Assessment
-          </CardTitle>
-          <CardDescription>
-            Understand your entrepreneurial personality and motivations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Section Navigation - custom card tiles */}
-            <div className="grid grid-cols-6 gap-3">
-              {sections.map((section) => {
-                const IconComponent = section.icon;
-                const isCompleted = sectionProgress[section.id] === 100;
-                const isActive = currentSection === section.id;
-                const progressValue = sectionProgress[section.id] || 0;
-                return (
-                  <button
-                    key={section.id}
-                    type="button"
-                    onClick={() => setCurrentSection(section.id)}
-                    className={`relative group rounded-md border flex flex-col items-center justify-between px-2 py-3 transition-all h-full focus:outline-none focus:ring-2 focus:ring-primary/40 ` +
-                      `${isActive ? 'border-primary/70 bg-primary/5 shadow-sm' : 'border-border/60 hover:border-primary/40 hover:bg-muted/40'} ` +
-                      `${isCompleted && !isActive ? 'border-green-600/50' : ''}`}
-                    title={section.title}
-                  >
-                    <div className="flex flex-col items-center gap-1">
-                      <IconComponent className={`h-4 w-4 ${isCompleted ? 'text-green-500' : ''}`} />
-                      <span className="text-[10px] font-medium tracking-tight text-center leading-tight line-clamp-2">
-                        {section.navLabel || section.title}
-                      </span>
-                    </div>
-                    {/* Mini progress bar */}
-                    <div className="w-full h-1 mt-2 rounded bg-border/50 overflow-hidden">
-                      <div
-                        className={`h-full transition-all ${isCompleted ? 'bg-green-500' : 'bg-primary/60'}`}
-                        style={{ width: `${Math.min(progressValue,100)}%` }}
-                      />
-                    </div>
-                    {isCompleted && (
-                      <CheckCircle className="h-3 w-3 text-green-500 absolute top-1 right-1" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Overall Progress */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Overall Progress</span>
-                <Badge variant="outline">{calculateOverallProgress()}%</Badge>
-              </div>
-              <Progress
-                value={calculateOverallProgress()}
-                className="flex-1 mx-4"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Current Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            {CurrentIcon && <CurrentIcon className="h-5 w-5" />}
-            {currentSectionData?.title}
-          </CardTitle>
-          <CardDescription>{currentSectionData?.description}</CardDescription>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary">{currentSectionData?.duration}</Badge>
-            <span className="text-sm text-muted-foreground">
-              Section {currentSectionIndex + 1} of {sections.length}
-            </span>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {currentSection === "results" ? (
-            <ArchetypeResults
-              archetype={selfDiscoveryData.archetype}
-              insights={selfDiscoveryData.insights}
-            />
-          ) : (
-            <SectionQuestions
-              section={currentSectionData}
-              responses={responses[currentSection] || {}}
-              onResponse={handleResponse}
-            />
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Navigation Buttons */}
-      <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={previousSection}
-          disabled={currentSectionIndex === 0}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Previous
-        </Button>
-        {currentSectionIndex === sections.length - 1 ? (
-          <Button
-            onClick={() => {
-              completePhase("self_discovery");
-              updatePhase("idea_discovery");
-            }}
-          >
-            Next Phase
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        ) : (
-          <Button onClick={nextSection}>
-            Next
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        )}
-      </div>
-    </div>
+      <AssessmentShell
+        phaseName="Self Discovery"
+        phaseNumber={1}
+        sections={sections}
+        currentSection={currentSection}
+        onSectionChange={setCurrentSection}
+        responses={responses}
+        onResponse={handleResponse}
+        sectionProgress={sectionProgress}
+        onNext={() => {
+          completePhase("self_discovery");
+          updatePhase("idea_discovery");
+        }}
+        nextLabel="Next Phase: Idea Discovery"
+      >
+        {/* Results panel shown when on 'results' section */}
+        <ArchetypeResults
+          archetype={selfDiscoveryData.archetype}
+          insights={selfDiscoveryData.insights}
+        />
+      </AssessmentShell>
+    </>
   );
 };
 
-// Section Questions Component
-const SectionQuestions = ({ section, responses, onResponse }) => {
-  if (!section.questions || section.questions.length === 0) {
-    return (
-      <div className="text-center text-muted-foreground">
-        No questions available for this section.
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-8">
-      {section.questions.map((question, index) => {
-        const responseValue = responses[question.id];
-        return (
-          <QuestionCard
-            key={question.id}
-            question={question}
-            response={responseValue}
-            onResponse={(answer) => onResponse(question.id, answer)}
-            questionNumber={index + 1}
-            totalQuestions={section.questions.length}
-          />
-        );
-      })}
-    </div>
-  );
-};
-
-// Individual Question Card Component
-const QuestionCard = ({
-  question,
-  response,
-  onResponse,
-  questionNumber,
-  totalQuestions,
-}) => {
-  const renderQuestionInput = () => {
-    switch (question.type) {
-      case "multiple-choice":
-        return (
-          <RadioGroup 
-            key={`${question.id}-${response}`}
-            value={response || ""} 
-            onValueChange={onResponse}
-          >
-            {question.options.map((option) => {
-
-              return (
-                <div key={option.value} className="flex items-center space-x-2">
-                  <RadioGroupItem value={option.value} id={`${question.id}-${option.value}`} />
-                  <Label htmlFor={`${question.id}-${option.value}`} className="flex-1 cursor-pointer">
-                    <div>
-                      <div className="font-medium">{option.label}</div>
-                      {option.description && (
-                        <div className="text-sm text-muted-foreground">
-                          {option.description}
-                        </div>
-                      )}
-                    </div>
-                  </Label>
-                </div>
-              );
-            })}
-          </RadioGroup>
-        );
-
-      case "scale":
-        const numValue = typeof response === 'number' ? response : parseInt(response) || question.scaleRange?.min || 1;
-        return (
-          <div className="space-y-4">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>{question.scaleLabels?.min || "Low"}</span>
-              <span>{question.scaleLabels?.max || "High"}</span>
-            </div>
-            <Slider
-              key={`${question.id}-${numValue}`}
-              value={[numValue]}
-              onValueChange={(value) => onResponse(value[0])}
-              min={question.scaleRange?.min || 1}
-              max={question.scaleRange?.max || 10}
-              step={1}
-              className="w-full"
-            />
-            <div className="text-center text-sm font-medium">
-              Current value: {numValue}
-            </div>
-          </div>
-        );
-
-      case "textarea":
-        return (
-          <Textarea
-            key={`${question.id}-textarea`}
-            value={response || ""}
-            onChange={(e) => onResponse(e.target.value)}
-            placeholder={question.placeholder || "Enter your response..."}
-            rows={4}
-            className="w-full"
-          />
-        );
-
-      case "multiple-scale":
-        return (
-          <MultipleScaleInput
-            areas={question.areas}
-            scaleRange={question.scaleRange}
-            value={response || {}}
-            onChange={onResponse}
-          />
-        );
-
-      case "ranking":
-        return (
-          <DragDropRanking
-            options={question.options}
-            value={response || []}
-            onChange={onResponse}
-            maxRankings={question.maxRankings}
-          />
-        );
-
-      default:
-        return (
-          <div className="text-muted-foreground">
-            Unsupported question type: {question.type}
-          </div>
-        );
-    }
-  };
-
-  return (
-    <Card className="border-l-4 border-l-primary">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <Badge variant="secondary">
-                Question {questionNumber} of {totalQuestions}
-              </Badge>
-              {question.required && (
-                <Badge variant="destructive">Required</Badge>
-              )}
-            </div>
-            <CardTitle className="text-lg">{question.question}</CardTitle>
-            {question.description && (
-              <CardDescription className="mt-2">
-                {question.description}
-              </CardDescription>
-            )}
-          </div>
-          {response !== undefined && response !== "" && (
-            <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        {renderQuestionInput()}
-        {question.helpText && (
-          <div className="mt-4 p-3 bg-muted rounded-md">
-            <div className="flex items-start gap-2">
-              <Lightbulb className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-muted-foreground">
-                {question.helpText}
-              </p>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
-
-// Multiple Scale Input Component
-const MultipleScaleInput = ({ areas, scaleRange, value, onChange }) => {
-  const handleScaleChange = (area, scaleValue) => {
-    const newValue = { ...value, [area]: scaleValue };
-    onChange(newValue);
-  };
-
-  return (
-    <div className="space-y-6">
-      {areas.map((area) => (
-        <div key={area} className="space-y-3">
-          <div className="flex justify-between items-center">
-            <Label className="font-medium">{area}</Label>
-            <span className="text-sm text-muted-foreground">
-              {value[area] ?? scaleRange.min}/{scaleRange.max}
-            </span>
-          </div>
-          <Slider
-            value={[value[area] ?? scaleRange.min]}
-            onValueChange={(newValue) => handleScaleChange(area, newValue[0])}
-            min={scaleRange.min}
-            max={scaleRange.max}
-            step={1}
-            className="w-full"
-          />
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// Archetype Results Component
+// ─── Archetype Results ────────────────────────────────────────────────────────
 const ArchetypeResults = ({ archetype, insights }) => {
   if (!archetype || !insights) {
     return (
-      <div className="text-center py-8">
-        <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-2">
-          Complete Assessment to See Results
-        </h3>
-        <p className="text-muted-foreground">
-          Finish all sections to discover your entrepreneur archetype and get
-          personalized insights.
+      <div className="text-center py-16">
+        <AlertCircle className="h-12 w-12 text-gray-700 mx-auto mb-4" />
+        <h3 className="text-xl font-semibold text-white mb-2">Complete All Sections First</h3>
+        <p className="text-gray-500 text-sm">
+          Finish all sections to discover your entrepreneur archetype.
         </p>
       </div>
     );
@@ -766,45 +413,41 @@ const ArchetypeResults = ({ archetype, insights }) => {
 
   return (
     <div className="space-y-6">
-      {/* Main Archetype Card */}
-      <Card className="border-2 border-primary">
-        <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-            <TrendingUp className="h-8 w-8 text-primary" />
+      <div className="bg-gradient-to-br from-gray-900 to-black border border-cyan-500/30 rounded-2xl p-8 text-center">
+        <div className="mx-auto w-16 h-16 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-cyan-500/30">
+          <TrendingUp className="h-8 w-8 text-white" />
+        </div>
+        <h2 className="text-3xl font-bold text-white mb-2">
+          {archetypeData?.name || "Unknown Archetype"}
+        </h2>
+        <p className="text-gray-400 italic">
+          "{archetypeData?.description || "No description available"}"
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Key Traits</h4>
+          <ul className="space-y-2">
+            {(archetypeData?.traits || []).map((trait, index) => (
+              <li key={index} className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                <span className="text-sm text-gray-300">{trait}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+          <div>
+            <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Business Focus</h4>
+            <p className="text-sm text-gray-300">{archetypeData?.businessFocus || "—"}</p>
           </div>
-          <CardTitle className="text-2xl">
-            {archetypeData?.name || "Unknown Archetype"}
-          </CardTitle>
-          <CardDescription className="text-lg italic">
-            "{archetypeData?.description || "No description available"}"
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold mb-3">Key Traits</h4>
-              <ul className="space-y-2">
-                {(archetypeData?.traits || []).map((trait, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">{trait}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-3">Business Focus</h4>
-              <p className="text-sm text-muted-foreground mb-4">
-                {archetypeData?.businessFocus || "No focus defined"}
-              </p>
-              <h4 className="font-semibold mb-3">Time Horizon</h4>
-              <p className="text-sm text-muted-foreground">
-                {archetypeData?.timeHorizon || "No time horizon defined"}
-              </p>
-            </div>
+          <div>
+            <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Time Horizon</h4>
+            <p className="text-sm text-gray-300">{archetypeData?.timeHorizon || "—"}</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
