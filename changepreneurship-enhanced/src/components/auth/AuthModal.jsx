@@ -1,59 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 
 const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
   const [mode, setMode] = useState(initialMode);
 
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  const handleOverlayClick = (e) => {
-    // Only close if clicking directly on overlay, not when dragging/selecting text
-    if (e.target === e.currentTarget && e.type === 'click') {
-      onClose();
-    }
-  };
-
-  const handleOverlayMouseDown = (e) => {
-    // Prevent closing modal when user is selecting text
-    e.stopPropagation();
-  };
-
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-      onClick={handleOverlayClick}
-      onMouseDown={(e) => {
-        // Don't interfere with text selection inside modal
-        if (e.target === e.currentTarget) {
-          e.preventDefault();
-        }
-      }}
+    <div
+      className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div 
-        className="relative w-full max-w-md"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
+      <div className="relative w-full max-w-md bg-gray-950 border border-gray-800 rounded-2xl p-8 shadow-2xl shadow-black">
+        {/* Subtle gradient border glow */}
+        <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-cyan-500/10 via-transparent to-purple-500/10 pointer-events-none"></div>
+
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors duration-200"
+          className="absolute top-4 right-4 text-gray-600 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        
-        {mode === 'login' ? (
-          <LoginForm 
-            onSwitchToRegister={() => setMode('register')}
-            onClose={onClose}
-          />
-        ) : (
-          <RegisterForm 
-            onSwitchToLogin={() => setMode('login')}
-            onClose={onClose}
-          />
-        )}
+
+        <div className="relative">
+          {mode === 'login' ? (
+            <LoginForm onSwitchToRegister={() => setMode('register')} onClose={onClose} />
+          ) : (
+            <RegisterForm onSwitchToLogin={() => setMode('login')} onClose={onClose} />
+          )}
+        </div>
       </div>
     </div>
   );
