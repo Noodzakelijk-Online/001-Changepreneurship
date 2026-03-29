@@ -161,15 +161,93 @@ const RankingInput = ({ question, response, onResponse }) => (
   />
 )
 
+// Categorised textareas — for resource-planning, stakeholder-map etc.
+// question.categories = [{ id, label, description?, placeholder? }]
+const CategorizedTextsInput = ({ question, response, onResponse }) => {
+  const value = response || {}
+  return (
+    <div className="space-y-5">
+      {question.categories.map((cat) => (
+        <div key={cat.id}>
+          <div className="mb-1.5">
+            <span className="text-sm font-semibold text-gray-200">{cat.label}</span>
+            {cat.description && (
+              <span className="block text-xs text-gray-500 mt-0.5">{cat.description}</span>
+            )}
+          </div>
+          <Textarea
+            value={value[cat.id] || ''}
+            onChange={(e) => onResponse({ ...value, [cat.id]: e.target.value })}
+            placeholder={cat.placeholder || 'Enter details...'}
+            rows={2}
+            className="w-full bg-black/50 border-gray-800 rounded-xl text-white placeholder-gray-600 focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 resize-none text-sm"
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// Multi-entry cards — for customer-segments, competitor-analysis etc.
+// question.maxSegments | question.maxCompetitors = N
+const MultiEntryInput = ({ question, response, onResponse }) => {
+  const max = question.maxSegments || question.maxCompetitors || 3
+  const isSegments = !!question.maxSegments
+  const label = isSegments ? 'Segment' : 'Competitor'
+  const entries = Array.isArray(response) && response.length === max
+    ? response
+    : Array.from({ length: max }, (_, i) => (response?.[i] || { title: '', description: '' }))
+
+  const updateEntry = (index, field, val) => {
+    const next = entries.map((e, i) => i === index ? { ...e, [field]: val } : e)
+    onResponse(next)
+  }
+
+  return (
+    <div className="space-y-4">
+      {entries.map((entry, i) => (
+        <div key={i} className="bg-gray-900/60 border border-gray-800 rounded-xl p-4 space-y-2.5">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-6 h-6 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-xs font-bold text-cyan-400">
+              {i + 1}
+            </div>
+            <span className="text-xs uppercase tracking-wide text-gray-500 font-medium">{label} {i + 1}</span>
+          </div>
+          <input
+            type="text"
+            value={entry.title || ''}
+            onChange={(e) => updateEntry(i, 'title', e.target.value)}
+            placeholder={isSegments ? 'Segment name (e.g. "Freelance designers")...' : 'Competitor name...'}
+            className="w-full bg-black/50 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:border-cyan-500/60 outline-none"
+          />
+          <Textarea
+            value={entry.description || ''}
+            onChange={(e) => updateEntry(i, 'description', e.target.value)}
+            placeholder={isSegments
+              ? 'Who are they, what do they need, how will you reach them...'
+              : 'What they offer, their strengths and weaknesses...'}
+            rows={2}
+            className="w-full bg-black/50 border-gray-800 rounded-xl text-white placeholder-gray-600 focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 resize-none text-sm"
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // Render any question type
 const QuestionInput = ({ question, response, onResponse }) => {
   switch (question.type) {
-    case 'multiple-choice': return <MultipleChoiceInput question={question} response={response} onResponse={onResponse} />
-    case 'scale':           return <ScaleInput question={question} response={response} onResponse={onResponse} />
-    case 'textarea':        return <TextareaInput question={question} response={response} onResponse={onResponse} />
-    case 'multiple-scale':  return <MultipleScaleInput question={question} response={response} onResponse={onResponse} />
-    case 'select':          return <SelectInput question={question} response={response} onResponse={onResponse} />
-    case 'ranking':         return <RankingInput question={question} response={response} onResponse={onResponse} />
+    case 'multiple-choice':    return <MultipleChoiceInput question={question} response={response} onResponse={onResponse} />
+    case 'scale':              return <ScaleInput question={question} response={response} onResponse={onResponse} />
+    case 'textarea':           return <TextareaInput question={question} response={response} onResponse={onResponse} />
+    case 'multiple-scale':     return <MultipleScaleInput question={question} response={response} onResponse={onResponse} />
+    case 'select':             return <SelectInput question={question} response={response} onResponse={onResponse} />
+    case 'ranking':            return <RankingInput question={question} response={response} onResponse={onResponse} />
+    case 'resource-planning':
+    case 'stakeholder-map':    return <CategorizedTextsInput question={question} response={response} onResponse={onResponse} />
+    case 'customer-segments':
+    case 'competitor-analysis':return <MultiEntryInput question={question} response={response} onResponse={onResponse} />
     default:
       return <p className="text-gray-500 text-sm">Question type "{question.type}" not supported.</p>
   }

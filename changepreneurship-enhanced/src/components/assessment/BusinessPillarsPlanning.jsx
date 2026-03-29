@@ -154,15 +154,11 @@ const customerSegmentationQuestions = [
   },
   {
     id: 'segment-priority',
-    question: 'Which customer segment will you focus on first?',
-    type: 'multiple-choice',
+    question: 'Which customer segment will you focus on first, and why?',
+    type: 'textarea',
     required: true,
-    options: [
-      { value: 'segment-1', label: 'Segment 1', description: 'Your first defined segment' },
-      { value: 'segment-2', label: 'Segment 2', description: 'Your second defined segment' },
-      { value: 'segment-3', label: 'Segment 3', description: 'Your third defined segment' }
-    ],
-    helpText: 'Choose the segment with the highest combination of need, willingness to pay, and accessibility.'
+    placeholder: 'Describe the segment you will target first, why it is your top priority, and how accessible they are...',
+    helpText: 'Your first segment should have the highest combination of need, willingness to pay, and accessibility.'
   }
 ]
 
@@ -171,8 +167,9 @@ const valuePropositionQuestions = [
     id: 'value-proposition-canvas',
     question: 'Create your value proposition canvas',
     description: 'Map how your products and services create value for customers',
-    type: 'value-proposition-canvas',
+    type: 'textarea',
     required: true,
+    placeholder: 'Products & Services: (what you offer)\n\nGain Creators: (how you create gains for customers)\n\nPain Relievers: (how you relieve customer pains)\n\nCustomer Jobs: (what customers are trying to get done)\n\nCustomer Gains: (outcomes and benefits they want)\n\nCustomer Pains: (frustrations, obstacles, risks they face)',
     helpText: 'Focus on the fit between what customers want and what you offer. Be specific and concrete.'
   },
   {
@@ -190,8 +187,9 @@ const businessModelQuestions = [
     id: 'business-model-canvas',
     question: 'Complete your business model canvas',
     description: 'Design the key components of your business model',
-    type: 'business-model-canvas',
+    type: 'textarea',
     required: true,
+    placeholder: 'Key Partners: (who you rely on)\n\nKey Activities: (what you do to deliver value)\n\nKey Resources: (assets you need)\n\nValue Propositions: (what you offer each segment)\n\nCustomer Relationships: (how you interact with customers)\n\nChannels: (how you reach customers)\n\nCost Structure: (your main costs)\n\nRevenue Streams: (how you make money)',
     helpText: 'Think about how all the pieces fit together to create and deliver value profitably.'
   },
   {
@@ -216,8 +214,9 @@ const financialPlanningQuestions = [
     id: 'financial-projections',
     question: 'Create your financial projections',
     description: 'Project your revenues, costs, and funding requirements',
-    type: 'financial-projections',
+    type: 'textarea',
     required: true,
+    placeholder: 'Year 1 Revenue: €\nYear 1 Costs: €\nYear 1 Net: €\n\nYear 2 Revenue: €\nYear 2 Costs: €\nYear 2 Net: €\n\nYear 3 Revenue: €\nYear 3 Costs: €\nYear 3 Net: €\n\nKey assumptions and notes:',
     helpText: 'Be realistic but optimistic. Base projections on market research and comparable businesses.'
   },
   {

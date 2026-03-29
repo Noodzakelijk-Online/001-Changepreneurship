@@ -173,8 +173,9 @@ const customerResearchQuestions = [
     id: 'primary-persona',
     question: 'Create your primary customer persona',
     description: 'Develop a detailed profile of your most important customer segment',
-    type: 'customer-persona',
+    type: 'textarea',
     required: true,
+    placeholder: 'Name / Role: (e.g. "Emma, 32, Freelance Graphic Designer")\n\nDemographics: age, location, income, education...\n\nGoals & Motivations: what they are trying to achieve...\n\nPains & Frustrations: what holds them back...\n\nHow they currently solve the problem: tools, workarounds...\n\nWhere to find them: channels, communities, platforms...',
     helpText: 'Be as specific as possible. This persona should represent your ideal customer.'
   },
   {

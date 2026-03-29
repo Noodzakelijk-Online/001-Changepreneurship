@@ -13,10 +13,7 @@ import {
   useAssessment,
   ENTREPRENEUR_ARCHETYPES,
 } from "../../contexts/AssessmentContext";
-import DataImportBanner from "../adaptive/DataImportBanner";
-import DataDrivenAdaptiveEngine from "../../contexts/DataDrivenAdaptiveEngine";
 import AssessmentShell from "./AssessmentShell";
-import api from "../../services/api.js";
 
 // Question definitions
 const motivationQuestions = [
@@ -154,9 +151,7 @@ const SelfDiscoveryAssessment = () => {
 
   const [currentSection, setCurrentSection] = useState("motivation");
   const [sectionProgress, setSectionProgress] = useState({});
-  const [showDataImport, setShowDataImport] = useState(true);
-  const [isOptimized, setIsOptimized] = useState(false);
-  const [connectedSources, setConnectedSources] = useState([]);
+
 
   const selfDiscoveryData = assessmentData["self_discovery"] || {};
   const responses = selfDiscoveryData.responses || {};
@@ -264,60 +259,7 @@ const SelfDiscoveryAssessment = () => {
     updateProgress("self_discovery", overall);
   };
 
-  // Handle data import optimization using imported data
-  const handleOptimization = async (sources = {}) => {
-    setShowDataImport(false);
 
-    const importedData = {};
-    const successful = [];
-
-    for (const [source, file] of Object.entries(sources)) {
-      try {
-        let result;
-        if (source === "linkedin" && file)
-          result = await api.uploadLinkedInData(file);
-        if (source === "resume" && file) result = await api.uploadResume(file);
-        if (source === "financial")
-          result = await api.connectFinancialAccounts();
-
-        if (result?.success && result.data) {
-          importedData[source] = result.data;
-          successful.push(source);
-        }
-      } catch {
-        // ignore individual source errors
-      }
-    }
-
-    const engine = new DataDrivenAdaptiveEngine();
-    sections.forEach((section) => {
-      section.questions.forEach((q) => {
-        const pre = engine.importEngine.prePopulateFromData(
-          q.id,
-          importedData
-        );
-        if (pre) {
-          updateResponse("self_discovery", q.id, pre.value, section.id);
-        }
-      });
-    });
-
-    setConnectedSources(successful);
-    setIsOptimized(true);
-  };
-
-  // Navigation
-  const nextSection = () => {
-    if (currentSectionIndex < sections.length - 1) {
-      setCurrentSection(sections[currentSectionIndex + 1].id);
-    }
-  };
-
-  const previousSection = () => {
-    if (currentSectionIndex > 0) {
-      setCurrentSection(sections[currentSectionIndex - 1].id);
-    }
-  };
 
   // Overall progress 
   const calculateOverallProgress = () => {
@@ -363,14 +305,7 @@ const SelfDiscoveryAssessment = () => {
   }, [sectionProgress, currentSection, selfDiscoveryData.archetype, responses, calculateArchetype, sections]);
 
   return (
-    <>
-      {showDataImport && (
-        <DataImportBanner
-          onDismiss={() => setShowDataImport(false)}
-          onOptimize={handleOptimization}
-        />
-      )}
-      <AssessmentShell
+    <AssessmentShell
         phaseName="Self Discovery"
         phaseNumber={1}
         sections={sections}
@@ -391,7 +326,6 @@ const SelfDiscoveryAssessment = () => {
           insights={selfDiscoveryData.insights}
         />
       </AssessmentShell>
-    </>
   );
 };
 
