@@ -392,34 +392,76 @@ const AssessmentShell = ({
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
-      {/* ── Top stage progress ── */}
-      <div className="border-b border-gray-800/60 bg-black/40 px-6 py-4">
+
+      {/* ── Section tabs + fill bars ── */}
+      <div className="bg-black/60 border-b border-gray-800/60 px-4 pt-5 pb-0">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-end gap-1.5 overflow-x-auto pb-1">
+          <div className="flex items-end gap-0 overflow-x-auto">
             {sections.filter(s => s.questions?.length > 0).map((s, i) => {
               const isActive = s.id === currentSection
               const progress = sectionProgress[s.id] || 0
               const isComplete = progress >= 100
+              const sQCount = s.questions?.length || 0
+              const answered = Object.keys(responses[s.id] || {}).length
+
               return (
-                <React.Fragment key={s.id}>
-                  <button
-                    type="button"
-                    onClick={() => onSectionChange(s.id)}
-                    className="flex flex-col items-start gap-1 flex-shrink-0 group"
-                  >
-                    <div className={`h-1.5 rounded-full transition-all duration-300 ${
-                      isActive ? 'w-20 bg-gradient-to-r from-cyan-500 to-cyan-400' :
-                      isComplete ? 'w-20 bg-emerald-500/60' :
-                      'w-20 bg-gray-800 group-hover:bg-gray-700'
-                    }`}></div>
-                    <span className={`text-xs whitespace-nowrap transition-colors ${
-                      isActive ? 'text-cyan-400' : isComplete ? 'text-emerald-500/70' : 'text-gray-600 group-hover:text-gray-500'
-                    }`}>{s.title}</span>
-                  </button>
-                  {i < totalSections - 1 && (
-                    <div className="w-2 h-px bg-gray-800 mb-3 flex-shrink-0"></div>
-                  )}
-                </React.Fragment>
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => onSectionChange(s.id)}
+                  className={`group relative flex flex-col items-start flex-shrink-0 px-3 pb-0 pt-0 transition-colors ${
+                    isActive ? '' : 'hover:opacity-80'
+                  }`}
+                  style={{ minWidth: 80 }}
+                >
+                  {/* Section name */}
+                  <span className={`text-[11px] font-medium whitespace-nowrap mb-2 transition-colors ${
+                    isActive ? 'text-cyan-400' :
+                    isComplete ? 'text-emerald-400/70' :
+                    'text-gray-600 group-hover:text-gray-400'
+                  }`}>
+                    {s.title}
+                  </span>
+
+                  {/* Question dot row inside tab */}
+                  <div className="flex items-center gap-0.5 mb-2">
+                    {Array.from({ length: sQCount }).map((_, qi) => {
+                      const qId = s.questions[qi]?.id
+                      const answered = qId && (responses[s.id] || {})[qId] !== undefined &&
+                        (responses[s.id] || {})[qId] !== '' &&
+                        !( Array.isArray((responses[s.id] || {})[qId]) && (responses[s.id] || {})[qId].length === 0 )
+                      const isCurrent = isActive && qi === questionIndex
+                      return (
+                        <div
+                          key={qi}
+                          className={`rounded-full transition-all duration-200 ${
+                            isCurrent
+                              ? 'w-3.5 h-3.5 bg-cyan-500 shadow-sm shadow-cyan-500/60 ring-2 ring-cyan-500/30'
+                              : answered
+                              ? 'w-2 h-2 bg-emerald-500/80'
+                              : isActive
+                              ? 'w-2 h-2 bg-gray-700'
+                              : 'w-1.5 h-1.5 bg-gray-800'
+                          }`}
+                        />
+                      )
+                    })}
+                  </div>
+
+                  {/* Fill bar at bottom */}
+                  <div className="w-full h-0.5 rounded-t-full overflow-hidden bg-gray-800/60">
+                    <div
+                      className={`h-full rounded-t-full transition-all duration-500 ${
+                        isActive
+                          ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
+                          : isComplete
+                          ? 'bg-emerald-500/60'
+                          : 'bg-transparent'
+                      }`}
+                      style={{ width: isActive ? `${((questionIndex + 1) / Math.max(sQCount, 1)) * 100}%` : `${progress}%` }}
+                    />
+                  </div>
+                </button>
               )
             })}
           </div>
