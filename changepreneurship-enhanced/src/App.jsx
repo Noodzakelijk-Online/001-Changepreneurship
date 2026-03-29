@@ -227,131 +227,106 @@ const AssessmentPage = () => {
     return Math.round((completedPhases / phases.length) * 100);
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+  // Phase selected — render AssessmentShell directly, no outer wrappers
+  if (CurrentComponent) {
+    return (
+      <>
         {unknownSlug && (
-          <div className="mb-4 p-4 border border-destructive/30 bg-destructive/10 rounded text-sm">
-            Unknown assessment segment "{params.slug}". <button className="underline" onClick={() => { setSelectedPhase(null); window.location.hash = '#/assessment'; }}>Return to all phases</button>
+          <div className="px-6 py-2 text-sm text-red-400 bg-red-500/10 border-b border-red-500/20">
+            Unknown segment "{params.slug}".{' '}
+            <button className="underline" onClick={() => { setSelectedPhase(null); }}>
+              Return to all phases
+            </button>
           </div>
         )}
+        <React.Suspense fallback={
+          <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+            <div className="animate-pulse text-sm text-gray-600">Loading assessment...</div>
+          </div>
+        }>
+          <CurrentComponent />
+        </React.Suspense>
+      </>
+    );
+  }
+
+  // No phase selected — dark phase picker
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <div className="container mx-auto px-6 py-12">
+        {unknownSlug && (
+          <div className="mb-6 p-4 border border-red-500/30 bg-red-500/10 rounded-xl text-sm text-red-400">
+            Unknown assessment segment "{params.slug}".{' '}
+            <button className="underline" onClick={() => { setSelectedPhase(null); }}>
+              Return to all phases
+            </button>
+          </div>
+        )}
+
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent">
-            Changepreneurship Assessment
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Transform your entrepreneurial journey with our comprehensive 7-part
-            framework
+        <div className="text-center mb-12">
+          <div className="inline-block px-4 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 mb-4">
+            <span className="text-cyan-400 text-sm uppercase tracking-widest">7-Stage Framework</span>
+          </div>
+          <h1 className="text-4xl font-bold text-white mb-3">Choose Your Stage</h1>
+          <p className="text-gray-500 text-lg max-w-xl mx-auto">
+            Each stage builds on the previous. Work through them in order for the best results.
           </p>
         </div>
 
-        {/* Phase Selection or Current Assessment */}
-        {!CurrentComponent ? (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Compass className="h-5 w-5" />
-                Your Journey Progress
-              </CardTitle>
-              <CardDescription>
-                Complete all seven phases to unlock your personalized business
-                development roadmap
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-6">
-                {phases.map((phase) => {
-                  const Icon = phase.icon;
-                  const isCompleted =
-                    assessmentData[phase.id]?.completed || false;
-                  const isCurrent = phase.id === selectedPhase;
-                  const isAccessible = true; // All phases accessible for testing
+        {/* Overall progress bar */}
+        <div className="max-w-xl mx-auto mb-10 flex items-center gap-4">
+          <span className="text-sm text-gray-500 whitespace-nowrap">Overall Progress</span>
+          <div className="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full transition-all duration-500"
+              style={{ width: `${calculateProgress()}%` }}
+            />
+          </div>
+          <span className="text-sm font-semibold text-cyan-400 whitespace-nowrap">{calculateProgress()}%</span>
+        </div>
 
-                  return (
-                    <Card
-                      key={phase.id}
-                      className={`relative overflow-hidden transition-all duration-300 ${
-                        isCurrent ? "ring-2 ring-primary" : ""
-                      } ${
-                        isAccessible
-                          ? "cursor-pointer hover:shadow-lg"
-                          : "opacity-50"
-                      }`}
-                      onClick={() => isAccessible && handlePhaseSelect(phase.id)}
-                    >
-                      <div
-                        className={`absolute inset-0 bg-gradient-to-br ${phase.color} opacity-10`}
-                      />
-                      <CardContent className="p-4 relative">
-                        <div className="flex items-center justify-between mb-2">
-                          <Icon className="h-6 w-6 text-primary" />
-                          {isCompleted && (
-                            <CheckCircle className="h-5 w-5 text-green-500" />
-                          )}
-                        </div>
-                        <h3 className="font-semibold text-sm mb-1">
-                          {phase.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                          {phase.description}
-                        </p>
-                        <div className="space-y-1">
-                          <Badge variant="secondary" className="text-xs">
-                            {phase.category}
-                          </Badge>
-                          <p className="text-xs text-muted-foreground">
-                            {phase.duration}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+        {/* Phase cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {phases.map((phase, index) => {
+            const Icon = phase.icon;
+            const isCompleted = assessmentData[phase.id]?.completed || false;
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Overall Progress</span>
-                  <Badge variant="outline">{calculateProgress()}%</Badge>
+            return (
+              <button
+                key={phase.id}
+                type="button"
+                onClick={() => handlePhaseSelect(phase.id)}
+                className={`relative overflow-hidden group text-left rounded-2xl border p-6 transition-all duration-300 hover:scale-[1.02] ${
+                  isCompleted
+                    ? 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-gray-900'
+                    : 'border-gray-800 bg-gradient-to-br from-gray-900 to-black hover:border-cyan-500/40'
+                }`}
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${phase.color} opacity-0 group-hover:opacity-5 transition-opacity rounded-2xl`} />
+                <div className="relative">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`p-2.5 rounded-xl bg-gradient-to-br ${phase.color} shadow-lg`}>
+                      <Icon className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isCompleted && <CheckCircle className="h-4 w-4 text-emerald-400" />}
+                      <span className="text-xs text-gray-600 font-medium">Stage {index + 1}</span>
+                    </div>
+                  </div>
+                  <h3 className="font-semibold text-white mb-1.5 text-sm">{phase.title}</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed mb-4">{phase.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-600">{phase.duration}</span>
+                    <span className={`text-xs font-medium ${isCompleted ? 'text-emerald-400' : 'text-cyan-400 group-hover:text-cyan-300'}`}>
+                      {isCompleted ? 'Completed ✓' : 'Start →'}
+                    </span>
+                  </div>
                 </div>
-                <Progress value={calculateProgress()} className="flex-1 mx-4" />
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            <Button
-              variant="outline"
-              className="mb-4"
-              onClick={handleBackToPhases}
-            >
-              ← Back to phases
-            </Button>
-            <Card>
-              <CardHeader>
-                <CardTitle ref={phaseHeadingRef} tabIndex="-1" className="flex items-center gap-2 focus:outline-none">
-                  {currentPhaseData?.icon ? (() => { const IconComp = currentPhaseData.icon; return <IconComp className="h-5 w-5" />; })() : null}
-                  {currentPhaseData?.title}
-                </CardTitle>
-                <CardDescription>{currentPhaseData?.description}</CardDescription>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{currentPhaseData?.category}</Badge>
-                  <span className="text-sm text-muted-foreground">
-                    Phase {currentPhaseIndex + 1} of {phases.length}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {CurrentComponent && (
-                  <React.Suspense fallback={<div className="animate-pulse text-sm text-muted-foreground">Loading assessment...</div>}>
-                    <CurrentComponent />
-                  </React.Suspense>
-                )}
-              </CardContent>
-            </Card>
-          </>
-        )}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
