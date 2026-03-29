@@ -24,6 +24,7 @@ from src.routes.enhanced_assessment import enhanced_assessment_bp
 from src.routes.dashboard import dashboard_bp
 from src.routes.ai_recommendations import ai_recommendations_bp
 from src.routes.ai_routes import ai_bp
+from src.routes.data_import import data_import_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), "static"))
 # Trust exactly 1 proxy (Caddy) so get_remote_address returns the real client IP
@@ -116,6 +117,7 @@ app.register_blueprint(enhanced_assessment_bp, url_prefix="/api/enhanced-assessm
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(ai_recommendations_bp)
 app.register_blueprint(ai_bp, url_prefix="/api/ai")
+app.register_blueprint(data_import_bp, url_prefix="/api/data/import")
 
 # Database configuration
 database_url = os.getenv("DATABASE_URL")

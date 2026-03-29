@@ -203,10 +203,13 @@ class ApiService {
     });
   }
 
-  async updateAssessmentProgress(assessmentId, progressPercentage) {
+  async updateAssessmentProgress(assessmentId, progressPercentage, isCompleted = false, assessmentData = null) {
+    const body = { progress_percentage: progressPercentage };
+    if (isCompleted) body.is_completed = true;
+    if (assessmentData) body.assessment_data = assessmentData;
     return this.request(`/assessment/${assessmentId}/progress`, {
       method: 'PUT',
-      body: JSON.stringify({ progress_percentage: progressPercentage }),
+      body: JSON.stringify(body),
     });
   }
 

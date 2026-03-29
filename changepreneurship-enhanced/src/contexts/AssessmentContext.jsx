@@ -557,7 +557,22 @@ export function AssessmentProvider({ children }) {
           
           const result = await apiService.saveAssessmentResponse(assessmentId, responseData);
           
-          if (!result.success) {
+          if (result.success && result.data?.assessment) {
+            dispatch({
+              type: ACTIONS.BULK_UPDATE_PHASE_DATA,
+              payload: {
+                phase,
+                data: {
+                  ...state.assessmentData[phase],
+                  assessmentId: result.data.assessment.id,
+                  progress: Math.round(result.data.assessment.progress_percentage || 0),
+                  completed: Boolean(result.data.assessment.is_completed),
+                  startedAt: result.data.assessment.started_at,
+                  completedAt: result.data.assessment.completed_at,
+                },
+              },
+            });
+          } else if (!result.success) {
             console.error(`[AssessmentContext] Failed to save response:`, result.error);
           }
         }
@@ -569,29 +584,41 @@ export function AssessmentProvider({ children }) {
 
   const updateProgress = async (phase, progress) => {
     if (!validatePhase(phase)) return;
-    
-    // Update local state immediately for responsive UI
-    dispatch({ type: ACTIONS.UPDATE_PROGRESS, payload: { phase, progress } });
-    
-    // Sync with backend if assessment exists
-    const phaseData = state.assessmentData[phase];
-    const assessmentId = phaseData?.assessmentId;
-    
-    if (assessmentId) {
-      try {
-        await apiService.updateAssessmentProgress(
-          assessmentId,
-          Math.round(progress)
-        );
-      } catch (error) {
-        console.error(`[AssessmentContext] Error updating progress:`, error);
-      }
+    if (!isAuthenticated || !user?.id) {
+      dispatch({ type: ACTIONS.UPDATE_PROGRESS, payload: { phase, progress } });
     }
   };
 
-  const completePhase = (phase) => {
-    if (validatePhase(phase))
+  const completePhase = async (phase) => {
+    if (!validatePhase(phase)) return;
+
+    if (!isAuthenticated || !user?.id) {
       dispatch({ type: ACTIONS.COMPLETE_PHASE, payload: phase });
+      return;
+    }
+
+    const assessmentId = state.assessmentData[phase]?.assessmentId;
+    if (!assessmentId) return;
+
+    try {
+      const result = await apiService.updateAssessmentProgress(assessmentId, 100, true);
+      if (result.success && result.data?.assessment) {
+        dispatch({
+          type: ACTIONS.BULK_UPDATE_PHASE_DATA,
+          payload: {
+            phase,
+            data: {
+              ...state.assessmentData[phase],
+              progress: Math.round(result.data.assessment.progress_percentage || 100),
+              completed: Boolean(result.data.assessment.is_completed),
+              completedAt: result.data.assessment.completed_at,
+            },
+          },
+        });
+      }
+    } catch (error) {
+      console.error(`[AssessmentContext] Error completing phase:`, error);
+    }
   };
   const updateProfile = (profileData) => {
     dispatch({ type: ACTIONS.UPDATE_PROFILE, payload: profileData });

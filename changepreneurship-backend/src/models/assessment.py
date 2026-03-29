@@ -143,6 +143,11 @@ class EntrepreneurProfile(db.Model):
     # AI Analysis Results
     success_probability = db.Column(db.Float)
     ai_recommendations = db.Column(db.Text)  # JSON
+
+    # Optional resume enrichment
+    resume_data = db.Column(db.Text)  # JSON
+    resume_analysis = db.Column(db.Text)  # JSON
+    resume_uploaded_at = db.Column(db.DateTime)
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -190,6 +195,9 @@ class EntrepreneurProfile(db.Model):
             'prototype_testing_results': self.get_json_field('prototype_testing_results'),
             'success_probability': self.success_probability,
             'ai_recommendations': self.get_json_field('ai_recommendations'),
+            'resume_data': self.get_json_field('resume_data'),
+            'resume_analysis': self.get_json_field('resume_analysis'),
+            'resume_uploaded_at': self.resume_uploaded_at.isoformat() if self.resume_uploaded_at else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
