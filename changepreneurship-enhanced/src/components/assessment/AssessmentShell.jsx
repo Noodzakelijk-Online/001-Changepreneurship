@@ -161,6 +161,75 @@ const RankingInput = ({ question, response, onResponse }) => (
   />
 )
 
+// Single-line text input — for type: 'text'
+const TextInput = ({ question, response, onResponse }) => (
+  <input
+    type="text"
+    value={response || ''}
+    onChange={(e) => onResponse(e.target.value)}
+    placeholder={question.placeholder || 'Type your answer...'}
+    className="w-full bg-black/50 border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 outline-none text-sm"
+  />
+)
+
+// Matrix input — rows × columns, each cell rated 1–5
+// question.rows = [{id, label}], question.columns = [{id, label}]
+// response = { [rowId]: { [colId]: number } }
+const MatrixInput = ({ question, response, onResponse }) => {
+  const value = response || {}
+  const setValue = (rowId, colId, num) => {
+    onResponse({ ...value, [rowId]: { ...(value[rowId] || {}), [colId]: num } })
+  }
+  const colCount = question.columns?.length || 0
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse text-sm">
+        <thead>
+          <tr>
+            <th className="text-left py-2 pr-4 text-xs text-gray-500 font-medium min-w-[160px]"></th>
+            {question.columns.map((col) => (
+              <th key={col.id} className="text-center py-2 px-2 text-xs text-gray-400 font-medium whitespace-nowrap">
+                {col.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {question.rows.map((row, ri) => (
+            <tr key={row.id} className={ri % 2 === 0 ? 'bg-white/[0.02]' : ''}>
+              <td className="py-3 pr-4 text-xs text-gray-300 font-medium">{row.label}</td>
+              {question.columns.map((col) => {
+                const current = value[row.id]?.[col.id]
+                return (
+                  <td key={col.id} className="py-3 px-2 text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setValue(row.id, col.id, n)}
+                          className={`w-7 h-7 rounded-lg text-xs font-semibold transition-all ${
+                            current === n
+                              ? 'bg-cyan-500 text-white shadow-sm shadow-cyan-500/40'
+                              : 'bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-300'
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                  </td>
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="text-xs text-gray-600 mt-3">1 = Low / 5 = High</p>
+    </div>
+  )
+}
+
 // Categorised textareas — for resource-planning, stakeholder-map etc.
 // question.categories = [{ id, label, description?, placeholder? }]
 const CategorizedTextsInput = ({ question, response, onResponse }) => {
@@ -240,10 +309,12 @@ const QuestionInput = ({ question, response, onResponse }) => {
   switch (question.type) {
     case 'multiple-choice':    return <MultipleChoiceInput question={question} response={response} onResponse={onResponse} />
     case 'scale':              return <ScaleInput question={question} response={response} onResponse={onResponse} />
+    case 'text':               return <TextInput question={question} response={response} onResponse={onResponse} />
     case 'textarea':           return <TextareaInput question={question} response={response} onResponse={onResponse} />
     case 'multiple-scale':     return <MultipleScaleInput question={question} response={response} onResponse={onResponse} />
     case 'select':             return <SelectInput question={question} response={response} onResponse={onResponse} />
     case 'ranking':            return <RankingInput question={question} response={response} onResponse={onResponse} />
+    case 'matrix':             return <MatrixInput question={question} response={response} onResponse={onResponse} />
     case 'resource-planning':
     case 'stakeholder-map':    return <CategorizedTextsInput question={question} response={response} onResponse={onResponse} />
     case 'customer-segments':
