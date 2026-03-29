@@ -66,6 +66,7 @@ import NavBar from "./components/NavBar";
 import PhasePage from "./pages/PhasePage.jsx";
 import AIInsightsPage from "./pages/AIInsightsPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import PhaseCompletionPanel from "./components/assessment/PhaseCompletionPanel.jsx";
 
 // slugToPhaseId now imported from central mapping
 
@@ -439,6 +440,7 @@ function App() {
           <Router>
             <div className="App">
               <NavBar />
+              <PhaseCompletionPanel />
               <main className="pt-16">
                 <ErrorBoundary>
                   <Routes>

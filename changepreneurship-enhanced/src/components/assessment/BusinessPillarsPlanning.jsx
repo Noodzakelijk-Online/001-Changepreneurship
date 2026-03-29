@@ -136,7 +136,7 @@ const BusinessPillarsPlanning = () => {
       responses={responses}
       onResponse={handleResponse}
       sectionProgress={sectionProgress}
-      onNext={() => { completePhase('business_pillars'); updatePhase('product_concept_testing') }}
+      onNext={() => completePhase('business_pillars', () => updatePhase('product_concept_testing'))}
       nextLabel="Next Phase: Product Concept Testing"
     />
   )

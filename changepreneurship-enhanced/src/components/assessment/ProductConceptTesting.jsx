@@ -39,7 +39,7 @@ const ProductConceptTesting = () => {
       responses={responses}
       onResponse={handleResponse}
       sectionProgress={sectionProgress}
-      onNext={() => { completePhase('product_concept_testing'); updatePhase('business_development'); }}
+      onNext={() => completePhase('product_concept_testing', () => updatePhase('business_development'))}
       nextLabel="Next Phase: Business Development"
     />
   );

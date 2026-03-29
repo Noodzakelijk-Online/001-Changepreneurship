@@ -314,10 +314,7 @@ const SelfDiscoveryAssessment = () => {
         responses={responses}
         onResponse={handleResponse}
         sectionProgress={sectionProgress}
-        onNext={() => {
-          completePhase("self_discovery");
-          updatePhase("idea_discovery");
-        }}
+        onNext={() => completePhase('self_discovery', () => updatePhase('idea_discovery'))}
         nextLabel="Next Phase: Idea Discovery"
       >
         {/* Results panel shown when on 'results' section */}

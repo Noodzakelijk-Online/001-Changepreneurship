@@ -128,7 +128,7 @@ const MarketResearchTools = () => {
       responses={responses}
       onResponse={handleResponse}
       sectionProgress={sectionProgress}
-      onNext={() => { completePhase('market_research'); updatePhase('business_pillars') }}
+      onNext={() => completePhase('market_research', () => updatePhase('business_pillars'))}
       nextLabel="Next Phase: Business Pillars"
     />
   )

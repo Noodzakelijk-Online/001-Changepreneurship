@@ -128,7 +128,7 @@ const IdeaDiscoveryAssessment = () => {
       responses={responses}
       onResponse={handleResponse}
       sectionProgress={sectionProgress}
-      onNext={() => { completePhase('idea_discovery'); updatePhase('market_research') }}
+      onNext={() => completePhase('idea_discovery', () => updatePhase('market_research'))}
       nextLabel="Next Phase: Market Research"
     />
   )

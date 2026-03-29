@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from "react";
+import React, { createContext, useContext, useReducer, useEffect, useState, useRef } from "react";
 import { useAuth } from "./AuthContext.jsx";
 import apiService from "../services/api";
 
@@ -358,6 +358,10 @@ export function AssessmentProvider({ children }) {
   const [state, dispatch] = useReducer(assessmentReducer, initialState);
   const { user, isAuthenticated } = useAuth();
 
+  // Phase completion summary panel
+  const [phaseSummary, setPhaseSummary] = useState(null); // { phaseId, data } | null
+  const phaseSummaryAfterRef = useRef(null); // callback to run when panel is dismissed
+
   // Load from localStorage on mount
   // REMOVED: localStorage loading - using backend as single source of truth
   // useEffect to load from localStorage has been removed
@@ -589,16 +593,21 @@ export function AssessmentProvider({ children }) {
     }
   };
 
-  const completePhase = async (phase) => {
+  const completePhase = async (phase, afterClose = null) => {
     if (!validatePhase(phase)) return;
 
     if (!isAuthenticated || !user?.id) {
       dispatch({ type: ACTIONS.COMPLETE_PHASE, payload: phase });
+      afterClose?.();
       return;
     }
 
     const assessmentId = state.assessmentData[phase]?.assessmentId;
     if (!assessmentId) return;
+
+    // If the phase is already marked completed locally, skip the summary panel
+    // and just call afterClose (e.g. user clicks Next after auto-complete fires)
+    const alreadyCompleted = state.assessmentData[phase]?.completed;
 
     try {
       const result = await apiService.updateAssessmentProgress(assessmentId, 100, true);
@@ -616,9 +625,45 @@ export function AssessmentProvider({ children }) {
           },
         });
       }
+
+      if (alreadyCompleted) {
+        // Phase was already done — just navigate, no panel
+        afterClose?.();
+        return;
+      }
+
+      // Show the AI phase summary panel (first completion)
+      if (afterClose) phaseSummaryAfterRef.current = afterClose;
+      setPhaseSummary({ phaseId: phase, data: null }); // null = loading
+
+      try {
+        const summaryRes = await apiService.getPhaseAISummary(phase);
+        if (summaryRes.success && summaryRes.summary) {
+          setPhaseSummary({ phaseId: phase, data: summaryRes.summary });
+        }
+      } catch (_summaryErr) {
+        setPhaseSummary({
+          phaseId: phase,
+          data: {
+            score: 65,
+            headline: `${phase.replace(/_/g, ' ')} completed`,
+            summary: 'Your responses have been saved. Continue to the next phase.',
+            key_findings: [],
+            next_focus: '',
+          },
+        });
+      }
     } catch (error) {
       console.error(`[AssessmentContext] Error completing phase:`, error);
+      afterClose?.();
     }
+  };
+
+  const dismissPhaseSummary = () => {
+    const after = phaseSummaryAfterRef.current;
+    phaseSummaryAfterRef.current = null;
+    setPhaseSummary(null);
+    after?.();
   };
   const updateProfile = (profileData) => {
     dispatch({ type: ACTIONS.UPDATE_PROFILE, payload: profileData });
@@ -775,6 +820,8 @@ export function AssessmentProvider({ children }) {
     getAllPhasesCompleted,
     getOverallProgress,
     validatePhase,
+    phaseSummary,
+    dismissPhaseSummary,
   };
 
   return (

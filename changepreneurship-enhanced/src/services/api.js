@@ -402,6 +402,22 @@ class ApiService {
   }
 
   /**
+   * Get a brief AI-powered summary for a single completed assessment phase.
+   * Called immediately after phase completion.
+   *
+   * @param {string} phaseId - e.g. 'self_discovery'
+   * @returns {Promise<{success: boolean, summary: Object}>}
+   */
+  async getPhaseAISummary(phaseId) {
+    const res = await fetch(`${API_BASE_URL}/ai/phase-summary`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ phase_id: phaseId }),
+    });
+    return this.handleResponse(res);
+  }
+
+  /**
    * Check if API is available
    * @returns {Promise<boolean>} True if API is available
    */

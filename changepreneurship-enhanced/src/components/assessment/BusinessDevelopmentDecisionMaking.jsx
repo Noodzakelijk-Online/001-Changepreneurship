@@ -39,7 +39,7 @@ const BusinessDevelopmentDecisionMaking = () => {
       responses={responses}
       onResponse={handleResponse}
       sectionProgress={sectionProgress}
-      onNext={() => { completePhase('business_development'); updatePhase('business_prototype_testing'); }}
+      onNext={() => completePhase('business_development', () => updatePhase('business_prototype_testing'))}
       nextLabel="Next Phase: Business Prototype Testing"
     />
   );

@@ -41,7 +41,7 @@ const BusinessPrototypeTesting = () => {
       responses={responses}
       onResponse={handleResponse}
       sectionProgress={sectionProgress}
-      onNext={() => { completePhase('business_prototype_testing'); navigate('/dashboard'); }}
+      onNext={() => completePhase('business_prototype_testing', () => navigate('/dashboard'))}
       nextLabel="Complete Assessment"
     />
   );

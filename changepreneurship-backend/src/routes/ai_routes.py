@@ -5,6 +5,7 @@ Multi-LLM business insights endpoints
 from flask import Blueprint, jsonify, request
 from src.services.ai_consensus import AIConsensusService
 from src.services.insights_report_service import InsightsReportService
+from src.services.phase_summary_service import PhaseSummaryService
 from src.models.assessment import Assessment, AssessmentResponse, db
 from src.utils.auth import verify_session_token
 import logging
@@ -213,3 +214,50 @@ def get_insights_report():
             'success': False,
             'error': str(e),
         }), 500
+
+
+# ---------------------------------------------------------------------------
+# Phase Completion Summary
+# ---------------------------------------------------------------------------
+
+@ai_bp.route('/phase-summary', methods=['POST'])
+def get_phase_summary():
+    """
+    Generate a brief AI-powered summary for a single completed assessment phase.
+    Called immediately after the user finishes a phase.
+
+    Request body:
+        { "phase_id": "self_discovery" }
+
+    Returns:
+        {
+          success: true,
+          summary: { phase_id, score, headline, summary, key_findings, next_focus }
+        }
+    """
+    user, session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+
+    data = request.get_json() or {}
+    phase_id = (data.get('phase_id') or '').strip()
+    if not phase_id:
+        return jsonify({'success': False, 'error': 'phase_id is required'}), 400
+
+    assessment = Assessment.query.filter_by(
+        user_id=user.id, phase_id=phase_id
+    ).first()
+    if not assessment:
+        return jsonify({
+            'success': False,
+            'error': f'No assessment found for phase: {phase_id}',
+        }), 404
+
+    responses = AssessmentResponse.query.filter_by(
+        assessment_id=assessment.id
+    ).all()
+
+    service = PhaseSummaryService()
+    summary = service.generate_summary(phase_id, assessment.phase_name, responses)
+
+    return jsonify({'success': True, 'summary': summary}), 200
