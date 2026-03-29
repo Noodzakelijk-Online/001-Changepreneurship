@@ -230,44 +230,82 @@ const AssessmentPage = () => {
     const Icon = currentPhaseData.icon;
     return (
       <div className="flex flex-col min-h-screen bg-gray-950">
-        {/* Phase breadcrumb bar */}
-        <div className="sticky top-16 z-30 bg-black/70 backdrop-blur-md border-b border-gray-800/60 px-6 py-2.5 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={handleBackToPhases}
-            className="flex items-center gap-2 text-sm text-gray-400 hover:text-cyan-400 transition-colors"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            All Stages
-          </button>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <Icon className="h-3.5 w-3.5" />
-            <span className="text-gray-300 font-medium">{currentPhaseData.title}</span>
-            <span className="text-gray-600">— Phase {currentPhaseIndex + 1} of {phases.length}</span>
-          </div>
-          {/* Mini phase switcher */}
-          <div className="hidden md:flex items-center gap-1">
-            {phases.map((p, i) => {
-              const isActive = p.id === selectedPhase;
-              const isDone = assessmentData[p.id]?.completed;
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  title={p.title}
-                  onClick={() => handlePhaseSelect(p.id)}
-                  className={`w-6 h-6 rounded-md text-xs font-bold transition-all ${
-                    isActive
-                      ? 'bg-gradient-to-br from-cyan-500 to-purple-500 text-white shadow-sm shadow-cyan-500/30'
-                      : isDone
-                      ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
-                      : 'bg-gray-800 text-gray-600 hover:bg-gray-700 hover:text-gray-400'
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              );
-            })}
+        {/* ── Unified phase progress track ── */}
+        <div className="sticky top-16 z-30 bg-black/80 backdrop-blur-md border-b border-gray-800/40 px-4 py-3">
+          <div className="max-w-5xl mx-auto flex items-center gap-0">
+            {/* Back */}
+            <button
+              type="button"
+              onClick={handleBackToPhases}
+              className="flex-shrink-0 flex items-center gap-1.5 text-xs text-gray-500 hover:text-cyan-400 transition-colors mr-4"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline font-medium">All</span>
+            </button>
+
+            {/* Phase segments — all 7 */}
+            <div className="flex items-center flex-1 overflow-x-auto min-w-0 gap-0">
+              {phases.map((p, i) => {
+                const isActive = p.id === selectedPhase;
+                const isDone = assessmentData[p.id]?.completed;
+                const PhaseIcon = p.icon;
+                const phaseProgress = assessmentData[p.id]?.progress || 0;
+                return (
+                  <React.Fragment key={p.id}>
+                    {i > 0 && (
+                      <div className={`h-px w-4 flex-shrink-0 transition-colors ${
+                        isDone ? 'bg-emerald-500/40' : 'bg-gray-800'
+                      }`} />
+                    )}
+                    <button
+                      type="button"
+                      title={p.title}
+                      onClick={() => handlePhaseSelect(p.id)}
+                      className={`group flex-shrink-0 flex flex-col items-start px-2.5 py-1.5 rounded-xl transition-all duration-200 ${
+                        isActive
+                          ? 'bg-cyan-500/10 border border-cyan-500/25'
+                          : isDone
+                          ? 'hover:bg-emerald-500/5 border border-transparent'
+                          : 'hover:bg-gray-900 border border-transparent'
+                      }`}
+                    >
+                      {/* Icon + label row */}
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        {isDone ? (
+                          <CheckCircle className="h-3 w-3 text-emerald-400 flex-shrink-0" />
+                        ) : isActive ? (
+                          <div className="h-3 w-3 rounded-full bg-cyan-500/30 border border-cyan-500 flex items-center justify-center flex-shrink-0">
+                            <div className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                          </div>
+                        ) : (
+                          <div className="h-3 w-3 rounded-full border border-gray-700 flex-shrink-0" />
+                        )}
+                        <span className={`text-[11px] font-medium whitespace-nowrap transition-colors ${
+                          isActive ? 'text-cyan-400' :
+                          isDone ? 'text-emerald-400/70' :
+                          'text-gray-600 group-hover:text-gray-400'
+                        }`}>
+                          {p.title}
+                        </span>
+                      </div>
+                      {/* Fill bar */}
+                      <div className="w-full h-0.5 bg-gray-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            isDone
+                              ? 'bg-emerald-500/70'
+                              : isActive
+                              ? 'bg-gradient-to-r from-cyan-500 to-purple-500'
+                              : 'bg-transparent'
+                          }`}
+                          style={{ width: isDone ? '100%' : isActive ? `${Math.max(phaseProgress, 4)}%` : '0%' }}
+                        />
+                      </div>
+                    </button>
+                  </React.Fragment>
+                );
+              })}
+            </div>
           </div>
         </div>
 

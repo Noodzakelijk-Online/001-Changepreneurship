@@ -393,78 +393,87 @@ const AssessmentShell = ({
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
 
-      {/* ── Section tabs + fill bars ── */}
-      <div className="bg-black/60 border-b border-gray-800/60 px-4 pt-5 pb-0">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex items-end gap-0 overflow-x-auto">
-            {sections.filter(s => s.questions?.length > 0).map((s, i) => {
-              const isActive = s.id === currentSection
-              const progress = sectionProgress[s.id] || 0
-              const isComplete = progress >= 100
-              const sQCount = s.questions?.length || 0
-              const answered = Object.keys(responses[s.id] || {}).length
+      {/* ── Section sub-track ── */}
+      <div className="bg-black/40 border-b border-gray-800/50 px-4 py-0">
+        <div className="max-w-5xl mx-auto flex items-stretch overflow-x-auto">
+          {sections.filter(s => s.questions?.length > 0).map((s, i) => {
+            const isActive = s.id === currentSection
+            const progress = sectionProgress[s.id] || 0
+            const isComplete = progress >= 100
+            const sQCount = s.questions?.length || 0
 
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => onSectionChange(s.id)}
-                  className={`group relative flex flex-col items-start flex-shrink-0 px-3 pb-0 pt-0 transition-colors ${
-                    isActive ? '' : 'hover:opacity-80'
-                  }`}
-                  style={{ minWidth: 80 }}
-                >
-                  {/* Section name */}
-                  <span className={`text-[11px] font-medium whitespace-nowrap mb-2 transition-colors ${
-                    isActive ? 'text-cyan-400' :
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => onSectionChange(s.id)}
+                className={`group relative flex flex-col items-start flex-shrink-0 px-3 pt-3 pb-0 transition-all ${
+                  isActive ? 'opacity-100' : 'opacity-60 hover:opacity-90'
+                }`}
+                style={{ minWidth: 72 }}
+              >
+                {/* Section label + check */}
+                <div className="flex items-center gap-1.5 mb-2">
+                  {isComplete ? (
+                    <CheckCircle className="h-3 w-3 text-emerald-400 flex-shrink-0" />
+                  ) : (
+                    <div className={`h-2 w-2 rounded-full flex-shrink-0 transition-colors ${
+                      isActive ? 'bg-cyan-500' : 'bg-gray-700'
+                    }`} />
+                  )}
+                  <span className={`text-[10px] font-medium whitespace-nowrap transition-colors leading-tight ${
                     isComplete ? 'text-emerald-400/70' :
+                    isActive ? 'text-cyan-400' :
                     'text-gray-600 group-hover:text-gray-400'
                   }`}>
                     {s.title}
                   </span>
+                </div>
 
-                  {/* Question dot row inside tab */}
-                  <div className="flex items-center gap-0.5 mb-2">
-                    {Array.from({ length: sQCount }).map((_, qi) => {
-                      const qId = s.questions[qi]?.id
-                      const answered = qId && (responses[s.id] || {})[qId] !== undefined &&
-                        (responses[s.id] || {})[qId] !== '' &&
-                        !( Array.isArray((responses[s.id] || {})[qId]) && (responses[s.id] || {})[qId].length === 0 )
-                      const isCurrent = isActive && qi === questionIndex
-                      return (
-                        <div
-                          key={qi}
-                          className={`rounded-full transition-all duration-200 ${
-                            isCurrent
-                              ? 'w-3.5 h-3.5 bg-cyan-500 shadow-sm shadow-cyan-500/60 ring-2 ring-cyan-500/30'
-                              : answered
-                              ? 'w-2 h-2 bg-emerald-500/80'
-                              : isActive
-                              ? 'w-2 h-2 bg-gray-700'
-                              : 'w-1.5 h-1.5 bg-gray-800'
-                          }`}
-                        />
-                      )
-                    })}
-                  </div>
+                {/* Question dots */}
+                <div className="flex items-center gap-0.5 mb-2.5">
+                  {Array.from({ length: sQCount }).map((_, qi) => {
+                    const qId = s.questions[qi]?.id
+                    const isAnswered = qId !== undefined &&
+                      (responses[s.id] || {})[qId] !== undefined &&
+                      (responses[s.id] || {})[qId] !== '' &&
+                      !(Array.isArray((responses[s.id] || {})[qId]) && (responses[s.id] || {})[qId].length === 0)
+                    const isCurrent = isActive && qi === questionIndex
+                    return (
+                      <div
+                        key={qi}
+                        className={`rounded-full transition-all duration-200 ${
+                          isCurrent
+                            ? 'w-3 h-3 bg-cyan-500 shadow-sm shadow-cyan-500/60 ring-2 ring-cyan-500/25'
+                            : isAnswered
+                            ? 'w-2 h-2 bg-emerald-500/80'
+                            : 'w-1.5 h-1.5 bg-gray-700'
+                        }`}
+                      />
+                    )
+                  })}
+                </div>
 
-                  {/* Fill bar at bottom */}
-                  <div className="w-full h-0.5 rounded-t-full overflow-hidden bg-gray-800/60">
-                    <div
-                      className={`h-full rounded-t-full transition-all duration-500 ${
-                        isActive
-                          ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
-                          : isComplete
-                          ? 'bg-emerald-500/60'
-                          : 'bg-transparent'
-                      }`}
-                      style={{ width: isActive ? `${((questionIndex + 1) / Math.max(sQCount, 1)) * 100}%` : `${progress}%` }}
-                    />
-                  </div>
-                </button>
-              )
-            })}
-          </div>
+                {/* Bottom fill bar (active = fill to current Q; complete = full; else = by progress) */}
+                <div className="w-full h-0.5 rounded-t-full overflow-hidden bg-gray-800/50">
+                  <div
+                    className={`h-full rounded-t-full transition-all duration-400 ${
+                      isComplete ? 'bg-emerald-500/60' :
+                      isActive ? 'bg-gradient-to-r from-cyan-500 to-cyan-400' :
+                      'bg-transparent'
+                    }`}
+                    style={{
+                      width: isComplete
+                        ? '100%'
+                        : isActive
+                        ? `${Math.max(4, ((questionIndex + 1) / Math.max(sQCount, 1)) * 100)}%`
+                        : `${progress}%`
+                    }}
+                  />
+                </div>
+              </button>
+            )
+          })}
         </div>
       </div>
 
