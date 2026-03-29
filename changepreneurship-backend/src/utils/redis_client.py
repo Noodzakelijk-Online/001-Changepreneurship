@@ -39,7 +39,8 @@ def cache_session(token: str, user_id: int, ttl_seconds: int = 60 * 60 * 24 * 30
     try:
         client.set(f"session:{token}", user_id, ex=ttl_seconds)
         return True
-    except Exception:
+    except Exception as e:
+        logger.warning(f"[Redis] cache_session failed: {e}")
         return False
 
 def get_session_user(token: str):
@@ -51,7 +52,8 @@ def get_session_user(token: str):
         if val is None:
             return None
         return int(val)
-    except Exception:
+    except Exception as e:
+        logger.warning(f"[Redis] get_session_user failed: {e}")
         return None
 
 # -------------------- Generic JSON/object caching helpers --------------------

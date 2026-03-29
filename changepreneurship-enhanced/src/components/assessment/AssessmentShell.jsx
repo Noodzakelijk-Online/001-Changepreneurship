@@ -21,7 +21,7 @@
  */
 
 import React, { useState, useEffect } from 'react'
-import { CheckCircle, ArrowRight, ArrowLeft, ChevronRight } from 'lucide-react'
+import { CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react'
 import { Slider } from '@/components/ui/slider.jsx'
 import { Textarea } from '@/components/ui/textarea.jsx'
 import DragDropRanking from '@/components/ui/drag-drop-ranking.jsx'

@@ -16,6 +16,7 @@ from ..services.ai_recommendations_service import AIRecommendationsEngine
 from ..services.insights_report_service import InsightsReportService
 from ..models.assessment import Assessment, AssessmentResponse
 from ..utils.auth import verify_session_token
+from ..utils.assessment_collector import collect_assessment_data
 
 logger = logging.getLogger(__name__)
 ai_recommendations_bp = Blueprint('ai_recommendations', __name__)
@@ -24,40 +25,6 @@ ai_recommendations_bp = Blueprint('ai_recommendations', __name__)
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
-
-def _collect_assessment_data(user) -> dict:
-    """Collect full assessment data needed by InsightsReportService."""
-    assessments = Assessment.query.filter_by(user_id=user.id).all()
-
-    phases = [
-        {
-            'id': a.phase_id,
-            'name': a.phase_name,
-            'progress': a.progress_percentage,
-            'completed': a.is_completed,
-        }
-        for a in assessments
-    ]
-
-    responses_by_phase: dict = {}
-    if assessments:
-        assessment_ids = [a.id for a in assessments]
-        all_responses = AssessmentResponse.query.filter(
-            AssessmentResponse.assessment_id.in_(assessment_ids)
-        ).all()
-        aid_to_phase = {a.id: a.phase_id for a in assessments}
-        for r in all_responses:
-            pid = aid_to_phase.get(r.assessment_id)
-            if pid:
-                responses_by_phase.setdefault(pid, []).append({
-                    'question_id': r.question_id,
-                    'section_id': r.section_id,
-                    'question_text': r.question_text or r.question_id,
-                    'response_value': r.get_response_value(),
-                    'response_type': r.response_type,
-                })
-
-    return {'phases': phases, 'responses': responses_by_phase}
 
 
 def _map_report_to_recommendations(report: dict, user_id: int) -> dict:
@@ -153,7 +120,7 @@ def get_recommendations(user_id):
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
     try:
-        assessment_data = _collect_assessment_data(user)
+        assessment_data = collect_assessment_data(user.id)
         service = InsightsReportService()
         report = service.generate_report(user.id, assessment_data)
         data = _map_report_to_recommendations(report, user_id)
@@ -184,7 +151,7 @@ def get_user_strengths(user_id):
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
     try:
-        assessment_data = _collect_assessment_data(user)
+        assessment_data = collect_assessment_data(user.id)
         service = InsightsReportService()
         report = service.generate_report(user.id, assessment_data)
         ent = report.get('entrepreneur', {})
@@ -221,7 +188,7 @@ def get_action_plan(user_id):
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
     try:
-        assessment_data = _collect_assessment_data(user)
+        assessment_data = collect_assessment_data(user.id)
         service = InsightsReportService()
         report = service.generate_report(user.id, assessment_data)
         data = _map_report_to_recommendations(report, user_id)

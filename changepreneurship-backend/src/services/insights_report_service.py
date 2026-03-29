@@ -385,6 +385,7 @@ class InsightsReportService:
         response_format={"type": "json_object"},
         temperature=0.3,
         max_tokens=8192,
+        timeout=90,
       )
       elapsed = time.time() - t0
       raw = completion.choices[0].message.content

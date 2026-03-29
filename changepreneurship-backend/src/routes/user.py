@@ -18,27 +18,44 @@ def get_profile():
 
 @user_bp.route('/users', methods=['GET'])
 def get_users():
+    """Return only the authenticated user's own data."""
     user, session, error, status_code = verify_session_token()
     if error:
         return jsonify(error), status_code
-    users = User.query.all()
-    return jsonify([u.to_dict() for u in users])
+    # Never expose the full user list — return only the caller's record
+    return jsonify([user.to_dict()])
 
 @user_bp.route('/users', methods=['POST'])
 def create_user():
-    data = request.json
-    
-    # Handle password requirement for comprehensive User model
-    password_hash = data.get('password_hash', 'temp_hash_for_testing')
-    
-    user = User(
-        username=data['username'], 
-        email=data['email'],
-        password_hash=password_hash
-    )
-    db.session.add(user)
-    db.session.commit()
-    return jsonify(user.to_dict()), 201
+    """Create a new user account. Requires authentication (admin path)."""
+    current_user, session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Request body required'}), 400
+
+    username = data.get('username', '').strip()
+    email = data.get('email', '').strip()
+    password_hash = data.get('password_hash', '')
+
+    if not username or not email or not password_hash:
+        return jsonify({'error': 'username, email and password_hash are required'}), 400
+
+    if User.query.filter_by(email=email).first():
+        return jsonify({'error': 'Email already in use'}), 409
+
+    try:
+        user = User(username=username, email=email, password_hash=password_hash)
+        db.session.add(user)
+        db.session.commit()
+        return jsonify(user.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        from flask import current_app
+        current_app.logger.error(f'[Users] Create user error: {e}')
+        return jsonify({'error': 'Failed to create user'}), 500
 
 @user_bp.route('/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):

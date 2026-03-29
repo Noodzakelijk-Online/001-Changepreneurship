@@ -15,19 +15,29 @@ const API_BASE_URL = RAW_BASE
 const SESSION_TOKEN_KEY =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SESSION_STORAGE_KEY) ||
   'changepreneurship_session_token';
+// USER_DATA_KEY kept for migration cleanup only (reading from old localStorage)
 const USER_DATA_KEY =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_USER_STORAGE_KEY) ||
   'changepreneurship_user_data';
 
+// Use sessionStorage for the auth token (cleared on tab close; not readable
+// across origins). userData is kept in memory only — never written to storage.
+const _storage = typeof window !== 'undefined' ? window.sessionStorage : null;
+
 class ApiService {
   constructor() {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      this.sessionToken = localStorage.getItem(SESSION_TOKEN_KEY);
-      this.userData = this.getUserData();
+    // Prefer sessionStorage; fall back to in-memory only if unavailable.
+    // Also clear any legacy localStorage entry on startup.
+    if (typeof window !== 'undefined') {
+      // One-time migration: remove old localStorage token
+      try { window.localStorage.removeItem(SESSION_TOKEN_KEY); } catch (_) {}
+      try { window.localStorage.removeItem(USER_DATA_KEY); } catch (_) {}
+
+      this.sessionToken = _storage ? _storage.getItem(SESSION_TOKEN_KEY) : null;
     } else {
       this.sessionToken = null;
-      this.userData = null;
     }
+    this.userData = null; // kept in memory only
   }
 
   getHeaders() {
@@ -75,14 +85,10 @@ class ApiService {
 
   setSession(sessionToken, userData, expiresAt) {
     this.sessionToken = sessionToken;
-    this.userData = userData;
-    if (typeof window !== 'undefined' && window.localStorage) {
+    this.userData = userData ? { ...userData, expiresAt } : null;
+    if (_storage) {
       if (sessionToken) {
-        localStorage.setItem(SESSION_TOKEN_KEY, sessionToken);
-        localStorage.setItem(
-          USER_DATA_KEY,
-          JSON.stringify({ ...userData, expiresAt })
-        );
+        _storage.setItem(SESSION_TOKEN_KEY, sessionToken);
       } else {
         this.clearSession();
       }
@@ -92,20 +98,14 @@ class ApiService {
   clearSession() {
     this.sessionToken = null;
     this.userData = null;
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.removeItem(SESSION_TOKEN_KEY);
-      localStorage.removeItem(USER_DATA_KEY);
+    if (_storage) {
+      _storage.removeItem(SESSION_TOKEN_KEY);
     }
   }
 
   getUserData() {
-    if (typeof window === 'undefined' || !window.localStorage) return null;
-    try {
-      const raw = localStorage.getItem(USER_DATA_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
+    // userData is in-memory only; return current value
+    return this.userData;
   }
 
   isSessionExpired() {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 import { useAssessment } from '../../contexts/AssessmentContext';
+import { scoreColorClass } from '@/lib/utils.js';
 
 // Human-readable phase names
 const PHASE_NAMES = {
@@ -12,13 +13,6 @@ const PHASE_NAMES = {
   business_development: 'Business Development',
   business_prototype_testing: 'Business Prototype Testing',
 };
-
-// Score → color mapping
-function scoreColor(score) {
-  if (score >= 70) return 'text-emerald-400';
-  if (score >= 50) return 'text-yellow-400';
-  return 'text-orange-400';
-}
 
 function scoreBg(score) {
   if (score >= 70) return 'bg-emerald-500/15 border-emerald-500/30';
@@ -77,7 +71,7 @@ export default function PhaseCompletionPanel() {
               {/* Score + headline */}
               <div className="flex items-center gap-4 mb-4">
                 <div className={`flex-shrink-0 px-4 py-2 rounded-xl border text-center ${scoreBg(data.score)}`}>
-                  <div className={`text-2xl font-bold tabular-nums ${scoreColor(data.score)}`}>
+                  <div className={`text-2xl font-bold tabular-nums ${scoreColorClass(data.score)}`}>
                     {data.score}
                   </div>
                   <div className="text-[10px] text-gray-500 uppercase tracking-wide">Score</div>

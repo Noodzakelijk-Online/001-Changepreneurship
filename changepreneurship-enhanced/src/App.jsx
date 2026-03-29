@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useRef as useDoubleRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -39,7 +39,6 @@ import "./App.css";
 
 // Navigation utilities
 import { NavigationProvider } from "./contexts/NavigationContext.jsx";
-import QuestionNavigator from "./components/navigation/QuestionNavigator.jsx";
 
 // Contexts
 import { AuthProvider } from "./contexts/AuthContext";
@@ -49,7 +48,6 @@ import {
 } from "./contexts/AssessmentContext";
 
 // Components
-import ReactLazy from 'react';
 const SelfDiscoveryAssessment = React.lazy(() => import('./components/assessment/SelfDiscoveryAssessment'));
 const IdeaDiscoveryAssessment = React.lazy(() => import('./components/assessment/IdeaDiscoveryAssessment'));
 const MarketResearchTools = React.lazy(() => import('./components/assessment/MarketResearchTools'));

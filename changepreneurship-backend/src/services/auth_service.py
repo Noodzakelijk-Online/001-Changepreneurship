@@ -1,12 +1,15 @@
 """Authentication service - handles user auth logic"""
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
+import logging
 import secrets
 import re
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from src.models.assessment import db, User, UserSession, EntrepreneurProfile
 from src.utils.redis_client import cache_session
+
+logger = logging.getLogger(__name__)
 
 
 class AuthService:
@@ -78,7 +81,8 @@ class AuthService:
             return user, None
         except Exception as e:
             db.session.rollback()
-            return None, f"Failed to create user: {str(e)}"
+            logger.error(f"[AuthService] create_user failed for '{username}': {e}")
+            return None, "An error occurred while creating your account. Please try again."
 
     @staticmethod
     def authenticate(username_or_email: str, password: str) -> Optional[User]:

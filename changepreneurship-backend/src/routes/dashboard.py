@@ -122,20 +122,18 @@ def get_sub_element_details(element_key):
 @dashboard_bp.route('/api/dashboard/metrics', methods=['GET'])
 @cross_origin()
 def get_dashboard_metrics():
-    """Get aggregated dashboard metrics"""
-    user_id = request.args.get('user_id')
-    
-    if user_id:
-        current_app.logger.info(f"Getting metrics for user: {user_id}")
-    else:
-        current_app.logger.info("Getting aggregate dashboard metrics")
-    
-    metrics = dashboard_service.get_dashboard_metrics(user_id)
-    
+    """Get aggregated dashboard metrics for the authenticated user."""
+    user, user_session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+
+    current_app.logger.info(f"[Dashboard] Metrics for user: {user.username} (ID: {user.id})")
+    metrics = dashboard_service.get_dashboard_metrics(user.id)
+
     return jsonify({
         'success': True,
         'data': metrics,
-        'user_specific': bool(user_id)
+        'user_specific': True
     })
 
 
@@ -207,47 +205,44 @@ def get_all_sub_elements():
 @dashboard_bp.route('/api/dashboard/insights', methods=['GET'])
 @cross_origin()
 def get_ai_insights():
-    """
-    Get AI insights and recommendations for a user
-    Query Parameters:
-    - user_id: User ID (optional)
-    """
+    """Get AI insights for the authenticated user."""
+    user, user_session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+
     try:
-        user_id = request.args.get('user_id', session.get('user_id', 'demo-user'))
-        
-        current_app.logger.info(f"Getting AI insights for user: {user_id}")
-        
-        # Get full dashboard data and extract insights
-        dashboard_data = dashboard_service.generate_executive_summary(user_id)
+        current_app.logger.info(f"[Dashboard] AI insights for user: {user.username} (ID: {user.id})")
+
+        dashboard_data = dashboard_service.generate_executive_summary(user.id)
         ai_insights = dashboard_data.get('ai_insights', {})
-        
-        # Add overall score context
         ai_insights['overall_score'] = dashboard_data.get('overall_score', 0)
         ai_insights['data_completeness'] = dashboard_data.get('data_completeness', 0)
-        
+
         return jsonify({
             'success': True,
             'data': ai_insights,
-            'user_id': user_id
         })
-        
+
     except Exception as e:
-        current_app.logger.error(f"AI insights error: {str(e)}")
+        current_app.logger.error(f"[Dashboard] AI insights error: {e}")
         return jsonify({
             'success': False,
             'error': 'Failed to retrieve AI insights',
-            'details': str(e)
         }), 500
 
 @dashboard_bp.route('/api/dashboard/test-data/create', methods=['POST'])
 @cross_origin()
 def create_test_data():
     """
-    Create comprehensive test data for dashboard testing
+    Create comprehensive test data (admin / dev only — requires authentication).
     """
+    user, user_session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+
     try:
-        current_app.logger.info("Creating test data for Executive Summary Dashboard")
-        
+        current_app.logger.info(f"[Dashboard] Creating test data (requested by user {user.id})")
+
         user_id = test_data_generator.create_complete_test_scenario()
         
         if user_id:
@@ -278,11 +273,13 @@ def create_test_data():
 @dashboard_bp.route('/api/dashboard/test-data/cleanup', methods=['DELETE'])
 @cross_origin()
 def cleanup_test_data():
-    """
-    Clean up test data
-    """
+    """Clean up test data (requires authentication)."""
+    user, user_session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+
     try:
-        current_app.logger.info("Cleaning up test data")
+        current_app.logger.info(f"[Dashboard] Cleaning up test data (requested by user {user.id})")
         
         success = test_data_generator.cleanup_test_data('executive_test_user')
         
@@ -308,12 +305,13 @@ def cleanup_test_data():
 @dashboard_bp.route('/api/dashboard/complete-user/create', methods=['POST'])
 @cross_origin()
 def create_complete_user():
-    """
-    Create a complete test user with 100% filled assessments
-    Sarah Chen - Tech SaaS Founder with realistic, comprehensive data
-    """
+    """Create a complete test user (requires authentication)."""
+    user, user_session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+
     try:
-        current_app.logger.info("Creating complete user: Sarah Chen")
+        current_app.logger.info(f"[Dashboard] Creating complete user (requested by user {user.id})")
         
         user_id = complete_user_generator.create_complete_user()
         

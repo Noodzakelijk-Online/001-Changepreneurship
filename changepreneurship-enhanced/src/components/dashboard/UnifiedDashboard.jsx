@@ -32,7 +32,6 @@ const UnifiedDashboard = () => {
   const { user, isAuthenticated } = useAuth()
   const { getOverallProgress } = useAssessment()
   const { metrics, profile, responses, insights, loading, error, refresh, hasData } = useDashboardData()
-  const [expandedPhases, setExpandedPhases] = useState({})
   const [showAllResponses, setShowAllResponses] = useState(false)
 
   // Phase definitions
@@ -45,10 +44,6 @@ const UnifiedDashboard = () => {
     { id: 'business_development', name: 'Business Development', emoji: '📈', category: 'Implementation' },
     { id: 'business_prototype_testing', name: 'Prototype Testing', emoji: '🚀', category: 'Implementation' }
   ]
-
-  const togglePhaseExpand = (phaseId) => {
-    setExpandedPhases(prev => ({ ...prev, [phaseId]: !prev[phaseId] }))
-  }
 
   const exportData = () => {
     const exportObj = {
