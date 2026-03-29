@@ -23,6 +23,7 @@ import {
   Search,
   Building,
   ArrowRight,
+  ArrowLeft,
   CheckCircle,
   Target,
   Heart,
@@ -106,11 +107,8 @@ const AssessmentPage = () => {
         return;
       }
     }
-    const stored = localStorage.getItem('cp_selected_phase');
-    if (stored) {
-      setSelectedPhase(stored);
-      updatePhase(stored);
-    }
+    // Only restore from localStorage if we arrived via a direct URL slug above.
+    // At plain /assessment we always show the picker so the user can choose.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -229,24 +227,67 @@ const AssessmentPage = () => {
 
   // Phase selected — render AssessmentShell directly, no outer wrappers
   if (CurrentComponent) {
+    const Icon = currentPhaseData.icon;
     return (
-      <>
+      <div className="flex flex-col min-h-screen bg-gray-950">
+        {/* Phase breadcrumb bar */}
+        <div className="sticky top-16 z-30 bg-black/70 backdrop-blur-md border-b border-gray-800/60 px-6 py-2.5 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={handleBackToPhases}
+            className="flex items-center gap-2 text-sm text-gray-400 hover:text-cyan-400 transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            All Stages
+          </button>
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Icon className="h-3.5 w-3.5" />
+            <span className="text-gray-300 font-medium">{currentPhaseData.title}</span>
+            <span className="text-gray-600">— Phase {currentPhaseIndex + 1} of {phases.length}</span>
+          </div>
+          {/* Mini phase switcher */}
+          <div className="hidden md:flex items-center gap-1">
+            {phases.map((p, i) => {
+              const isActive = p.id === selectedPhase;
+              const isDone = assessmentData[p.id]?.completed;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  title={p.title}
+                  onClick={() => handlePhaseSelect(p.id)}
+                  className={`w-6 h-6 rounded-md text-xs font-bold transition-all ${
+                    isActive
+                      ? 'bg-gradient-to-br from-cyan-500 to-purple-500 text-white shadow-sm shadow-cyan-500/30'
+                      : isDone
+                      ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
+                      : 'bg-gray-800 text-gray-600 hover:bg-gray-700 hover:text-gray-400'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {unknownSlug && (
           <div className="px-6 py-2 text-sm text-red-400 bg-red-500/10 border-b border-red-500/20">
             Unknown segment "{params.slug}".{' '}
-            <button className="underline" onClick={() => { setSelectedPhase(null); }}>
-              Return to all phases
-            </button>
+            <button className="underline" onClick={handleBackToPhases}>Return to all phases</button>
           </div>
         )}
-        <React.Suspense fallback={
-          <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-            <div className="animate-pulse text-sm text-gray-600">Loading assessment...</div>
-          </div>
-        }>
-          <CurrentComponent />
-        </React.Suspense>
-      </>
+
+        <div className="flex-1">
+          <React.Suspense fallback={
+            <div className="min-h-[60vh] bg-gray-950 flex items-center justify-center">
+              <div className="animate-pulse text-sm text-gray-600">Loading assessment...</div>
+            </div>
+          }>
+            <CurrentComponent />
+          </React.Suspense>
+        </div>
+      </div>
     );
   }
 
