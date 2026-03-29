@@ -540,12 +540,10 @@ const LandingPage = () => {
               </span>
             </div>
             <p className="text-gray-500 text-sm">
-              Cognitive Venture Architecture © 2026
+              © 2026 Changepreneurship. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm text-gray-500">
-              <a href="#" className="hover:text-cyan-400 transition-colors">Privacy</a>
-              <a href="#" className="hover:text-cyan-400 transition-colors">Terms</a>
-              <a href="#" className="hover:text-cyan-400 transition-colors">API</a>
+              <span className="cursor-default">v1.0 — Early Access</span>
             </div>
           </div>
         </div>
