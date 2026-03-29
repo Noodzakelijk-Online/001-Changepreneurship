@@ -1,428 +1,92 @@
 {
   "user": {
-    "id": 4,
     "username": "alex_beginner_founder",
-    "email": "alex.beginner@teststartup.io"
+    "email": "alex@example.com",
+    "first_name": "Alex",
+    "last_name": "Founder"
   },
   "assessments": [
     {
       "phase_name": "Self Discovery Assessment",
-      "progress_percentage": 100.0,
+      "progress_percentage": 100,
       "responses": [
-        {
-          "section_id": "personal_strengths",
-          "question_id": "core_strengths",
-          "question_text": "What are your top 3 professional strengths?",
-          "response_type": "text",
-          "response_value": "I learn quickly when I have a clear example. I communicate well one-on-one and ask good questions. I am persistent and finish tasks even when I am not fully confident at the start."
-        },
-        {
-          "section_id": "personal_strengths",
-          "question_id": "technical_skills",
-          "question_text": "Rate your technical proficiency",
-          "response_type": "scale",
-          "response_value": "2"
-        },
-        {
-          "section_id": "entrepreneurial_motivation",
-          "question_id": "why_entrepreneur",
-          "question_text": "Why do you want to become an entrepreneur?",
-          "response_type": "text",
-          "response_value": "I want to build a small product and learn how business works in practice. I do not have much experience yet, but I am motivated to solve a problem I face myself."
-        },
-        {
-          "section_id": "entrepreneurial_motivation",
-          "question_id": "risk_tolerance",
-          "question_text": "How comfortable are you with financial risk?",
-          "response_type": "scale",
-          "response_value": "2"
-        },
-        {
-          "section_id": "entrepreneurial_motivation",
-          "question_id": "backup_plan",
-          "question_text": "Do you have a financial safety net?",
-          "response_type": "text",
-          "response_value": "I have savings for about 4 months of expenses and I am keeping my current job while testing the idea. My plan is to stay part-time until I validate demand."
-        },
-        {
-          "section_id": "work_style",
-          "question_id": "work_ethic",
-          "question_text": "Describe your typical work schedule and habits",
-          "response_type": "text",
-          "response_value": "On weekdays I work on the idea 1-2 hours in the evening and 4-5 hours on weekends. I do not have a perfect routine yet, but I use a simple next-day priority list."
-        },
-        {
-          "section_id": "work_style",
-          "question_id": "stress_management",
-          "question_text": "How do you handle high-pressure situations?",
-          "response_type": "scale",
-          "response_value": "3"
-        },
-        {
-          "section_id": "decision_making",
-          "question_id": "decision_style",
-          "question_text": "How do you typically make important decisions?",
-          "response_type": "text",
-          "response_value": "I first gather basic information, then ask 1-2 more experienced people, and then decide. I sometimes overthink because I am unsure, so I set a 48-hour deadline for smaller decisions."
-        },
-        {
-          "section_id": "leadership",
-          "question_id": "team_management",
-          "question_text": "Describe your leadership experience",
-          "response_type": "text",
-          "response_value": "I do not have formal management experience. I led a small student project and coordinated 3 people on one freelance assignment."
-        },
-        {
-          "section_id": "network",
-          "question_id": "professional_network",
-          "question_text": "Describe your professional network",
-          "response_type": "text",
-          "response_value": "My network is small: a few IT colleagues, a couple of designers, and one friend in sales. I am not active in many communities yet, but I plan to attend local meetups."
-        },
-        {
-          "section_id": "learning_mindset",
-          "question_id": "learning_approach",
-          "question_text": "How do you approach learning new skills?",
-          "response_type": "text",
-          "response_value": "I learn from short tutorials and immediately build a mini-project to test understanding. I keep notes on gaps and revisit them on weekends."
-        },
-        {
-          "section_id": "commitment",
-          "question_id": "time_commitment",
-          "question_text": "How many hours per week can you commit?",
-          "response_type": "scale",
-          "response_value": "3"
-        }
+        {"section_id": "motivation","question_id": "primary-motivation","question_text": "What is the main reason you want to start your own business?","response_type": "text","response_value": "solve-problems"},
+        {"section_id": "motivation","question_id": "success-vision","question_text": "When you imagine your business being successful, what does that look like?","response_type": "text","response_value": "A small but profitable SaaS business with 5-10 employees, where I have full ownership and work on problems I care about. Revenue around $500K, working with a tight team."},
+        {"section_id": "motivation","question_id": "risk-tolerance","question_text": "How comfortable are you with taking risks?","response_type": "scale","response_value": 7},
+        {"section_id": "life-impact","question_id": "life-satisfaction","question_text": "Rate your current satisfaction in different life areas","response_type": "multiple-scale","response_value": {"Health": 7,"Money": 5,"Family": 8,"Friends": 7,"Career": 4,"Growth": 6,"Recreation": 5,"Environment": 7}},
+        {"section_id": "values","question_id": "top-values","question_text": "Rank these values in order of importance to you","response_type": "text","response_value": "[{\"value\":\"personal-freedom\",\"label\":\"Personal Freedom\"},{\"value\":\"learning\",\"label\":\"Learning\"},{\"value\":\"making-difference\",\"label\":\"Making a Difference\"},{\"value\":\"financial-success\",\"label\":\"Financial Success\"},{\"value\":\"family-time\",\"label\":\"Family Time\"},{\"value\":\"security\",\"label\":\"Security\"},{\"value\":\"adventure\",\"label\":\"Adventure\"},{\"value\":\"recognition\",\"label\":\"Recognition\"}]"},
+        {"section_id": "vision","question_id": "ten-year-vision","question_text": "Describe your ideal life 10 years from now","response_type": "text","response_value": "Running a bootstrapped software company from anywhere in Europe. Financially free, working 40 hours a week on products I built, with time for family and hobbies."},
+        {"section_id": "confidence","question_id": "vision-confidence","question_text": "How confident are you that you can achieve your 10-year vision?","response_type": "scale","response_value": 7}
       ]
     },
     {
       "phase_name": "Idea Discovery Assessment",
-      "progress_percentage": 100.0,
+      "progress_percentage": 100,
       "responses": [
-        {
-          "section_id": "problem_definition",
-          "question_id": "core_problem",
-          "question_text": "What problem are you solving?",
-          "response_type": "text",
-          "response_value": "Small teams and freelancers often forget decisions from chats and meetings, then lose time repeating context. They use multiple tools and nothing is truly centralized."
-        },
-        {
-          "section_id": "problem_definition",
-          "question_id": "problem_severity",
-          "question_text": "How severe is this problem?",
-          "response_type": "scale",
-          "response_value": "3"
-        },
-        {
-          "section_id": "solution_overview",
-          "question_id": "solution_description",
-          "question_text": "Describe your solution",
-          "response_type": "text",
-          "response_value": "A simple tool that collects messages and notes in one place and produces a short daily task summary. The focus is ease of use, not advanced enterprise features."
-        },
-        {
-          "section_id": "target_market",
-          "question_id": "target_customer",
-          "question_text": "Who is your target customer?",
-          "response_type": "text",
-          "response_value": "Small remote teams with 3 to 15 people and freelancers working with multiple clients."
-        },
-        {
-          "section_id": "target_market",
-          "question_id": "market_size",
-          "question_text": "Estimate your total addressable market",
-          "response_type": "text",
-          "response_value": "I do not have a precise model yet. A rough early target is 200 teams in the region, average 5 users each, at about $8-10 per user as an initial validation milestone."
-        },
-        {
-          "section_id": "unique_value",
-          "question_id": "differentiation",
-          "question_text": "What makes your solution unique?",
-          "response_type": "text",
-          "response_value": "Very simple onboarding (under 10 minutes), clear daily summaries, and strong focus on small teams that do not want enterprise complexity."
-        },
-        {
-          "section_id": "validation",
-          "question_id": "customer_validation",
-          "question_text": "Have you validated this idea with potential customers?",
-          "response_type": "text",
-          "response_value": "I spoke with 8 potential users. Most confirmed the pain point, but I have not run a serious paid pilot yet."
-        },
-        {
-          "section_id": "validation",
-          "question_id": "willingness_to_pay",
-          "question_text": "Have customers expressed willingness to pay?",
-          "response_type": "scale",
-          "response_value": "2"
-        },
-        {
-          "section_id": "business_model",
-          "question_id": "revenue_model",
-          "question_text": "How will you make money?",
-          "response_type": "text",
-          "response_value": "Subscription pricing per user per month with two plans: Basic and Pro, plus a 14-day free trial."
-        },
-        {
-          "section_id": "competitive_landscape",
-          "question_id": "competitors",
-          "question_text": "Who are your main competitors?",
-          "response_type": "text",
-          "response_value": "Notion, Trello, and ClickUp are direct alternatives for many users. An indirect alternative is Google Docs plus Slack workflows."
-        }
+        {"section_id": "core-alignment","question_id": "business-idea-clarity","question_text": "How clear is your business idea right now?","response_type": "text","response_value": "somewhat-clear"},
+        {"section_id": "core-alignment","question_id": "idea-description","question_text": "Describe your current business idea","response_type": "text","response_value": "A B2B SaaS platform that helps small e-commerce businesses automate their customer support with AI, reducing response times from hours to seconds."},
+        {"section_id": "core-alignment","question_id": "passion-alignment","question_text": "How passionate are you about this business idea/area?","response_type": "scale","response_value": 8},
+        {"section_id": "core-alignment","question_id": "problem-understanding","question_text": "How well do you understand the problem your business would solve?","response_type": "scale","response_value": 7},
+        {"section_id": "skills-assessment","question_id": "relevant-skills","question_text": "Rate your current skill level in areas relevant to your business idea","response_type": "multiple-scale","response_value": {"Industry Knowledge": 6,"Technical Skills": 8,"Business Skills": 5,"Marketing": 4,"Sales": 4,"Finance": 4}},
+        {"section_id": "skills-assessment","question_id": "skill-gaps","question_text": "What are the biggest skill gaps you need to address?","response_type": "text","response_value": "Sales and B2B marketing are my biggest gaps. I can build the product but need to learn how to acquire customers and structure SaaS pricing."},
+        {"section_id": "problem-identification","question_id": "target-customer","question_text": "Who is your target customer?","response_type": "text","response_value": "Small to medium e-commerce stores (Shopify, WooCommerce) with 5-50 employees, doing $500K-$5M in annual revenue."},
+        {"section_id": "problem-identification","question_id": "customer-pain-points","question_text": "What specific problems do your target customers face?","response_type": "text","response_value": "Overwhelmed by repetitive customer questions (shipping, returns, tracking). Can not afford full-time support staff. Losing sales due to slow response times."},
+        {"section_id": "problem-identification","question_id": "current-solutions","question_text": "How do customers currently solve these problems?","response_type": "text","response_value": "Generic live chat tools (Intercom, Zendesk) that are too expensive for small stores. DIY FAQ pages. Hiring part-time support staff."},
+        {"section_id": "problem-identification","question_id": "solution-uniqueness","question_text": "What makes your solution different or better?","response_type": "text","response_value": "AI trained specifically on e-commerce, connects to order management for real-time tracking, 10x cheaper than Zendesk for SMBs."},
+        {"section_id": "market-promise","question_id": "market-size","question_text": "How large is your target market?","response_type": "text","response_value": "large"},
+        {"section_id": "market-promise","question_id": "market-growth","question_text": "Is your target market growing, stable, or declining?","response_type": "text","response_value": "rapid-growth"},
+        {"section_id": "market-promise","question_id": "revenue-potential","question_text": "What revenue potential do you see for your business?","response_type": "text","response_value": "growth-business"},
+        {"section_id": "opportunity-scoring","question_id": "timing-assessment","question_text": "How would you rate the timing for this business opportunity?","response_type": "scale","response_value": 8},
+        {"section_id": "opportunity-scoring","question_id": "competition-level","question_text": "How competitive is this market?","response_type": "text","response_value": "moderate"},
+        {"section_id": "opportunity-scoring","question_id": "barriers-to-entry","question_text": "What are the main barriers to entering this market?","response_type": "text","response_value": "Technical complexity of AI, integrations with multiple e-commerce platforms, building trust with skeptical merchants."},
+        {"section_id": "opportunity-scoring","question_id": "success-probability","question_text": "How would you rate the probability of success for this business idea?","response_type": "scale","response_value": 7}
       ]
     },
     {
       "phase_name": "Market Research",
-      "progress_percentage": 100.0,
+      "progress_percentage": 100,
       "responses": [
-        {
-          "section_id": "market_analysis",
-          "question_id": "market_trends",
-          "question_text": "What are the key market trends?",
-          "response_type": "text",
-          "response_value": "Remote work remains common, but teams are cost-sensitive and prefer simple tools. AI features are attractive, but users care most about practical day-to-day value."
-        },
-        {
-          "section_id": "customer_research",
-          "question_id": "customer_interviews",
-          "question_text": "How many customer interviews have you conducted?",
-          "response_type": "text",
-          "response_value": "So far, 8 interviews of 20-30 minutes each. My target is 25 interviews before building major new features."
-        },
-        {
-          "section_id": "competitive_analysis",
-          "question_id": "competitive_research",
-          "question_text": "Describe your competitive analysis",
-          "response_type": "text",
-          "response_value": "I did a basic review of 4 tools and read customer reviews. The common complaint is complexity and too many steps for simple tasks."
-        },
-        {
-          "section_id": "pricing_research",
-          "question_id": "pricing_strategy",
-          "question_text": "What is your pricing research showing?",
-          "response_type": "text",
-          "response_value": "I do not have a formal pricing study yet. Based on interviews, I plan to test around $8 per user monthly with pilot customers."
-        },
-        {
-          "section_id": "market_positioning",
-          "question_id": "positioning_statement",
-          "question_text": "Write your positioning statement",
-          "response_type": "text",
-          "response_value": "For small remote teams that lose time in fragmented communication, our product is a lightweight work organizer that turns chats and notes into clear daily actions without complex setup."
-        },
-        {
-          "section_id": "go_to_market",
-          "question_id": "distribution_channels",
-          "question_text": "What are your primary distribution channels?",
-          "response_type": "text",
-          "response_value": "Initial channels: personal network, local tech communities, LinkedIn content, and direct outreach to small teams."
-        }
+        {"section_id": "customer-validation","question_id": "customer-interviews","question_text": "Have you conducted interviews with potential customers?","response_type": "text","response_value": "few"},
+        {"section_id": "customer-validation","question_id": "customer-feedback","question_text": "What did you learn from customer conversations?","response_type": "text","response_value": "Spoke with 3 Shopify store owners. All confirmed the problem - they spend 2-3 hours daily on repetitive support. Two said they would pay $50-100/month for automation."},
+        {"section_id": "competitive-analysis","question_id": "competitor-identification","question_text": "List your main competitors","response_type": "text","response_value": "Direct: Tidio, Gorgias, Re:amaze. Indirect: Zendesk, Intercom (too expensive/generic for SMBs)."},
+        {"section_id": "competitive-analysis","question_id": "competitive-advantage","question_text": "What is your sustainable competitive advantage?","response_type": "text","response_value": "Deep order management integration, AI fine-tuned on e-commerce conversations, pricing targeting $30-80/month that larger competitors ignore."}
       ]
     },
     {
       "phase_name": "Business Pillars Planning",
-      "progress_percentage": 100.0,
+      "progress_percentage": 100,
       "responses": [
-        {
-          "section_id": "vision_mission",
-          "question_id": "company_vision",
-          "question_text": "What is your company vision?",
-          "response_type": "text",
-          "response_value": "Help small teams stay aligned without unnecessary meetings or process overhead."
-        },
-        {
-          "section_id": "vision_mission",
-          "question_id": "mission_statement",
-          "question_text": "What is your mission statement?",
-          "response_type": "text",
-          "response_value": "We help small teams clearly understand what was decided and what to do next, with minimal effort."
-        },
-        {
-          "section_id": "core_values",
-          "question_id": "company_values",
-          "question_text": "What are your core company values?",
-          "response_type": "text",
-          "response_value": "Clarity, simplicity, honest communication with users, rapid learning from mistakes, and real customer problem focus."
-        },
-        {
-          "section_id": "team_structure",
-          "question_id": "founding_team",
-          "question_text": "Describe your founding team",
-          "response_type": "text",
-          "response_value": "Solo founder without a co-founder today. I get occasional guidance from one more experienced product professional."
-        },
-        {
-          "section_id": "team_structure",
-          "question_id": "hiring_plan",
-          "question_text": "What is your hiring plan for the first year?",
-          "response_type": "text",
-          "response_value": "First 6 months: build solo with occasional freelancer support. If paid demand is validated, hire one part-time developer."
-        },
-        {
-          "section_id": "financial_planning",
-          "question_id": "funding_strategy",
-          "question_text": "What is your funding strategy?",
-          "response_type": "text",
-          "response_value": "No external funding at the start. Focus on bootstrapping and first paying customers before considering a small pre-seed round."
-        },
-        {
-          "section_id": "financial_planning",
-          "question_id": "revenue_projections",
-          "question_text": "Provide your 3-year revenue projections",
-          "response_type": "text",
-          "response_value": "Year 1: $10K-$20K ARR (learning and validation). Year 2: $60K-$120K ARR. Year 3: $200K-$300K ARR if retention becomes stable."
-        },
-        {
-          "section_id": "product_roadmap",
-          "question_id": "product_vision",
-          "question_text": "What is your product roadmap?",
-          "response_type": "text",
-          "response_value": "Phase 1: core summaries and task list. Phase 2: better integrations and onboarding. Phase 3: lightweight automation and basic analytics."
-        },
-        {
-          "section_id": "risk_management",
-          "question_id": "key_risks",
-          "question_text": "What are your top 3 business risks?",
-          "response_type": "text",
-          "response_value": "Weak differentiation, poor onboarding, and users dropping after the trial period."
-        }
+        {"section_id": "business-model","question_id": "revenue-model","question_text": "How will your business make money?","response_type": "text","response_value": "subscription"},
+        {"section_id": "business-model","question_id": "pricing-strategy","question_text": "What is your pricing strategy?","response_type": "text","response_value": "Starter: $29/month (500 AI conversations), Growth: $79/month (2000 conversations), Pro: $199/month (unlimited). Free 14-day trial, no credit card required."},
+        {"section_id": "operations","question_id": "key-activities","question_text": "What are the key activities your business must perform?","response_type": "text","response_value": "Product development, AI model training, customer onboarding, content marketing for SEO, partnership with Shopify app ecosystem."},
+        {"section_id": "operations","question_id": "key-resources","question_text": "What key resources does your business need?","response_type": "text","response_value": "Engineering team (2-3 devs), AI/ML infrastructure, Shopify Partner status, $50K initial runway for 12 months."}
       ]
     },
     {
       "phase_name": "Product Concept Testing",
-      "progress_percentage": 100.0,
+      "progress_percentage": 100,
       "responses": [
-        {
-          "section_id": "mvp_definition",
-          "question_id": "core_features",
-          "question_text": "What are your MVP core features?",
-          "response_type": "text",
-          "response_value": "Message and note capture, automatic daily summary, simple task list, and basic notifications."
-        },
-        {
-          "section_id": "mvp_definition",
-          "question_id": "success_metrics",
-          "question_text": "What are your key success metrics?",
-          "response_type": "text",
-          "response_value": "Weekly active users, task completion rate, and percentage of users retained after 30 days."
-        },
-        {
-          "section_id": "user_testing",
-          "question_id": "testing_approach",
-          "question_text": "Describe your user testing approach",
-          "response_type": "text",
-          "response_value": "Short tests with 5-10 users, weekly feedback calls, and priority fixes for anything blocking basic usage."
-        },
-        {
-          "section_id": "user_feedback",
-          "question_id": "feedback_summary",
-          "question_text": "Summarize key user feedback",
-          "response_type": "text",
-          "response_value": "Positive: the product feels simple. Negative: onboarding needs to be clearer and value must be shown in the first 5 minutes."
-        },
-        {
-          "section_id": "iteration_plan",
-          "question_id": "iteration_strategy",
-          "question_text": "How will you iterate based on feedback?",
-          "response_type": "text",
-          "response_value": "Every week I pick 1-2 highest-impact feedback items and ship small updates instead of major redesigns."
-        }
+        {"section_id": "general","question_id": "pct-1","question_text": "How will you validate your product concept?","response_type": "text","response_value": "Build MVP with Shopify integration and basic AI. Recruit 5 beta stores for free 30-day trial. Track resolution rate, satisfaction scores, and hours saved."},
+        {"section_id": "general","question_id": "pct-2","question_text": "Who are your test users?","response_type": "text","response_value": "5 Shopify fashion/apparel stores ($200K-$1M revenue), recruited through LinkedIn and Shopify Facebook groups, currently using email-only support."},
+        {"section_id": "general","question_id": "pct-3","question_text": "What feedback mechanisms will you use?","response_type": "text","response_value": "Weekly 30-min calls, in-app NPS surveys, dashboard showing resolution rate vs human escalation rate, session recordings for UX feedback."}
       ]
     },
     {
       "phase_name": "Business Development",
-      "progress_percentage": 100.0,
+      "progress_percentage": 100,
       "responses": [
-        {
-          "section_id": "growth_strategy",
-          "question_id": "customer_acquisition",
-          "question_text": "What is your customer acquisition strategy?",
-          "response_type": "text",
-          "response_value": "Direct outreach to small teams, LinkedIn posts, and referrals from first users."
-        },
-        {
-          "section_id": "growth_strategy",
-          "question_id": "conversion_funnel",
-          "question_text": "Describe your conversion funnel",
-          "response_type": "text",
-          "response_value": "Landing page visit -> trial signup -> first summary on day 1 -> paid conversion after 14 days if value is clear."
-        },
-        {
-          "section_id": "sales_strategy",
-          "question_id": "sales_process",
-          "question_text": "What is your sales process?",
-          "response_type": "text",
-          "response_value": "Simple 20-minute demo calls for interested teams, without a complex enterprise sales flow."
-        },
-        {
-          "section_id": "partnerships",
-          "question_id": "partnership_strategy",
-          "question_text": "What partnerships are you pursuing?",
-          "response_type": "text",
-          "response_value": "For now, informal partnerships with consultants who support small remote teams."
-        },
-        {
-          "section_id": "retention_strategy",
-          "question_id": "customer_retention",
-          "question_text": "How will you retain customers?",
-          "response_type": "text",
-          "response_value": "Fast support response, clear onboarding, and regular fixes for user-reported pain points."
-        },
-        {
-          "section_id": "expansion_strategy",
-          "question_id": "revenue_expansion",
-          "question_text": "How will you expand revenue per customer?",
-          "response_type": "text",
-          "response_value": "As teams grow, seat count grows. Later, introduce a Pro plan with additional reporting and automation."
-        }
+        {"section_id": "general","question_id": "bd-1","question_text": "What are your key growth strategies?","response_type": "text","response_value": "1. Shopify App Store listing as primary distribution 2. SEO content targeting Shopify customer support keywords 3. Partnership with Shopify Plus agencies 4. Customer referral program."},
+        {"section_id": "general","question_id": "bd-2","question_text": "How will you allocate resources?","response_type": "text","response_value": "60% engineering, 25% sales/marketing, 15% customer success. Bootstrap first year, Series A after $500K ARR."},
+        {"section_id": "general","question_id": "bd-3","question_text": "What partnerships are essential?","response_type": "text","response_value": "Shopify Partner Program, WooCommerce ecosystem, 2-3 boutique e-commerce agencies, OpenAI API partnership."}
       ]
     },
     {
       "phase_name": "Business Prototype Testing",
-      "progress_percentage": 100.0,
+      "progress_percentage": 100,
       "responses": [
-        {
-          "section_id": "prototype_status",
-          "question_id": "current_status",
-          "question_text": "What is your current prototype status?",
-          "response_type": "text",
-          "response_value": "An early prototype is functional for the main flow, but not yet stable for larger usage."
-        },
-        {
-          "section_id": "metrics_tracking",
-          "question_id": "key_metrics",
-          "question_text": "What are your current metrics?",
-          "response_type": "text",
-          "response_value": "Currently tested by 6 teams with around 28 total users, with roughly 40-50% weekly activity."
-        },
-        {
-          "section_id": "testing_insights",
-          "question_id": "learning_insights",
-          "question_text": "What have you learned from testing?",
-          "response_type": "text",
-          "response_value": "Users need immediate proof of value or they drop off. At this stage, onboarding clarity matters more than extra features."
-        },
-        {
-          "section_id": "validation_evidence",
-          "question_id": "pmf_evidence",
-          "question_text": "What evidence do you have of product-market fit?",
-          "response_type": "text",
-          "response_value": "I do not have strong PMF evidence yet. I have positive feedback from a few teams, but I need more active and paying users to confirm fit."
-        },
-        {
-          "section_id": "iteration_priorities",
-          "question_id": "next_steps",
-          "question_text": "What are your immediate next steps?",
-          "response_type": "text",
-          "response_value": "Improve onboarding, increase stability, complete 15 more user interviews, and test willingness to pay with a pilot package."
-        },
-        {
-          "section_id": "future_vision",
-          "question_id": "scaling_plan",
-          "question_text": "What is your plan to scale from prototype to product?",
-          "response_type": "text",
-          "response_value": "First validate with 20-30 teams, then stabilize the product, and only then scale through content, referrals, and a lightweight sales process."
-        }
+        {"section_id": "general","question_id": "bpt-1","question_text": "How will you test your business model in the market?","response_type": "text","response_value": "Shopify App Store launch with freemium. Target 100 installs in month 1, 20% free-to-paid conversion. Monitor churn, expansion revenue, CAC by channel."},
+        {"section_id": "general","question_id": "bpt-2","question_text": "What metrics will you track?","response_type": "text","response_value": "MRR growth, churn rate (<5% monthly), CAC by channel, LTV:CAC (3:1 target), AI resolution rate (>70% target), NPS (>50 target)."},
+        {"section_id": "general","question_id": "bpt-3","question_text": "What is your timeline for prototype validation?","response_type": "text","response_value": "M1-2: 5 beta customers, validate AI rate. M3-4: App launch, 100 installs. M5-6: $5K MRR. M7-12: Scale to $25K MRR."}
       ]
     }
   ]
