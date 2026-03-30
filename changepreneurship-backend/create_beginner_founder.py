@@ -28,8 +28,17 @@ def to_phase_id(phase_name: str) -> str:
 
 
 def load_fixture() -> dict:
-    project_root = Path(__file__).resolve().parent.parent
-    fixture_path = project_root / "beginner_founder_complete_data.json"
+    script_dir = Path(__file__).resolve().parent
+    # Look next to this script first (Docker), then one level up (local dev)
+    for candidate in [
+        script_dir / "beginner_founder_complete_data.json",
+        script_dir.parent / "beginner_founder_complete_data.json",
+    ]:
+        if candidate.exists():
+            fixture_path = candidate
+            break
+    else:
+        raise FileNotFoundError("beginner_founder_complete_data.json not found")
     with fixture_path.open("r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -81,6 +90,7 @@ def create_user_with_assessments(password: str = "Test1234!") -> tuple[User, int
         assessment_count += 1
 
         for response in assessment_data.get("responses", []):
+            rv = response.get("response_value", "")
             db.session.add(
                 AssessmentResponse(
                     assessment_id=assessment.id,
@@ -88,7 +98,7 @@ def create_user_with_assessments(password: str = "Test1234!") -> tuple[User, int
                     question_id=response["question_id"],
                     question_text=response["question_text"],
                     response_type=response["response_type"],
-                    response_value=str(response.get("response_value", "")),
+                    response_value=json.dumps(rv) if isinstance(rv, (dict, list)) else str(rv),
                 )
             )
             response_count += 1

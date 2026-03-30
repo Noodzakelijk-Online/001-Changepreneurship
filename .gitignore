@@ -17,11 +17,10 @@ changepreneurship-backend/src/database/*.db
 changepreneurship-enhanced/node_modules/
 changepreneurship-enhanced/build/
 
-# Environment
+# Environment — never commit real secrets
 .env
-.env.docker
-*.env.local
-*.env.production
+.env.*
+!.env.example
 
 # OS / Editor
 .DS_Store

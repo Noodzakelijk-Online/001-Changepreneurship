@@ -278,9 +278,10 @@ class InsightsReportService:
     Returns:
       Full report dict (see REPORT_SCHEMA above).
     """
-    cache_key = self._cache_key(user_id, assessment_data)
+    cache_key = None
 
     if self.ENABLE_CACHE:
+      cache_key = self._cache_key(user_id, assessment_data)
       cached = self._get_cache(cache_key)
       if cached:
         logger.info(f"[InsightsReport] Cache HIT for user {user_id}")
@@ -309,248 +310,246 @@ class InsightsReportService:
       self._set_cache(cache_key, report)
     return report
 
-    def invalidate_cache(self, user_id: int):
-        """Bust all cached reports for this user."""
-        redis = self._get_redis()
-        if redis:
-            pattern = f"insights:report:{user_id}:*"
-            for key in redis.scan_iter(pattern):
-                redis.delete(key)
+  def invalidate_cache(self, user_id: int):
+    """Bust all cached reports for this user."""
+    redis = self._get_redis()
+    if redis:
+      pattern = f"insights:report:{user_id}:*"
+      for key in redis.scan_iter(pattern):
+        redis.delete(key)
 
-    # ------------------------------------------------------------------
-    # Prompt building
-    # ------------------------------------------------------------------
+  # ------------------------------------------------------------------
+  # Prompt building
+  # ------------------------------------------------------------------
 
-    def _build_user_prompt(self, assessment_data: dict) -> str:
-        phases = assessment_data.get("phases", [])
-        responses = assessment_data.get("responses", {})
+  def _build_user_prompt(self, assessment_data: dict) -> str:
+    phases = assessment_data.get("phases", [])
+    responses = assessment_data.get("responses", {})
 
-        lines = [
-            "=== ASSESSMENT OVERVIEW ===",
-            f"Total phases tracked: {len(phases)}",
-            f"Completed phases: {sum(1 for p in phases if p.get('completed'))}",
-            "",
-        ]
+    lines = [
+      "=== ASSESSMENT OVERVIEW ===",
+      f"Total phases tracked: {len(phases)}",
+      f"Completed phases: {sum(1 for p in phases if p.get('completed'))}",
+      "",
+    ]
 
-        for phase in phases:
-            pid = phase.get("id", "unknown")
-            pname = phase.get("name", pid)
-            progress = phase.get("progress", 0)
-            completed = phase.get("completed", False)
-            lines.append(
-                f"Phase '{pid}' — {pname} | Progress: {progress:.0f}% | "
-                f"{'Completed' if completed else 'In Progress'}"
-            )
-            phase_responses = responses.get(pid, [])
-            if phase_responses:
-                lines.append(f"  Responses ({len(phase_responses)} answers):")
-                for resp in phase_responses[:30]:  # cap per phase
-                    section = resp.get("section_id", "")
-                    q_text = resp.get("question_text", resp.get("question_id", ""))
-                    value = resp.get("response_value", "")
-                    if value is None:
-                        continue
-                    # Truncate very long text values
-                    val_str = str(value)
-                    if len(val_str) > 300:
-                        val_str = val_str[:300] + "…"
-                    lines.append(f"    [{section}] Q: {q_text[:120]} → A: {val_str}")
-            else:
-                lines.append("  No responses yet for this phase.")
-            lines.append("")
-
-        lines.append(
-            "Based on all the above, generate the complete AI insights report JSON."
-        )
-        return "\n".join(lines)
-
-    # ------------------------------------------------------------------
-    # Groq call
-    # ------------------------------------------------------------------
-
-    def _call_groq(self, user_prompt: str) -> dict:
-        if not self.groq_key:
-            logger.warning("[InsightsReport] No GROQ_API_KEY — using fallback")
-            return self._fallback_report()
-
-        try:
-            client = Groq(api_key=self.groq_key)
-            t0 = time.time()
-            completion = client.chat.completions.create(
-                model=self.groq_model,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": user_prompt},
-                ],
-                response_format={"type": "json_object"},
-                temperature=0.3,    # low temp for consistent scoring
-                max_tokens=8192,
-            )
-            elapsed = time.time() - t0
-            raw = completion.choices[0].message.content
-            logger.info(
-                f"[InsightsReport] Groq response in {elapsed:.2f}s, "
-                f"{len(raw)} chars, model={self.groq_model}"
-            )
-            return json.loads(raw)
-
-        except json.JSONDecodeError as e:
-            logger.error(f"[InsightsReport] JSON parse error: {e}")
-            return self._fallback_report()
-        except Exception as e:
-            logger.error(f"[InsightsReport] Groq error: {e}")
-            return self._fallback_report()
-
-    # ------------------------------------------------------------------
-    # Cache helpers
-    # ------------------------------------------------------------------
-
-    def _get_redis(self):
-        if self._redis is not None:
-            return self._redis
-        try:
-            import redis as redis_lib
-            url = os.getenv("REDIS_URL", "")
-            if url:
-                self._redis = redis_lib.from_url(url, decode_responses=True)
-                self._redis.ping()
-                return self._redis
-        except Exception as e:
-            logger.warning(f"[InsightsReport] Redis unavailable: {e}")
-        return None
-
-    def _cache_key(self, user_id: int, assessment_data: dict) -> str:
-      # Key includes phase state + response fingerprint so cache busts when
-      # answers change (not only when completion percentage changes).
-      phases_state = [
-        {
-          "id": p.get("id"),
-          "progress": p.get("progress"),
-          "done": p.get("completed"),
-        }
-        for p in assessment_data.get("phases", [])
-      ]
-
-      responses_state = {}
-      for phase_id, items in (assessment_data.get("responses", {}) or {}).items():
-        normalized_items = []
-        for item in items or []:
-          normalized_items.append({
-            "question_id": item.get("question_id"),
-            "section_id": item.get("section_id"),
-            "response_type": item.get("response_type"),
-            "response_value": item.get("response_value"),
-          })
-        responses_state[phase_id] = sorted(
-          normalized_items,
-          key=lambda row: (
-            str(row.get("question_id") or ""),
-            str(row.get("section_id") or ""),
-          ),
-        )
-
-      state = json.dumps(
-        {
-          "v": 2,
-          "phases": sorted(phases_state, key=lambda p: str(p.get("id") or "")),
-          "responses": responses_state,
-        },
-        sort_keys=True,
-        default=str,
+    for phase in phases:
+      pid = phase.get("id", "unknown")
+      pname = phase.get("name", pid)
+      progress = phase.get("progress", 0)
+      completed = phase.get("completed", False)
+      lines.append(
+        f"Phase '{pid}' — {pname} | Progress: {progress:.0f}% | "
+        f"{'Completed' if completed else 'In Progress'}"
       )
-      h = hashlib.md5(state.encode()).hexdigest()[:12]
-      return f"insights:report:{user_id}:{h}"
+      phase_responses = responses.get(pid, [])
+      if phase_responses:
+        lines.append(f"  Responses ({len(phase_responses)} answers):")
+        for resp in phase_responses[:30]:  # cap per phase
+          section = resp.get("section_id", "")
+          q_text = resp.get("question_text", resp.get("question_id", ""))
+          value = resp.get("response_value", "")
+          if value is None:
+            continue
+          val_str = str(value)
+          if len(val_str) > 300:
+            val_str = val_str[:300] + "…"
+          lines.append(f"    [{section}] Q: {q_text[:120]} → A: {val_str}")
+      else:
+        lines.append("  No responses yet for this phase.")
+      lines.append("")
 
-    def _get_cache(self, key: str) -> Optional[dict]:
-        redis = self._get_redis()
-        if not redis:
-            return None
-        try:
-            raw = redis.get(key)
-            if raw:
-                return json.loads(raw)
-        except Exception as e:
-            logger.warning(f"[InsightsReport] Cache get error: {e}")
-        return None
+    lines.append(
+      "Based on all the above, generate the complete AI insights report JSON."
+    )
+    return "\n".join(lines)
 
-    def _set_cache(self, key: str, data: dict):
-        redis = self._get_redis()
-        if not redis:
-            return
-        try:
-            redis.setex(key, self.CACHE_TTL, json.dumps(data))
-        except Exception as e:
-            logger.warning(f"[InsightsReport] Cache set error: {e}")
+  # ------------------------------------------------------------------
+  # Groq call
+  # ------------------------------------------------------------------
 
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
+  def _call_groq(self, user_prompt: str) -> dict:
+    if not self.groq_key:
+      logger.warning("[InsightsReport] No GROQ_API_KEY — using fallback")
+      return self._fallback_report()
 
-    @staticmethod
-    def _calc_confidence(assessment_data: dict) -> float:
-        phases = assessment_data.get("phases", [])
-        if not phases:
-            return 0.0
-        completed = sum(1 for p in phases if p.get("completed"))
-        return round(min(1.0, completed / max(1, len(phases))), 2)
+    try:
+      client = Groq(api_key=self.groq_key)
+      t0 = time.time()
+      completion = client.chat.completions.create(
+        model=self.groq_model,
+        messages=[
+          {"role": "system", "content": SYSTEM_PROMPT},
+          {"role": "user", "content": user_prompt},
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.3,
+        max_tokens=8192,
+        timeout=90,
+      )
+      elapsed = time.time() - t0
+      raw = completion.choices[0].message.content
+      logger.info(
+        f"[InsightsReport] Groq response in {elapsed:.2f}s, "
+        f"{len(raw)} chars, model={self.groq_model}"
+      )
+      return json.loads(raw)
 
-    @staticmethod
-    def _fallback_report() -> dict:
-        """Minimal safe fallback when AI call fails."""
-        return {
-            "_fallback": True,
-            "entrepreneur": {
-                "score": 0,
-                "archetype": "Unknown",
-                "tagline": "Assessment incomplete",
-                "summary": "Complete more assessment phases to generate your AI insights.",
-                "radar": {k: 0 for k in [
-                    "Motivation","Personality","Values","Self-Awareness",
-                    "Life Support","Resources","Passion","Skills","Vision",
-                    "Leadership","Team Building","Culture"
-                ]},
-                "dimensions": [],
-                "phases": [],
-                "strengths": [],
-                "growth_areas": [],
-                "recent_activity": [],
-            },
-            "venture": {
-                "score": 0,
-                "idea_name": "Not yet defined",
-                "tagline": "",
-                "summary": "Complete venture phases to generate your AI insights.",
-                "radar": {k: 0 for k in [
-                    "Market Demand","Problem-Solution Fit","Business Model",
-                    "Strategic Thinking","Positioning","Customer Validation",
-                    "Competitive Analysis","Market Sizing"
-                ]},
-                "dimensions": [],
-                "phases": [],
-                "validation_pct": 0,
-                "runway_months": 0,
-                "months_to_profit": 0,
-                "interviews_done": 0,
-                "interviews_target": 20,
-                "competitors_validated": 0,
-                "competitors_target": 5,
-                "heatmap": None,
-            },
-            "alignment": {
-                "score": 0,
-                "combined_score": 0,
-                "sweet_spots": [],
-                "risk_zones": [],
-                "untapped_potential": [],
-            },
-            "readiness": {
-                "entrepreneur_target": 75,
-                "venture_target": 70,
-                "alignment_target": 60,
-                "unlocked": False,
-                "unlock_message": "Complete your assessment phases to unlock the Business Builder.",
-            },
-        }
+    except json.JSONDecodeError as e:
+      logger.error(f"[InsightsReport] JSON parse error: {e}")
+      return self._fallback_report()
+    except Exception as e:
+      logger.error(f"[InsightsReport] Groq error: {e}")
+      return self._fallback_report()
+
+  # ------------------------------------------------------------------
+  # Cache helpers
+  # ------------------------------------------------------------------
+
+  def _get_redis(self):
+    if self._redis is not None:
+      return self._redis
+    try:
+      import redis as redis_lib
+      url = os.getenv("REDIS_URL", "")
+      if url:
+        self._redis = redis_lib.from_url(url, decode_responses=True)
+        self._redis.ping()
+        return self._redis
+    except Exception as e:
+      logger.warning(f"[InsightsReport] Redis unavailable: {e}")
+    return None
+
+  def _cache_key(self, user_id: int, assessment_data: dict) -> str:
+    phases_state = [
+      {
+        "id": p.get("id"),
+        "progress": p.get("progress"),
+        "done": p.get("completed"),
+      }
+      for p in assessment_data.get("phases", [])
+    ]
+
+    responses_state = {}
+    for phase_id, items in (assessment_data.get("responses", {}) or {}).items():
+      normalized_items = []
+      for item in items or []:
+        normalized_items.append({
+          "question_id": item.get("question_id"),
+          "section_id": item.get("section_id"),
+          "response_type": item.get("response_type"),
+          "response_value": item.get("response_value"),
+        })
+      responses_state[phase_id] = sorted(
+        normalized_items,
+        key=lambda row: (
+          str(row.get("question_id") or ""),
+          str(row.get("section_id") or ""),
+        ),
+      )
+
+    state = json.dumps(
+      {
+        "v": 2,
+        "phases": sorted(phases_state, key=lambda p: str(p.get("id") or "")),
+        "responses": responses_state,
+      },
+      sort_keys=True,
+      default=str,
+    )
+    h = hashlib.md5(state.encode()).hexdigest()[:12]
+    return f"insights:report:{user_id}:{h}"
+
+  def _get_cache(self, key: str) -> Optional[dict]:
+    redis = self._get_redis()
+    if not redis:
+      return None
+    try:
+      raw = redis.get(key)
+      if raw:
+        return json.loads(raw)
+    except Exception as e:
+      logger.warning(f"[InsightsReport] Cache get error: {e}")
+    return None
+
+  def _set_cache(self, key: str, data: dict):
+    redis = self._get_redis()
+    if not redis:
+      return
+    try:
+      redis.setex(key, self.CACHE_TTL, json.dumps(data))
+    except Exception as e:
+      logger.warning(f"[InsightsReport] Cache set error: {e}")
+
+  # ------------------------------------------------------------------
+  # Helpers
+  # ------------------------------------------------------------------
+
+  @staticmethod
+  def _calc_confidence(assessment_data: dict) -> float:
+    phases = assessment_data.get("phases", [])
+    if not phases:
+      return 0.0
+    completed = sum(1 for p in phases if p.get("completed"))
+    return round(min(1.0, completed / max(1, len(phases))), 2)
+
+  @staticmethod
+  def _fallback_report() -> dict:
+    """Minimal safe fallback when AI call fails."""
+    return {
+      "_fallback": True,
+      "entrepreneur": {
+        "score": 0,
+        "archetype": "Unknown",
+        "tagline": "Assessment incomplete",
+        "summary": "Complete more assessment phases to generate your AI insights.",
+        "radar": {k: 0 for k in [
+          "Motivation", "Personality", "Values", "Self-Awareness",
+          "Life Support", "Resources", "Passion", "Skills", "Vision",
+          "Leadership", "Team Building", "Culture",
+        ]},
+        "dimensions": [],
+        "phases": [],
+        "strengths": [],
+        "growth_areas": [],
+        "recent_activity": [],
+      },
+      "venture": {
+        "score": 0,
+        "idea_name": "Not yet defined",
+        "tagline": "",
+        "summary": "Complete venture phases to generate your AI insights.",
+        "radar": {k: 0 for k in [
+          "Market Demand", "Problem-Solution Fit", "Business Model",
+          "Strategic Thinking", "Positioning", "Customer Validation",
+          "Competitive Analysis", "Market Sizing",
+        ]},
+        "dimensions": [],
+        "phases": [],
+        "validation_pct": 0,
+        "runway_months": 0,
+        "months_to_profit": 0,
+        "interviews_done": 0,
+        "interviews_target": 20,
+        "competitors_validated": 0,
+        "competitors_target": 5,
+        "heatmap": None,
+      },
+      "alignment": {
+        "score": 0,
+        "combined_score": 0,
+        "sweet_spots": [],
+        "risk_zones": [],
+        "untapped_potential": [],
+      },
+      "readiness": {
+        "entrepreneur_target": 75,
+        "venture_target": 70,
+        "alignment_target": 60,
+        "unlocked": False,
+        "unlock_message": "Complete your assessment phases to unlock the Business Builder.",
+      },
+    }
 
 
 def _now_iso() -> str:

@@ -3,11 +3,15 @@ from src.models.assessment import UserSession, User
 
 
 def verify_session_token():
-    """Verify session token from Authorization header and return user and session"""
+    """Verify session token from Authorization header or HttpOnly cookie."""
     try:
-        session_token = request.headers.get('Authorization')
-        if session_token and session_token.startswith('Bearer '):
-            session_token = session_token[7:]
+        session_token = request.headers.get('Authorization', '')
+        if session_token.startswith('Bearer '):
+            session_token = session_token[7:].strip()
+
+        # Fallback: read from HttpOnly cookie if no Bearer header
+        if not session_token:
+            session_token = request.cookies.get('session_token', '')
 
         if not session_token:
             return None, None, {'error': 'No session token provided'}, 401

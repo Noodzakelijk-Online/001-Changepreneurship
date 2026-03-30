@@ -5,8 +5,10 @@ Multi-LLM business insights endpoints
 from flask import Blueprint, jsonify, request
 from src.services.ai_consensus import AIConsensusService
 from src.services.insights_report_service import InsightsReportService
-from src.models.assessment import Assessment, AssessmentResponse, db
+from src.services.phase_summary_service import PhaseSummaryService
+from src.models.assessment import Assessment, AssessmentResponse
 from src.utils.auth import verify_session_token
+from src.utils.assessment_collector import collect_assessment_data
 import logging
 
 logger = logging.getLogger(__name__)
@@ -26,62 +28,28 @@ def get_consensus():
     user, session, error, status_code = verify_session_token()
     if error:
         return jsonify(error), status_code
-    
+
     try:
-        user_id = user.id
-        
-        # Fetch all user assessments
-        assessments = Assessment.query.filter_by(user_id=user_id).all()
-        
-        if not assessments:
+        assessment_data = collect_assessment_data(user.id)
+
+        if not assessment_data['phases']:
             return jsonify({
                 'success': False,
                 'error': 'No assessments found',
                 'message': 'Complete at least one assessment phase to get insights'
             }), 404
-        
-        # Fetch all responses
-        assessment_ids = [a.id for a in assessments]
-        responses = AssessmentResponse.query.filter(
-            AssessmentResponse.assessment_id.in_(assessment_ids)
-        ).all()
-        
-        # Prepare data for AI analysis
-        # Group responses by phase
-        responses_by_phase = {}
-        for r in responses:
-            phase_id = next((a.phase_id for a in assessments if a.id == r.assessment_id), None)
-            if phase_id:
-                if phase_id not in responses_by_phase:
-                    responses_by_phase[phase_id] = []
-                responses_by_phase[phase_id].append({
-                    'question_id': r.question_id,
-                    'section_id': r.section_id,
-                    'response_value': r.response_value,
-                    'response_type': r.response_type
-                })
-        
-        # Prepare phase metadata
-        phase_data = {
-            'total_phases': len(assessments),
-            'completed_phases': sum(1 for a in assessments if a.is_completed),
-            'phases': [
-                {
-                    'id': a.phase_id,
-                    'name': a.phase_name,
-                    'progress': a.progress_percentage,
-                    'completed': a.is_completed
-                }
-                for a in assessments
-            ]
+
+        phase_meta = {
+            'total_phases': len(assessment_data['phases']),
+            'completed_phases': sum(1 for p in assessment_data['phases'] if p.get('completed')),
+            'phases': assessment_data['phases'],
         }
-        
-        # Generate consensus insights
+
         consensus_service = AIConsensusService()
-        result = consensus_service.generate_consensus(responses_by_phase, phase_data)
-        
+        result = consensus_service.generate_consensus(assessment_data['responses'], phase_meta)
+
         return jsonify(result), 200
-        
+
     except Exception as e:
         logger.error(f"Consensus generation error: {e}")
         return jsonify({
@@ -160,46 +128,7 @@ def get_insights_report():
         if force_refresh:
             service.invalidate_cache(user.id)
 
-        # Collect all assessments -------------------------------------------
-        assessments = Assessment.query.filter_by(user_id=user.id).all()
-
-        phases = [
-            {
-                'id': a.phase_id,
-                'name': a.phase_name,
-                'progress': a.progress_percentage,
-                'completed': a.is_completed,
-            }
-            for a in assessments
-        ]
-
-        # Collect responses grouped by phase_id --------------------------------
-        responses_by_phase: dict = {}
-        if assessments:
-            assessment_ids = [a.id for a in assessments]
-            all_responses = AssessmentResponse.query.filter(
-                AssessmentResponse.assessment_id.in_(assessment_ids)
-            ).all()
-
-            # Build a lookup: assessment_id → phase_id
-            aid_to_phase = {a.id: a.phase_id for a in assessments}
-
-            for r in all_responses:
-                phase_id = aid_to_phase.get(r.assessment_id)
-                if phase_id:
-                    responses_by_phase.setdefault(phase_id, []).append({
-                        'question_id': r.question_id,
-                        'section_id': r.section_id,
-                        'question_text': r.question_text or r.question_id,
-                        'response_value': r.get_response_value(),
-                        'response_type': r.response_type,
-                    })
-
-        assessment_data = {
-            'phases': phases,
-            'responses': responses_by_phase,
-        }
-
+        assessment_data = collect_assessment_data(user.id)
         report = service.generate_report(user.id, assessment_data)
 
         return jsonify({
@@ -213,3 +142,50 @@ def get_insights_report():
             'success': False,
             'error': str(e),
         }), 500
+
+
+# ---------------------------------------------------------------------------
+# Phase Completion Summary
+# ---------------------------------------------------------------------------
+
+@ai_bp.route('/phase-summary', methods=['POST'])
+def get_phase_summary():
+    """
+    Generate a brief AI-powered summary for a single completed assessment phase.
+    Called immediately after the user finishes a phase.
+
+    Request body:
+        { "phase_id": "self_discovery" }
+
+    Returns:
+        {
+          success: true,
+          summary: { phase_id, score, headline, summary, key_findings, next_focus }
+        }
+    """
+    user, session, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+
+    data = request.get_json() or {}
+    phase_id = (data.get('phase_id') or '').strip()
+    if not phase_id:
+        return jsonify({'success': False, 'error': 'phase_id is required'}), 400
+
+    assessment = Assessment.query.filter_by(
+        user_id=user.id, phase_id=phase_id
+    ).first()
+    if not assessment:
+        return jsonify({
+            'success': False,
+            'error': f'No assessment found for phase: {phase_id}',
+        }), 404
+
+    responses = AssessmentResponse.query.filter_by(
+        assessment_id=assessment.id
+    ).all()
+
+    service = PhaseSummaryService()
+    summary = service.generate_summary(phase_id, assessment.phase_name, responses)
+
+    return jsonify({'success': True, 'summary': summary}), 200

@@ -6,6 +6,41 @@ from src.utils.auth import verify_session_token
 
 assessment_bp = Blueprint('assessment', __name__)
 
+PHASE_QUESTION_TOTALS = {
+    'self_discovery': 7,
+    'idea_discovery': 8,
+    'market_research': 13,
+    'business_pillars': 13,
+    'product_concept_testing': 3,
+    'business_development': 3,
+    'business_prototype_testing': 3,
+}
+
+
+def recompute_assessment_status(assessment, force_complete=False):
+    response_count = AssessmentResponse.query.filter_by(assessment_id=assessment.id).count()
+    total_questions = PHASE_QUESTION_TOTALS.get(assessment.phase_id) or 1
+    if force_complete:
+        progress = 100.0
+    else:
+        progress = min(100.0, round((response_count / total_questions) * 100, 2))
+
+    assessment.progress_percentage = progress
+    metadata = assessment.get_assessment_data() or {}
+    metadata['response_count'] = response_count
+    metadata['total_questions'] = total_questions
+    metadata['last_synced_at'] = datetime.utcnow().isoformat()
+    assessment.set_assessment_data(metadata)
+
+    should_complete = force_complete or response_count >= total_questions
+    assessment.is_completed = bool(should_complete)
+    if should_complete and not assessment.completed_at:
+        assessment.completed_at = datetime.utcnow()
+    elif not should_complete:
+        assessment.completed_at = None
+
+    return assessment
+
 @assessment_bp.route('/phases', methods=['GET'])
 def get_assessment_phases():
     """Get all assessment phases with user progress"""
@@ -204,9 +239,13 @@ def save_response(assessment_id):
             response.set_response_value(response_value)
             db.session.add(response)
         
+        recompute_assessment_status(assessment)
         db.session.commit()
         
-        return jsonify({'message': 'Response saved successfully'}), 200
+        return jsonify({
+            'message': 'Response saved successfully',
+            'assessment': assessment.to_dict()
+        }), 200
         
     except Exception as e:
         current_app.logger.error(f"Save response error: {str(e)}")
@@ -233,25 +272,15 @@ def update_progress(assessment_id):
         if not assessment:
             return jsonify({'error': 'Assessment not found'}), 404
         
-        progress_percentage = data.get('progress_percentage')
         is_completed = data.get('is_completed', False)
         assessment_data = data.get('assessment_data', {})
         
-        if progress_percentage is not None:
-            try:
-                progress_value = float(progress_percentage)
-            except (TypeError, ValueError):
-                return jsonify({'error': 'Invalid progress_percentage. Must be a numeric value.'}), 400
-
-            assessment.progress_percentage = max(0, min(100, progress_value))
-        
-        if is_completed:
-            assessment.is_completed = True
-            assessment.completed_at = datetime.utcnow()
-            assessment.progress_percentage = 100.0
-        
         if assessment_data:
-            assessment.set_assessment_data(assessment_data)
+            existing = assessment.get_assessment_data() or {}
+            existing.update(assessment_data)
+            assessment.set_assessment_data(existing)
+
+        recompute_assessment_status(assessment, force_complete=bool(is_completed))
         
         db.session.commit()
         

@@ -32,7 +32,6 @@ const UnifiedDashboard = () => {
   const { user, isAuthenticated } = useAuth()
   const { getOverallProgress } = useAssessment()
   const { metrics, profile, responses, insights, loading, error, refresh, hasData } = useDashboardData()
-  const [expandedPhases, setExpandedPhases] = useState({})
   const [showAllResponses, setShowAllResponses] = useState(false)
 
   // Phase definitions
@@ -45,10 +44,6 @@ const UnifiedDashboard = () => {
     { id: 'business_development', name: 'Business Development', emoji: '📈', category: 'Implementation' },
     { id: 'business_prototype_testing', name: 'Prototype Testing', emoji: '🚀', category: 'Implementation' }
   ]
-
-  const togglePhaseExpand = (phaseId) => {
-    setExpandedPhases(prev => ({ ...prev, [phaseId]: !prev[phaseId] }))
-  }
 
   const exportData = () => {
     const exportObj = {
@@ -73,11 +68,7 @@ const UnifiedDashboard = () => {
   // Calculate metrics from available data
   // Get total responses first
   const totalResponses = responses?.total_responses || 0
-  
-  // Calculate overall progress based on actual responses
-  const totalPossibleResponses = 7 * 10 // 7 phases, 10 questions each
-  const calculatedProgress = totalResponses > 0 ? (totalResponses / totalPossibleResponses) * 100 : 0
-  const overallProgress = calculatedProgress || getOverallProgress() || metrics?.overall_progress || 0
+  const overallProgress = metrics?.overall_progress ?? getOverallProgress() ?? 0
   
   // Estimate time: ~2 minutes per response
   const estimatedTime = totalResponses * 2
@@ -86,12 +77,7 @@ const UnifiedDashboard = () => {
   const aiScore = insights?.overall_score || profile?.success_probability || 0
   
   // Calculate completed phases from responses data
-  const completedPhasesFromResponses = phases.filter(phase => {
-    const phaseResponses = responses?.by_phase?.[phase.id]
-    return phaseResponses && phaseResponses.length >= 10
-  }).length
-  
-  const completedPhasesCount = completedPhasesFromResponses || metrics?.completed_phases || 0
+  const completedPhasesCount = metrics?.completed_phases ?? 0
 
   // Debug logging
   console.log('[UnifiedDashboard] Data:', {

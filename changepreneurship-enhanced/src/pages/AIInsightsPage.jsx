@@ -32,6 +32,8 @@ import {
 } from "chart.js";
 import { Button } from "@/components/ui/button.jsx";
 import apiService from "@/services/api.js";
+import { sanitizeInsightHtml } from "@/lib/sanitize.js";
+import { scoreColorHex } from "@/lib/utils.js";
 import "./AIInsightsPage.css";
 
 Chart.register(RadarController, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
@@ -54,11 +56,7 @@ const AVG_VENTURE  = [62, 58, 60, 55, 56, 55, 52, 50];
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-const scoreColor = (s) => {
-  if (s >= 80) return "#22c55e";
-  if (s >= 65) return "#f97316";
-  return "#ef4444";
-};
+// scoreColor helper is imported from @/lib/utils.js as scoreColorHex
 const scoreClass = (s) => {
   if (s >= 80) return "green";
   if (s >= 65) return "orange";
@@ -92,7 +90,7 @@ const MiniBar = ({ label, value, colorClass = "orange" }) => (
     <div className="ai7-mini-track">
       <div className={`ai7-fill-${colorClass}`} style={{ width: `${value}%` }} />
     </div>
-    <strong style={{ color: scoreColor(value) }}>{value}</strong>
+    <strong style={{ color: scoreColorHex(value) }}>{value}</strong>
   </div>
 );
 
@@ -103,7 +101,7 @@ const PhaseCard = ({ card, accent }) => (
       <span className={`ec-score ${scoreClass(card.score)}`}>{card.score}</span>
     </div>
     <div className="ec-bar">
-      <div className="ec-fill" style={{ width: `${card.score}%`, background: scoreColor(card.score) }} />
+      <div className="ec-fill" style={{ width: `${card.score}%`, background: scoreColorHex(card.score) }} />
     </div>
     <div className="ec-desc">{card.description}</div>
     {card.subs?.length > 0 && (
@@ -142,7 +140,7 @@ const ConnCard = ({ item, type }) => {
           </div>
         </div>
       </div>
-      <div className="cc-insight" dangerouslySetInnerHTML={{ __html: item.insight }} />
+      <div className="cc-insight" dangerouslySetInnerHTML={{ __html: sanitizeInsightHtml(item.insight) }} />
       {type === "risk" && item.action && (
         <div className="cc-action risk-btn">⚡ {item.action}</div>
       )}
@@ -499,7 +497,7 @@ const AIInsightsPage = () => {
                         return (
                           <div key={i} className="act-item">
                             <div className={`act-icon ${act.color || cls}`}>{act.icon || icon}</div>
-                            <span className="act-text" dangerouslySetInnerHTML={{ __html: act.text || act.label || "" }} />
+                            <span className="act-text" dangerouslySetInnerHTML={{ __html: sanitizeInsightHtml(act.text || act.label || "") }} />
                           </div>
                         );
                       })}
@@ -532,7 +530,7 @@ const AIInsightsPage = () => {
                     <div className="exp-phase-header">
                       <span className="eph-icon">{phase.icon || "📋"}</span>
                       <h3>{phase.title}</h3>
-                      <span className="eph-score" style={{ color: phase.score != null ? scoreColor(phase.score) : "rgba(255,255,255,0.3)" }}>
+                      <span className="eph-score" style={{ color: phase.score != null ? scoreColorHex(phase.score) : "rgba(255,255,255,0.3)" }}>
                         {phase.score ?? "—"}
                       </span>
                     </div>
@@ -714,7 +712,7 @@ const AIInsightsPage = () => {
                     <div className="exp-phase-header">
                       <span className="eph-icon">{phase.icon || "📊"}</span>
                       <h3>{phase.title}</h3>
-                      <span className="eph-score" style={{ color: phase.score != null ? scoreColor(phase.score) : "rgba(255,255,255,0.3)" }}>
+                      <span className="eph-score" style={{ color: phase.score != null ? scoreColorHex(phase.score) : "rgba(255,255,255,0.3)" }}>
                         {phase.score ?? "—"}
                       </span>
                     </div>

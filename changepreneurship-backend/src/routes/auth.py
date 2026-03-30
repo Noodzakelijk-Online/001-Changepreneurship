@@ -1,16 +1,35 @@
 """Authentication routes - user registration, login, session management"""
-from flask import Blueprint, request, jsonify, current_app
+import os
+from flask import Blueprint, request, jsonify, current_app, make_response
 
 from src.models.assessment import User, EntrepreneurProfile
 from src.services.auth_service import AuthService
 from src.utils.redis_client import get_session_user
 from src.utils.auth import verify_session_token
+from src.utils.limiter import limiter
 
 auth_bp = Blueprint('auth', __name__)
 auth_service = AuthService()
 
+_IS_PROD = os.getenv('FLASK_ENV') == 'production'
+
+
+def _set_session_cookie(response, token, max_age):
+    """Attach an HttpOnly session cookie to a response."""
+    response.set_cookie(
+        'session_token',
+        token,
+        max_age=max_age,
+        httponly=True,
+        secure=_IS_PROD,
+        samesite='Strict',
+        path='/'
+    )
+    return response
+
 
 @auth_bp.route('/register', methods=['POST'])
+@limiter.limit("5 per minute; 20 per hour")
 def register():
     """Register new user"""
     data = request.get_json()
@@ -31,15 +50,18 @@ def register():
 
     session = auth_service.create_session(user.id)
 
-    return jsonify({
+    response = make_response(jsonify({
         'message': 'User registered successfully',
         'user': user.to_dict(),
         'session_token': session.session_token,
         'expires_at': session.expires_at.isoformat()
-    }), 201
+    }), 201)
+    _set_session_cookie(response, session.session_token, max_age=7 * 24 * 3600)
+    return response
 
 
 @auth_bp.route('/login', methods=['POST'])
+@limiter.limit("10 per minute; 50 per hour")
 def login():
     """Authenticate user and create session"""
     data = request.get_json()
@@ -58,12 +80,14 @@ def login():
 
     session = auth_service.create_session(user.id)
 
-    return jsonify({
+    response = make_response(jsonify({
         'message': 'Login successful',
         'user': user.to_dict(),
         'session_token': session.session_token,
         'expires_at': session.expires_at.isoformat()
-    })
+    }))
+    _set_session_cookie(response, session.session_token, max_age=7 * 24 * 3600)
+    return response
 
 
 @auth_bp.route('/logout', methods=['POST'])
@@ -76,7 +100,9 @@ def logout():
     if session:
         auth_service.invalidate_session(session)
 
-    return jsonify({'message': 'Logout successful'})
+    response = make_response(jsonify({'message': 'Logout successful'}))
+    response.delete_cookie('session_token', path='/')
+    return response
 
 
 @auth_bp.route('/verify', methods=['GET'])

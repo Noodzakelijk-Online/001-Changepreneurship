@@ -5,12 +5,12 @@ services:
     container_name: changepreneurship-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: changepreneurship
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: ${POSTGRES_DB:-changepreneurship}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"  # localhost only — access via SSH tunnel
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -26,13 +26,12 @@ services:
     image: redis:7-alpine
     container_name: changepreneurship-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass changepreneurship123
-    ports:
-      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    # No port exposure — internal network only
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "--no-auth-warning", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,15 +47,15 @@ services:
     restart: unless-stopped
     environment:
       # Database
-      DATABASE_URL: postgresql://admin:admin@postgres:5432/changepreneurship
+      DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-changepreneurship}
       
       # Redis
-      REDIS_URL: redis://:changepreneurship123@redis:6379/0
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
       
       # Flask
       FLASK_APP: src.main:app
       FLASK_ENV: production
-      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      SECRET_KEY: ${SECRET_KEY}
       
       # LLM Settings
       USE_LLM: "true"
@@ -67,9 +66,9 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       
       # CORS
-      ALLOWED_ORIGINS: http://localhost,http://localhost:80,http://frontend
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://changepreneurship.duckdns.org}
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"  # localhost only — Caddy proxies internally
     depends_on:
       postgres:
         condition: service_healthy
@@ -93,8 +92,7 @@ services:
       dockerfile: Dockerfile
     container_name: changepreneurship-frontend
     restart: unless-stopped
-    ports:
-      - "80:80"
+    # No direct port exposure — Caddy proxies to this service
     depends_on:
       backend:
         condition: service_healthy
@@ -107,6 +105,37 @@ services:
       retries: 3
       start_period: 10s
 
+  # Caddy — reverse proxy + automatic SSL (Let's Encrypt)
+  caddy:
+    image: caddy:2-alpine
+    container_name: changepreneurship-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      CADDY_ADMIN_HASH: ${CADDY_ADMIN_HASH}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - changepreneurship-network
+
+  # RedisInsight — Redis GUI (internal only, exposed through Caddy with basic auth)
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: changepreneurship-redisinsight
+    restart: unless-stopped
+    volumes:
+      - redisinsight_data:/data
+    # No direct port exposure — Caddy proxies /redis-ui/ with basic auth
+    networks:
+      - changepreneurship-network
+
 networks:
   changepreneurship-network:
     driver: bridge
@@ -115,3 +144,6 @@ volumes:
   postgres_data:
   redis_data:
   backend_logs:
+  caddy_data:
+  caddy_config:
+  redisinsight_data:

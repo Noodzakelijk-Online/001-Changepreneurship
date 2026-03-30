@@ -15,19 +15,29 @@ const API_BASE_URL = RAW_BASE
 const SESSION_TOKEN_KEY =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SESSION_STORAGE_KEY) ||
   'changepreneurship_session_token';
+// USER_DATA_KEY kept for migration cleanup only (reading from old localStorage)
 const USER_DATA_KEY =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_USER_STORAGE_KEY) ||
   'changepreneurship_user_data';
 
+// Use sessionStorage for the auth token (cleared on tab close; not readable
+// across origins). userData is kept in memory only — never written to storage.
+const _storage = typeof window !== 'undefined' ? window.sessionStorage : null;
+
 class ApiService {
   constructor() {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      this.sessionToken = localStorage.getItem(SESSION_TOKEN_KEY);
-      this.userData = this.getUserData();
+    // Prefer sessionStorage; fall back to in-memory only if unavailable.
+    // Also clear any legacy localStorage entry on startup.
+    if (typeof window !== 'undefined') {
+      // One-time migration: remove old localStorage token
+      try { window.localStorage.removeItem(SESSION_TOKEN_KEY); } catch (_) {}
+      try { window.localStorage.removeItem(USER_DATA_KEY); } catch (_) {}
+
+      this.sessionToken = _storage ? _storage.getItem(SESSION_TOKEN_KEY) : null;
     } else {
       this.sessionToken = null;
-      this.userData = null;
     }
+    this.userData = null; // kept in memory only
   }
 
   getHeaders() {
@@ -64,6 +74,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         headers: this.getHeaders(),
+        credentials: 'include',
         ...options,
       });
       return await this.handleResponse(response);
@@ -74,14 +85,10 @@ class ApiService {
 
   setSession(sessionToken, userData, expiresAt) {
     this.sessionToken = sessionToken;
-    this.userData = userData;
-    if (typeof window !== 'undefined' && window.localStorage) {
+    this.userData = userData ? { ...userData, expiresAt } : null;
+    if (_storage) {
       if (sessionToken) {
-        localStorage.setItem(SESSION_TOKEN_KEY, sessionToken);
-        localStorage.setItem(
-          USER_DATA_KEY,
-          JSON.stringify({ ...userData, expiresAt })
-        );
+        _storage.setItem(SESSION_TOKEN_KEY, sessionToken);
       } else {
         this.clearSession();
       }
@@ -91,20 +98,14 @@ class ApiService {
   clearSession() {
     this.sessionToken = null;
     this.userData = null;
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.removeItem(SESSION_TOKEN_KEY);
-      localStorage.removeItem(USER_DATA_KEY);
+    if (_storage) {
+      _storage.removeItem(SESSION_TOKEN_KEY);
     }
   }
 
   getUserData() {
-    if (typeof window === 'undefined' || !window.localStorage) return null;
-    try {
-      const raw = localStorage.getItem(USER_DATA_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
+    // userData is in-memory only; return current value
+    return this.userData;
   }
 
   isSessionExpired() {
@@ -120,50 +121,33 @@ class ApiService {
   }
 
   async register(userData) {
-    const res = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: "POST",
-      headers: this.getHeaders(),
+    const result = await this.request('/auth/register', {
+      method: 'POST',
       body: JSON.stringify(userData),
     });
-    const result = await this.handleResponse(res);
     if (result.success && result.data?.session_token)
-      this.setSession(
-        result.data.session_token,
-        result.data.user,
-        result.data.expires_at
-      );
+      this.setSession(result.data.session_token, result.data.user, result.data.expires_at);
     return result;
   }
 
   async login(credentials) {
-    console.log('[API] Login request for:', credentials.username);
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: "POST",
-      headers: this.getHeaders(),
+    const result = await this.request('/auth/login', {
+      method: 'POST',
       body: JSON.stringify(credentials),
     });
-    const result = await this.handleResponse(res);
-    console.log('[API] Login response:', result);
-    
     if (result.success && result.data?.session_token) {
-      console.log('[API] Setting session with token:', result.data.session_token.substring(0, 20) + '...');
       this.setSession(
         result.data.session_token,
         result.data.user,
         result.data.expires_at
       );
-      console.log('[API] Session set. isAuthenticated():', this.isAuthenticated());
     }
     return result;
   }
 
   async logout() {
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: "POST",
-        headers: this.getHeaders(),
-      });
-      await this.handleResponse(res);
+      await this.request('/auth/logout', { method: 'POST' });
     } catch {
       // ignore network errors during logout
     } finally {
@@ -179,11 +163,7 @@ class ApiService {
       this.clearSession();
       return { success: false, error: "Session expired" };
     }
-    const res = await fetch(`${API_BASE_URL}/auth/verify`, {
-      method: "GET",
-      headers: this.getHeaders(),
-    });
-    const result = await this.handleResponse(res);
+    const result = await this.request('/auth/verify');
     if (result.success && result.data?.user)
       this.setSession(
         this.sessionToken,
@@ -208,142 +188,40 @@ class ApiService {
 
   // ==================== ASSESSMENT METHODS ====================
 
-  /**
-   * Get all assessment phases
-   * @returns {Promise<Object>} Assessment phases data
-   */
   async getAssessmentPhases() {
-    const response = await fetch(`${API_BASE_URL}/assessment/phases`, {
-      method: "GET",
-      headers: this.getHeaders(),
-    });
-
-    return this.handleResponse(response);
+    return this.request('/assessment/phases');
   }
 
-  /**
-   * Start a new assessment phase
-   * @param {string} phaseId - Assessment phase identifier
-   * @returns {Promise<Object>} Assessment start response
-   */
   async startAssessmentPhase(phaseId) {
-    const response = await fetch(
-      `${API_BASE_URL}/assessment/start/${phaseId}`,
-      {
-        method: "POST",
-        headers: this.getHeaders(),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request(`/assessment/start/${phaseId}`, { method: 'POST' });
   }
 
-  /**
-   * Save assessment response
-   * @param {string} assessmentId - Assessment identifier
-   * @param {Object} responseData - Response data
-   * @returns {Promise<Object>} Save response
-   */
   async saveAssessmentResponse(assessmentId, responseData) {
-    const response = await fetch(
-      `${API_BASE_URL}/assessment/${assessmentId}/response`,
-      {
-        method: "POST",
-        headers: this.getHeaders(),
-        body: JSON.stringify(responseData),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request(`/assessment/${assessmentId}/response`, {
+      method: 'POST',
+      body: JSON.stringify(responseData),
+    });
   }
 
-  /**
-   * Update assessment progress
-   * @param {string} assessmentId - Assessment identifier
-   * @param {Object} progressData - Progress data
-   * @returns {Promise<Object>} Update response
-   */
-  async updateAssessmentProgress(assessmentId, progressData) {
-    const response = await fetch(
-      `${API_BASE_URL}/assessment/${assessmentId}/progress`,
-      {
-        method: "PUT",
-        headers: this.getHeaders(),
-        body: JSON.stringify(progressData),
-      }
-    );
-
-    return this.handleResponse(response);
+  async updateAssessmentProgress(assessmentId, progressPercentage, isCompleted = false, assessmentData = null) {
+    const body = { progress_percentage: progressPercentage };
+    if (isCompleted) body.is_completed = true;
+    if (assessmentData) body.assessment_data = assessmentData;
+    return this.request(`/assessment/${assessmentId}/progress`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
   }
 
-  /**
-   * Save assessment response
-   * @param {number} assessmentId - Assessment ID
-   * @param {Object} responseData - Response data {question_id, response_value, section_id, response_type, question_text}
-   * @returns {Promise<Object>} Save response result
-   */
-  async saveAssessmentResponse(assessmentId, responseData) {
-    const response = await fetch(
-      `${API_BASE_URL}/assessment/${assessmentId}/response`,
-      {
-        method: "POST",
-        headers: this.getHeaders(),
-        body: JSON.stringify(responseData),
-      }
-    );
-
-    return this.handleResponse(response);
-  }
-
-  /**
-   * Update assessment progress percentage
-   * @param {string} assessmentId - Assessment identifier
-   * @param {number} progressPercentage - Progress percentage (0-100)
-   * @returns {Promise<Object>} Update result
-   */
-  async updateAssessmentProgress(assessmentId, progressPercentage) {
-    const response = await fetch(
-      `${API_BASE_URL}/assessment/${assessmentId}/progress`,
-      {
-        method: "PUT",
-        headers: this.getHeaders(),
-        body: JSON.stringify({ progress_percentage: progressPercentage }),
-      }
-    );
-
-    return this.handleResponse(response);
-  }
-
-  /**
-   * Get assessment responses
-   * @param {string} assessmentId - Assessment identifier
-   * @returns {Promise<Object>} Assessment responses
-   */
   async getAssessmentResponses(assessmentId) {
-    const response = await fetch(
-      `${API_BASE_URL}/assessment/${assessmentId}/responses`,
-      {
-        method: "GET",
-        headers: this.getHeaders(),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request(`/assessment/${assessmentId}/responses`);
   }
 
-  /**
-   * Update entrepreneur profile
-   * @param {Object} profileData - Profile data
-   * @returns {Promise<Object>} Update response
-   */
   async updateEntrepreneurProfile(profileData) {
-    const response = await fetch(`${API_BASE_URL}/assessment/profile/update`, {
-      method: "PUT",
-      headers: this.getHeaders(),
+    return this.request('/assessment/profile/update', {
+      method: 'PUT',
       body: JSON.stringify(profileData),
     });
-
-    return this.handleResponse(response);
   }
 
   // ==================== ANALYTICS METHODS ====================
@@ -353,15 +231,7 @@ class ApiService {
    * @returns {Promise<Object>} Dashboard data
    */
   async getDashboardOverview() {
-    const response = await fetch(
-      `${API_BASE_URL}/analytics/dashboard/overview`,
-      {
-        method: "GET",
-        headers: this.getHeaders(),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request('/analytics/dashboard/overview');
   }
 
   /**
@@ -370,15 +240,7 @@ class ApiService {
    * @returns {Promise<Object>} Progress history data
    */
   async getProgressHistory(days = 30) {
-    const response = await fetch(
-      `${API_BASE_URL}/analytics/dashboard/progress-history?days=${days}`,
-      {
-        method: "GET",
-        headers: this.getHeaders(),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request(`/analytics/dashboard/progress-history?days=${days}`);
   }
 
   /**
@@ -386,15 +248,7 @@ class ApiService {
    * @returns {Promise<Object>} Profile analytics data
    */
   async getEntrepreneurProfileAnalytics() {
-    const response = await fetch(
-      `${API_BASE_URL}/analytics/dashboard/entrepreneur-profile`,
-      {
-        method: "GET",
-        headers: this.getHeaders(),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request('/analytics/dashboard/entrepreneur-profile');
   }
 
   /**
@@ -427,15 +281,7 @@ class ApiService {
    * @returns {Promise<Object>} Assessment statistics
    */
   async getAssessmentStatistics() {
-    const response = await fetch(
-      `${API_BASE_URL}/analytics/dashboard/assessment-stats`,
-      {
-        method: "GET",
-        headers: this.getHeaders(),
-      }
-    );
-
-    return this.handleResponse(response);
+    return this.request('/analytics/dashboard/assessment-stats');
   }
 
   async searchPrinciples(query, limit = 5) {
@@ -551,6 +397,22 @@ class ApiService {
     const res = await fetch(`${API_BASE_URL}/ai/insights-report${qs}`, {
       method: 'GET',
       headers: this.getHeaders(),
+    });
+    return this.handleResponse(res);
+  }
+
+  /**
+   * Get a brief AI-powered summary for a single completed assessment phase.
+   * Called immediately after phase completion.
+   *
+   * @param {string} phaseId - e.g. 'self_discovery'
+   * @returns {Promise<{success: boolean, summary: Object}>}
+   */
+  async getPhaseAISummary(phaseId) {
+    const res = await fetch(`${API_BASE_URL}/ai/phase-summary`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ phase_id: phaseId }),
     });
     return this.handleResponse(res);
   }

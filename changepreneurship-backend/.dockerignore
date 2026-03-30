@@ -42,11 +42,6 @@ instance/
 .DS_Store
 Thumbs.db
 
-# Development
-*.md
-!README.md
+# Development / CI only — excluded from image
 test_*.py
 debug_*.py
-create_*.py
-check_*.py
-seed_*.py

@@ -1,0 +1,40 @@
+changepreneurship.duckdns.org {
+    # Security headers — applied to all responses
+    header {
+        # Clickjacking protection
+        X-Frame-Options "DENY"
+        # MIME type sniffing protection
+        X-Content-Type-Options "nosniff"
+        # HSTS — 1 year, including subdomains
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        # Referrer policy
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # CSP — Vite/React SPA: bundled JS/CSS, no eval, allow inline styles for Tailwind
+        Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+        # Disable browser features not used by this app
+        Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), interest-cohort=()"
+        # Remove fingerprinting headers
+        -Server
+        -X-Powered-By
+    }
+
+    # Admin: Redis GUI — protected with basic auth
+    # Generate hash: caddy hash-password --plaintext 'yourpassword'
+    handle /redis-ui/* {
+        basicauth {
+            admin {$CADDY_ADMIN_HASH}
+        }
+        uri strip_prefix /redis-ui
+        reverse_proxy redisinsight:5540
+    }
+
+    # API requests → Flask backend
+    handle /api/* {
+        reverse_proxy backend:5000
+    }
+
+    # Everything else → React frontend
+    handle {
+        reverse_proxy frontend:80
+    }
+}
