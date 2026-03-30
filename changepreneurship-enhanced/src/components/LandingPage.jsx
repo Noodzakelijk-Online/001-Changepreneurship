@@ -126,12 +126,13 @@ const LandingPage = () => {
                   >
                     Log In
                   </Button>
-                  <Button 
-                    onClick={() => handleAuthAction('register')}
-                    className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white border-0 shadow-lg shadow-cyan-500/50"
-                  >
-                    Start Building
-                  </Button>
+                  <a href="https://changepreneurship.duckdns.org/" target="_blank" rel="noopener noreferrer">
+                    <Button 
+                      className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white border-0 shadow-lg shadow-cyan-500/50"
+                    >
+                      Start Building
+                    </Button>
+                  </a>
                 </div>
               )}
             </div>
@@ -204,14 +205,15 @@ const LandingPage = () => {
               </>
             ) : (
               <>
-                <Button 
-                  size="lg" 
-                  className="text-lg px-10 py-7 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white border-0 shadow-2xl shadow-cyan-500/50 rounded-full font-semibold transform hover:scale-105 transition-transform"
-                  onClick={() => handleAuthAction('register')}
-                >
-                  Start Building
-                  <ArrowRight className="ml-3 h-5 w-5" />
-                </Button>
+                <a href="https://changepreneurship.duckdns.org/" target="_blank" rel="noopener noreferrer">
+                  <Button 
+                    size="lg" 
+                    className="text-lg px-10 py-7 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white border-0 shadow-2xl shadow-cyan-500/50 rounded-full font-semibold transform hover:scale-105 transition-transform"
+                  >
+                    Start Building
+                    <ArrowRight className="ml-3 h-5 w-5" />
+                  </Button>
+                </a>
               </>
             )}
           </div>
