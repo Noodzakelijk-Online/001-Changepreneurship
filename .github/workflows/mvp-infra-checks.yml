@@ -47,6 +47,7 @@ jobs:
               'src.services.action_engine',
               'src.services.assessment_to_mvp_adapter',
               'src.services.mentor_source_router',
+              'src.services.mvp_journey_orchestrator',
               'src.services.mvp_policies',
               'src.services.path_decision_engine',
           ]
