@@ -7,6 +7,7 @@ integrations yet:
 2. Run the rule-based path decision engine.
 3. Turn a decision into a proposed UserAction.
 4. Approve/edit/reject/cancel/mock-execute the action.
+5. Expose one canonical journey state for the MVP user experience.
 """
 
 from datetime import datetime
@@ -23,6 +24,7 @@ from src.models.mvp_infrastructure import (
 )
 from src.services.action_engine import ActionEngine, ActionStateError
 from src.services.assessment_to_mvp_adapter import AssessmentToMVPAdapter
+from src.services.mvp_journey_orchestrator import MVPJourneyOrchestrator
 from src.services.path_decision_engine import PathDecisionEngine
 from src.utils.auth import verify_session_token
 
@@ -41,6 +43,40 @@ def _get_user_action_or_404(action_id: int, user_id: int):
     if not action:
         return None, (jsonify({"error": "Action not found"}), 404)
     return action, None
+
+
+@mvp_bp.route("/journey-state", methods=["GET", "POST"])
+def get_journey_state():
+    """Return the canonical MVP user journey state.
+
+    This is the product-level endpoint the frontend can use to show:
+    - where the user is now;
+    - what is blocked or risky;
+    - what evidence/assumptions exist;
+    - what the next safe action is;
+    - whether mentor routing is appropriate.
+    """
+    user, error_response = _current_user_or_error()
+    if error_response:
+        return error_response
+
+    data = request.get_json(silent=True) or {}
+    venture_id = data.get("venture_id") or request.args.get("venture_id", type=int)
+    create_action = bool(data.get("create_action", False) or request.args.get("create_action") == "true")
+
+    try:
+        state = MVPJourneyOrchestrator().get_state(
+            user_id=user.id,
+            venture_id=venture_id,
+            country=data.get("country") or request.args.get("country"),
+            region=data.get("region") or request.args.get("region"),
+            venture_type=data.get("venture_type") or request.args.get("venture_type"),
+            create_action=create_action,
+        )
+        return jsonify({"success": True, "journey_state": state})
+    except Exception as exc:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 500
 
 
 @mvp_bp.route("/bootstrap-from-assessment", methods=["POST"])
