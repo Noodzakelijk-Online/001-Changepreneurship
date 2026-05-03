@@ -22,6 +22,7 @@ from src.models.mvp_infrastructure import (
     Venture,
 )
 from src.services.action_engine import ActionEngine, ActionStateError
+from src.services.assessment_to_mvp_adapter import AssessmentToMVPAdapter
 from src.services.path_decision_engine import PathDecisionEngine
 from src.utils.auth import verify_session_token
 
@@ -40,6 +41,47 @@ def _get_user_action_or_404(action_id: int, user_id: int):
     if not action:
         return None, (jsonify({"error": "Action not found"}), 404)
     return action, None
+
+
+@mvp_bp.route("/bootstrap-from-assessment", methods=["POST"])
+def bootstrap_from_assessment():
+    """Connect existing assessment responses to the MVP readiness/action layer."""
+    user, error_response = _current_user_or_error()
+    if error_response:
+        return error_response
+
+    data = request.get_json() or {}
+    venture_id = data.get("venture_id")
+    create_action = bool(data.get("create_action", False))
+
+    try:
+        venture, profile, decision, gate = AssessmentToMVPAdapter().bootstrap(
+            user_id=user.id,
+            venture_id=venture_id,
+        )
+        response = {
+            "success": True,
+            "venture": venture.to_dict(),
+            "readiness_profile": profile.to_dict(),
+            "decision": decision.to_dict(),
+            "phase_gate": gate.to_dict() if gate else None,
+        }
+
+        if create_action:
+            action = ActionEngine().propose_action(
+                user_id=user.id,
+                venture_id=venture.id,
+                action_type=decision.next_action_type,
+                title=decision.recommended_action_title or "Recommended next action",
+                description=decision.explanation,
+                proposed_content=decision.recommended_action_payload or {},
+            )
+            response["action"] = action.to_dict()
+
+        return jsonify(response)
+    except Exception as exc:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(exc)}), 500
 
 
 @mvp_bp.route("/ventures", methods=["POST"])
