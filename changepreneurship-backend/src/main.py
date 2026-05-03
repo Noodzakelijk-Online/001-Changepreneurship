@@ -26,6 +26,7 @@ from src.routes.ai_recommendations import ai_recommendations_bp
 from src.routes.ai_routes import ai_bp
 from src.routes.data_import import data_import_bp
 from src.routes.mvp_infrastructure import mvp_bp
+from src.routes.mvp_logic import mvp_logic_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), "static"))
 # Trust exactly 1 proxy (Caddy) so get_remote_address returns the real client IP
@@ -120,6 +121,7 @@ app.register_blueprint(ai_recommendations_bp)
 app.register_blueprint(ai_bp, url_prefix="/api/ai")
 app.register_blueprint(data_import_bp, url_prefix="/api/data/import")
 app.register_blueprint(mvp_bp, url_prefix="/api/mvp")
+app.register_blueprint(mvp_logic_bp, url_prefix="/api/mvp/logic")
 
 # Database configuration
 database_url = os.getenv("DATABASE_URL")
