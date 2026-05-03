@@ -27,7 +27,23 @@ def list_sources():
     user, error_response = _current_user_or_error()
     if error_response:
         return error_response
-    return jsonify({"success": True, "mentor_sources": MentorSourceRouter().list_sources()})
+    country = request.args.get("country")
+    region = request.args.get("region")
+    return jsonify({
+        "success": True,
+        "mentor_sources": MentorSourceRouter().list_sources(country=country, region=region),
+    })
+
+
+@mentor_sources_bp.route("/connection-config/<selected_source_key>", methods=["GET"])
+def get_connection_config(selected_source_key):
+    user, error_response = _current_user_or_error()
+    if error_response:
+        return error_response
+    return jsonify({
+        "success": True,
+        "connection_config": MentorSourceRouter().connection_config(selected_source_key),
+    })
 
 
 @mentor_sources_bp.route("/recommend", methods=["POST"])
@@ -44,11 +60,14 @@ def recommend_sources():
 
     result = MentorSourceRouter().recommend(
         profile=profile,
+        country=data.get("country"),
         region=data.get("region"),
         venture_type=data.get("venture_type"),
         founder_type=data.get("founder_type"),
         mentor_need=data.get("mentor_need"),
         female_founder=bool(data.get("female_founder", False)),
+        age=data.get("age"),
+        underprivileged_founder=bool(data.get("underprivileged_founder", False)),
         max_results=int(data.get("max_results") or 5),
     )
     return jsonify({"success": True, "mentor_recommendation": result})
