@@ -1,0 +1,35 @@
+# docker-compose.test.yml
+# ========================
+# Runs the backend test suite inside Docker.
+# Does NOT need Postgres or Redis — conftest.py uses SQLite in-memory.
+#
+# Usage (from repo root):
+#   docker compose -f docker-compose.test.yml run --rm backend-test
+#
+# Run a specific test file:
+#   docker compose -f docker-compose.test.yml run --rm backend-test pytest tests/test_phase1_rule_engine.py -v
+#
+# Run with coverage:
+#   docker compose -f docker-compose.test.yml run --rm backend-test pytest tests/ --cov=src --cov-report=term-missing
+#
+# Clean up built image after:
+#   docker compose -f docker-compose.test.yml down --rmi local
+
+services:
+  backend-test:
+    build:
+      context: ./changepreneurship-backend
+      dockerfile: Dockerfile
+      target: test                  # Uses the test stage, not the production stage
+    image: changepreneurship-backend-test
+    container_name: changepreneurship-backend-test
+    environment:
+      FLASK_ENV: testing
+      TESTING: "true"
+      SECRET_KEY: test-only-secret-key-not-for-production
+      # SQLite in-memory is used by conftest.py — no DATABASE_URL needed
+      # Stub values so imports that read env vars don't fail
+      GROQ_API_KEY: test-stub
+      REDIS_URL: redis://localhost:6379/0
+    # No ports, no volumes, no depends_on — fully self-contained
+    # Exit code from pytest is propagated as container exit code

@@ -449,45 +449,36 @@ export function AssessmentProvider({ children }) {
           return;
         }
 
+        // Phase 1: assign phase metadata immediately — no waiting for responses
         const phasePayloads = {};
+        phasesResult.data.phases.forEach((phase) => {
+          if (!validatePhase(phase.id)) return;
+          phasePayloads[phase.id] = buildPhasePayload(phase.id, {
+            completed: Boolean(phase.is_completed),
+            progress: Math.round(phase.progress_percentage || 0),
+            assessmentId: phase.assessment_id,
+            startedAt: phase.started_at,
+            completedAt: phase.completed_at,
+            responses: {},
+          });
+        });
+        if (!isCancelled) assignPhaseData(phasePayloads);
 
+        // Phase 2: load responses in background (parallel) — only for started phases
+        const startedPhases = phasesResult.data.phases.filter(p => p.assessment_id && validatePhase(p.id));
         await Promise.all(
-          phasesResult.data.phases.map(async (phase) => {
-            if (!validatePhase(phase.id)) return;
-
-            const baseData = {
-              completed: Boolean(phase.is_completed),
-              progress: Math.round(phase.progress_percentage || 0),
-              assessmentId: phase.assessment_id,
-              startedAt: phase.started_at,
-              completedAt: phase.completed_at,
-              responses: {},
-            };
-
-            if (phase.assessment_id) {
-              const responsesResult = await apiService.getAssessmentResponses(
-                phase.assessment_id
-              );
-              
-              if (
-                responsesResult.success &&
-                Array.isArray(responsesResult.data?.responses)
-              ) {
-                baseData.responses = groupResponsesBySection(
-                  responsesResult.data.responses
-                );
-              }
+          startedPhases.map(async (phase) => {
+            const responsesResult = await apiService.getAssessmentResponses(phase.assessment_id);
+            if (isCancelled) return;
+            if (responsesResult.success && Array.isArray(responsesResult.data?.responses)) {
+              const grouped = groupResponsesBySection(responsesResult.data.responses);
+              dispatch({
+                type: ACTIONS.BULK_UPDATE_PHASE_DATA,
+                payload: { phase: phase.id, data: { responses: grouped } },
+              });
             }
-
-            phasePayloads[phase.id] = {
-              ...buildPhasePayload(phase.id, baseData),
-            };
           })
         );
-
-        if (isCancelled) return;
-
-        assignPhaseData(phasePayloads);
       } catch (error) {
         console.error("Failed to sync assessment data from backend:", error);
         if (user?.username === "sarah_chen_founder") {
@@ -562,12 +553,13 @@ export function AssessmentProvider({ children }) {
           const result = await apiService.saveAssessmentResponse(assessmentId, responseData);
           
           if (result.success && result.data?.assessment) {
+            // Only update metadata — do NOT spread state.assessmentData[phase] here
+            // because that stale closure would overwrite the just-dispatched response
             dispatch({
               type: ACTIONS.BULK_UPDATE_PHASE_DATA,
               payload: {
                 phase,
                 data: {
-                  ...state.assessmentData[phase],
                   assessmentId: result.data.assessment.id,
                   progress: Math.round(result.data.assessment.progress_percentage || 0),
                   completed: Boolean(result.data.assessment.is_completed),
@@ -617,7 +609,7 @@ export function AssessmentProvider({ children }) {
           payload: {
             phase,
             data: {
-              ...state.assessmentData[phase],
+              // Only metadata — no stale spread of state.assessmentData[phase]
               progress: Math.round(result.data.assessment.progress_percentage || 100),
               completed: Boolean(result.data.assessment.is_completed),
               completedAt: result.data.assessment.completed_at,

@@ -150,3 +150,46 @@ def get_profile():
         'profile': profile.to_dict()
     })
 
+
+@auth_bp.route('/change-password', methods=['POST'])
+@limiter.limit('5 per minute; 20 per hour')
+def change_password():
+    """Change authenticated user's password. Requires current password for verification."""
+    user, _, error, status = verify_session_token()
+    if error:
+        return jsonify(error), status
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Request body required'}), 400
+
+    current_password = data.get('current_password', '')
+    new_password = data.get('new_password', '')
+
+    if not current_password or not new_password:
+        return jsonify({'error': 'current_password and new_password are required'}), 400
+
+    from werkzeug.security import check_password_hash, generate_password_hash
+
+    if not check_password_hash(user.password_hash, current_password):
+        return jsonify({'error': 'Current password is incorrect'}), 401
+
+    valid, msg = auth_service.validate_password(new_password)
+    if not valid:
+        return jsonify({'error': msg}), 422
+
+    if current_password == new_password:
+        return jsonify({'error': 'New password must differ from the current password'}), 422
+
+    try:
+        from src.models.assessment import db
+        user.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        current_app.logger.info('[Auth] Password changed for user %s', user.id)
+        return jsonify({'success': True, 'message': 'Password changed successfully'})
+    except Exception:
+        from src.models.assessment import db
+        db.session.rollback()
+        current_app.logger.exception('[Auth] change_password error user_id=%d', user.id)
+        return jsonify({'error': 'Failed to update password'}), 500
+

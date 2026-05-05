@@ -337,6 +337,7 @@ const AssessmentShell = ({
   sectionProgress,
   onNext,
   nextLabel = 'Next Phase',
+  completed = false,
   children,
 }) => {
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -392,6 +393,16 @@ const AssessmentShell = ({
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
+
+      {/* ── Completed-phase edit notice ── */}
+      {completed && (
+        <div className="bg-emerald-500/10 border-b border-emerald-500/20 px-4 py-2 flex items-center gap-2">
+          <CheckCircle className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+          <p className="text-xs text-emerald-300">
+            This phase is complete. You can still review or update any answer — changes save automatically.
+          </p>
+        </div>
+      )}
 
       {/* ── Section sub-track ── */}
       <div className="bg-black/40 border-b border-gray-800/50 px-4 py-0">

@@ -274,13 +274,23 @@ def update_progress(assessment_id):
         
         is_completed = data.get('is_completed', False)
         assessment_data = data.get('assessment_data', {})
+
+        # Allow direct progress_percentage update
+        if 'progress_percentage' in data:
+            raw = data['progress_percentage']
+            try:
+                pct = float(raw)
+            except (TypeError, ValueError):
+                return jsonify({'error': 'Invalid progress_percentage. Must be a numeric value.'}), 400
+            assessment.progress_percentage = max(0.0, min(100.0, pct))
         
         if assessment_data:
             existing = assessment.get_assessment_data() or {}
             existing.update(assessment_data)
             assessment.set_assessment_data(existing)
 
-        recompute_assessment_status(assessment, force_complete=bool(is_completed))
+        if 'progress_percentage' not in data:
+            recompute_assessment_status(assessment, force_complete=bool(is_completed))
         
         db.session.commit()
         

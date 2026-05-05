@@ -635,61 +635,485 @@ export const BUSINESS_PILLARS_QUESTIONS = {
 }
 
 
-// Dummy questions for missing phases
-export const PRODUCT_CONCEPT_TESTING_QUESTIONS = [
+// ── Phase 5: Product Concept Testing ─────────────────────────────────────────
+// Section 1: concept-design
+export const PCT_SECTION_CONCEPT_DESIGN = [
   {
-    id: 'pct-1',
-    question: 'How will you validate your product concept?',
+    id: 'pct-s1-1',
+    question: 'Describe your product or service concept in plain language.',
+    hint: 'What exactly are you offering? Keep it to 2-3 sentences.',
     type: 'textarea',
-    required: true
+    required: true,
   },
   {
-    id: 'pct-2',
-    question: 'Who are your test users?',
-    type: 'text'
+    id: 'pct-s1-2',
+    question: 'Who is the primary target audience for this concept test?',
+    hint: 'Be specific: age, role, situation, or context.',
+    type: 'text',
+    required: true,
   },
   {
-    id: 'pct-3',
-    question: 'What feedback mechanisms will you use?',
-    type: 'textarea'
-  }
+    id: 'pct-s1-3',
+    question: 'What is the key value proposition you are testing?',
+    hint: 'What specific benefit or outcome does your concept promise?',
+    type: 'textarea',
+    required: true,
+  },
+  {
+    id: 'pct-s1-4',
+    question: 'What would a successful concept test look like to you?',
+    hint: 'Define success in concrete terms before you start testing.',
+    type: 'textarea',
+  },
+]
+
+// Section 2: test-methods
+export const PCT_SECTION_TEST_METHODS = [
+  {
+    id: 'pct-s2-1',
+    question: 'What testing method(s) did or will you use?',
+    hint: 'e.g. user interviews, landing page, mockup, pre-orders, pilot, pricing test, mentor feedback',
+    type: 'textarea',
+    required: true,
+  },
+  {
+    id: 'pct-s2-2',
+    question: 'How many people did you contact or test with?',
+    hint: 'Enter 0 if testing is not yet complete.',
+    type: 'number',
+    required: true,
+  },
+  {
+    id: 'pct-s2-3',
+    question: 'How did you find and select your test participants?',
+    hint: 'Describe your recruitment method and any potential bias.',
+    type: 'textarea',
+  },
+  {
+    id: 'pct-s2-4',
+    question: 'What exactly did you present or demonstrate to participants?',
+    hint: 'Describe the test scenario — what they saw, heard, or were asked.',
+    type: 'textarea',
+  },
+]
+
+// Section 3: feedback-data
+export const PCT_SECTION_FEEDBACK_DATA = [
+  {
+    id: 'pct-s3-1',
+    question: 'Did people clearly understand your concept? Describe their comprehension.',
+    hint: 'Did they get it immediately, need explanation, or remain confused?',
+    type: 'textarea',
+    required: true,
+  },
+  {
+    id: 'pct-s3-2',
+    question: 'What was the level of genuine desire or interest?',
+    hint: 'Choose the response that best describes the majority reaction.',
+    type: 'select',
+    required: true,
+    options: [
+      { value: 'STRONG',   label: 'Strong — multiple people asked to buy, sign up, or commit' },
+      { value: 'MODERATE', label: 'Moderate — positive reactions but no concrete action' },
+      { value: 'POLITE',   label: 'Polite — friendly feedback but vague or noncommittal' },
+      { value: 'CONFUSED', label: 'Confused — people did not understand the concept' },
+      { value: 'NEGATIVE', label: 'Negative — rejected, dismissed, or uninterested' },
+    ],
+  },
+  {
+    id: 'pct-s3-3',
+    question: 'What were the main objections raised?',
+    hint: 'e.g. price, timing, complexity, trust, existing alternatives',
+    type: 'textarea',
+  },
+  {
+    id: 'pct-s3-4',
+    question: 'What conversion signals did you receive?',
+    hint: 'e.g. pre-orders, sign-ups, pilot agreements, referrals, donations, bookings',
+    type: 'textarea',
+  },
+  {
+    id: 'pct-s3-5',
+    question: 'How many people took a concrete action (sign up, pre-order, booking, agreement)?',
+    hint: 'Enter 0 if none.',
+    type: 'number',
+  },
+]
+
+// Section 4: evidence-review
+export const PCT_SECTION_EVIDENCE_REVIEW = [
+  {
+    id: 'pct-s4-1',
+    question: 'What were the most important positive findings from your testing?',
+    hint: 'Specific, honest observations — not just what you hoped to hear.',
+    type: 'textarea',
+    required: true,
+  },
+  {
+    id: 'pct-s4-2',
+    question: 'What concerns, risks, or blockers emerged from the tests?',
+    hint: 'Be honest. These will inform whether to proceed, revise, or pivot.',
+    type: 'textarea',
+  },
+  {
+    id: 'pct-s4-3',
+    question: 'How would you rate the overall strength of your evidence?',
+    hint: 'Honest self-assessment of evidence quality.',
+    type: 'select',
+    required: true,
+    options: [
+      { value: 'STRONG',    label: 'Strong — multiple concrete commitments or actions' },
+      { value: 'MODERATE',  label: 'Moderate — positive signals but no commitments yet' },
+      { value: 'WEAK',      label: 'Weak — mostly polite or vague feedback' },
+      { value: 'VERY_WEAK', label: 'Very weak — confused, conflicting, or negative responses' },
+    ],
+  },
+  {
+    id: 'pct-s4-4',
+    question: 'What changes would improve your concept based on this testing?',
+    hint: 'Actionable revisions informed by what you heard.',
+    type: 'textarea',
+  },
+]
+
+// Flat list for legacy compatibility
+export const PRODUCT_CONCEPT_TESTING_QUESTIONS = [
+  ...PCT_SECTION_CONCEPT_DESIGN,
+  ...PCT_SECTION_TEST_METHODS,
+  ...PCT_SECTION_FEEDBACK_DATA,
+  ...PCT_SECTION_EVIDENCE_REVIEW,
 ];
+
+// ── Phase 6: Business Development ─────────────────────────────────────────────
+// Section 1: venture-summary
+export const BD_SECTION_VENTURE_SUMMARY = [
+  {
+    id: 'bd-s1-1',
+    question: 'Describe your venture in 2-3 sentences.',
+    hint: 'What does it do, who is it for, and why does it exist?',
+    type: 'textarea',
+    required: true,
+  },
+  {
+    id: 'bd-s1-2',
+    question: 'What is your key value proposition?',
+    hint: 'What specific outcome or benefit does your customer get?',
+    type: 'textarea',
+    required: true,
+  },
+  {
+    id: 'bd-s1-3',
+    question: 'Who is your primary target customer?',
+    hint: 'Be as specific as possible: demographics, role, situation.',
+    type: 'text',
+  },
+  {
+    id: 'bd-s1-4',
+    question: 'What is your unique competitive advantage?',
+    hint: 'What makes this hard to copy or replace?',
+    type: 'textarea',
+  },
+]
+
+// Section 2: financial-model
+export const BD_SECTION_FINANCIAL_MODEL = [
+  {
+    id: 'bd-s2-1',
+    question: 'What is your primary revenue model?',
+    hint: 'e.g. Subscription, transaction fee, product sales, service fees, grants',
+    type: 'text',
+    required: true,
+  },
+  {
+    id: 'bd-s2-2',
+    question: 'What is your pricing approach?',
+    hint: 'Describe your price point(s) and rationale.',
+    type: 'textarea',
+    required: true,
+  },
+  {
+    id: 'bd-s2-3',
+    question: 'What are your main cost assumptions?',
+    hint: 'Key monthly costs: infrastructure, people, tools, marketing.',
+    type: 'textarea',
+  },
+  {
+    id: 'bd-s2-4',
+    question: 'What is your current runway and funding situation?',
+    hint: 'How long can you operate? Are you bootstrapped, seeking investment, or grant-funded?',
+    type: 'textarea',
+  },
+]
+
+// Section 3: go-to-market
+export const BD_SECTION_GO_TO_MARKET = [
+  {
+    id: 'bd-s3-1',
+    question: 'How will you acquire your first customers?',
+    hint: 'Specific tactics: outreach, referrals, content, events, ads, partnerships.',
+    type: 'textarea',
+    required: true,
+  },
+  {
+    id: 'bd-s3-2',
+    question: 'What are your primary acquisition channels?',
+    hint: 'List the 1-3 channels most likely to work for your audience.',
+    type: 'textarea',
+  },
+  {
+    id: 'bd-s3-3',
+    question: 'What are your key launch milestones in the next 90 days?',
+    hint: 'Be specific: dates, targets, actions.',
+    type: 'textarea',
+  },
+  {
+    id: 'bd-s3-4',
+    question: 'What partnerships or alliances would accelerate your launch?',
+    hint: 'Distribution partners, referral sources, integrations, co-marketing.',
+    type: 'textarea',
+  },
+]
+
+// Section 4: operations
+export const BD_SECTION_OPERATIONS = [
+  {
+    id: 'bd-s4-1',
+    question: 'What legal structure will you use?',
+    hint: 'e.g. Sole trader, Ltd, LLC, non-profit. Describe your decision and timeline.',
+    type: 'textarea',
+    required: true,
+  },
+  {
+    id: 'bd-s4-2',
+    question: 'What are your key operational processes?',
+    hint: 'Onboarding, delivery, billing, customer support — how does work actually flow?',
+    type: 'textarea',
+  },
+  {
+    id: 'bd-s4-3',
+    question: 'What tools and systems will you use?',
+    hint: 'CRM, project management, communication, payments, analytics.',
+    type: 'textarea',
+  },
+  {
+    id: 'bd-s4-4',
+    question: 'What professional support do you need?',
+    hint: 'e.g. accountant, lawyer, advisor, technical co-founder.',
+    type: 'textarea',
+  },
+]
+
+// Section 5: risk-roadmap
+export const BD_SECTION_RISK_ROADMAP = [
+  {
+    id: 'bd-s5-1',
+    question: 'What are your top 3 risks?',
+    hint: 'What could derail the venture in the next 6 months?',
+    type: 'textarea',
+  },
+  {
+    id: 'bd-s5-2',
+    question: 'How will you mitigate each risk?',
+    hint: 'Specific actions or contingencies for each risk.',
+    type: 'textarea',
+  },
+  {
+    id: 'bd-s5-3',
+    question: 'What will you accomplish in the next 30 days?',
+    hint: 'Concrete, measurable outcomes.',
+    type: 'textarea',
+    required: true,
+  },
+  {
+    id: 'bd-s5-4',
+    question: 'What will you accomplish in the next 60 days?',
+    hint: 'Building on the 30-day outcomes.',
+    type: 'textarea',
+  },
+  {
+    id: 'bd-s5-5',
+    question: 'What will you accomplish in the next 90 days?',
+    hint: 'End-state for your first quarter of execution.',
+    type: 'textarea',
+  },
+]
 
 export const BUSINESS_DEVELOPMENT_QUESTIONS = [
-  {
-    id: 'bd-1',
-    question: 'What are your key growth strategies?',
-    type: 'textarea',
-    required: true
-  },
-  {
-    id: 'bd-2',
-    question: 'How will you allocate resources?',
-    type: 'textarea'
-  },
-  {
-    id: 'bd-3',
-    question: 'What partnerships are essential?',
-    type: 'textarea'
-  }
+  ...BD_SECTION_VENTURE_SUMMARY,
+  ...BD_SECTION_FINANCIAL_MODEL,
+  ...BD_SECTION_GO_TO_MARKET,
+  ...BD_SECTION_OPERATIONS,
+  ...BD_SECTION_RISK_ROADMAP,
 ];
 
-export const BUSINESS_PROTOTYPE_TESTING_QUESTIONS = [
+// ── Phase 7: Business Prototype Testing ────────────────────────────────────
+
+// Section 1: traction-evidence
+export const PT_SECTION_TRACTION = [
   {
-    id: 'bpt-1',
-    question: 'How will you test your business model in the market?',
+    id: 'pt-s1-1',
+    question: 'What type of traction have you achieved so far?',
+    hint: 'Select the strongest form of real-world validation you have obtained.',
+    type: 'select',
+    required: true,
+    options: [
+      { value: 'paying_customers', label: 'Paying customers' },
+      { value: 'pilot_contracts', label: 'Signed pilot contracts' },
+      { value: 'signed_agreements', label: 'Signed partnership / distribution agreements' },
+      { value: 'active_users', label: 'Active users (free or beta)' },
+      { value: 'signups', label: 'Signups / waitlist' },
+      { value: 'partnerships', label: 'Verbal partnership commitments' },
+      { value: 'interest_expressed', label: 'Interest expressed (meetings, emails)' },
+      { value: 'meetings_held', label: 'Meetings held only — no commitment' },
+      { value: 'none', label: 'No traction yet' },
+    ],
+  },
+  {
+    id: 'pt-s1-2',
+    question: 'How many people or organisations represent that traction?',
+    hint: 'Enter a number. Count only distinct people or organisations.',
+    type: 'number',
+    required: true,
+  },
+]
+
+// Section 2: conversion-sales
+export const PT_SECTION_CONVERSION = [
+  {
+    id: 'pt-s2-1',
+    question: 'How many people or organisations have you contacted or reached out to?',
+    hint: 'Total outreach attempts: emails, calls, messages, meetings initiated.',
+    type: 'number',
+    required: true,
+  },
+  {
+    id: 'pt-s2-2',
+    question: 'How many of those contacts converted to a sale, pilot, or agreement?',
+    hint: 'Include any paying customer, signed contract, or active pilot.',
+    type: 'number',
+    required: true,
+  },
+]
+
+// Section 3: delivery-operations
+export const PT_SECTION_DELIVERY = [
+  {
+    id: 'pt-s3-1',
+    question: 'How well have you delivered what you promised to customers or pilot users?',
+    hint: 'Honest assessment of your actual delivery vs. what was agreed.',
+    type: 'select',
+    required: true,
+    options: [
+      { value: 'fully_delivered', label: 'Fully delivered — on time, on spec, no major issues' },
+      { value: 'mostly_delivered', label: 'Mostly delivered — minor gaps, resolved quickly' },
+      { value: 'partially_delivered', label: 'Partially delivered — significant gaps or delays' },
+      { value: 'not_delivered', label: 'Not delivered — commitments not met' },
+      { value: 'not_applicable', label: 'Not applicable — no delivery yet' },
+    ],
+  },
+  {
+    id: 'pt-s3-2',
+    question: 'What operational friction or bottlenecks did you encounter?',
+    hint: 'Time, cost, complexity, errors, customer support issues, delivery failures.',
     type: 'textarea',
-    required: true
+  },
+]
+
+// Section 4: financial-reality
+export const PT_SECTION_FINANCIAL = [
+  {
+    id: 'pt-s4-1',
+    question: 'How does your actual revenue compare to your original plan?',
+    hint: 'Be honest — this drives the most important decisions.',
+    type: 'select',
+    required: true,
+    options: [
+      { value: 'above_plan', label: 'Above plan — exceeded revenue expectations' },
+      { value: 'on_plan', label: 'On plan — close to expected revenue' },
+      { value: 'below_plan', label: 'Below plan — less than expected' },
+      { value: 'no_revenue_yet', label: 'No revenue yet — still pre-revenue' },
+    ],
   },
   {
-    id: 'bpt-2',
-    question: 'What metrics will you track?',
-    type: 'text'
+    id: 'pt-s4-2',
+    question: 'How do your actual costs compare to your original budget?',
+    hint: 'Include time costs, tool costs, service costs, unexpected expenses.',
+    type: 'select',
+    options: [
+      { value: 'under_budget', label: 'Under budget — costs lower than expected' },
+      { value: 'on_budget', label: 'On budget — costs as expected' },
+      { value: 'over_budget', label: 'Over budget — costs higher than expected' },
+      { value: 'no_budget_set', label: 'No budget was set' },
+    ],
+  },
+]
+
+// Section 5: customer-response
+export const PT_SECTION_CUSTOMER = [
+  {
+    id: 'pt-s5-1',
+    question: 'How would you describe overall customer or user satisfaction?',
+    hint: 'Based on feedback, usage, and direct conversations.',
+    type: 'select',
+    required: true,
+    options: [
+      { value: 'very_satisfied', label: 'Very satisfied — strong positive feedback' },
+      { value: 'satisfied', label: 'Satisfied — generally positive, minor issues' },
+      { value: 'neutral', label: 'Neutral — mixed feedback, unclear signal' },
+      { value: 'dissatisfied', label: 'Dissatisfied — negative feedback, complaints' },
+      { value: 'no_feedback', label: 'No feedback collected yet' },
+    ],
   },
   {
-    id: 'bpt-3',
-    question: 'What is your timeline for prototype validation?',
-    type: 'text'
-  }
+    id: 'pt-s5-2',
+    question: 'Have customers shown repeat interest, referrals, or retention?',
+    hint: 'Any evidence of customers coming back or recommending you.',
+    type: 'select',
+    options: [
+      { value: 'yes_repeat_customers', label: 'Yes — customers returned or renewed' },
+      { value: 'yes_referrals', label: 'Yes — customers referred others' },
+      { value: 'yes_both', label: 'Yes — both repeat usage and referrals' },
+      { value: 'too_early', label: 'Too early to tell' },
+      { value: 'no', label: 'No repeat interest or referrals yet' },
+    ],
+  },
+]
+
+// Section 6: founder-performance
+export const PT_SECTION_FOUNDER = [
+  {
+    id: 'pt-s6-1',
+    question: 'How much of your original execution plan did you complete?',
+    hint: 'Tasks, commitments, and milestones you set before the prototype phase.',
+    type: 'select',
+    required: true,
+    options: [
+      { value: 'completed_all', label: 'Completed all or nearly all planned tasks' },
+      { value: 'completed_most', label: 'Completed most — some gaps' },
+      { value: 'completed_some', label: 'Completed some — significant gaps' },
+      { value: 'completed_little', label: 'Completed little — most tasks not done' },
+    ],
+  },
+  {
+    id: 'pt-s6-2',
+    question: 'How well did you adapt when things did not go as planned?',
+    hint: 'When faced with unexpected problems, what did you do?',
+    type: 'select',
+    options: [
+      { value: 'adapted_quickly', label: 'Adapted quickly and effectively' },
+      { value: 'adapted_with_support', label: 'Adapted with mentor or support help' },
+      { value: 'slow_to_adapt', label: 'Slow to adapt — took time to change course' },
+      { value: 'struggled', label: 'Struggled to adapt — felt stuck' },
+    ],
+  },
+]
+
+export const BUSINESS_PROTOTYPE_TESTING_QUESTIONS = [
+  ...PT_SECTION_TRACTION,
+  ...PT_SECTION_CONVERSION,
+  ...PT_SECTION_DELIVERY,
+  ...PT_SECTION_FINANCIAL,
+  ...PT_SECTION_CUSTOMER,
+  ...PT_SECTION_FOUNDER,
 ];
 

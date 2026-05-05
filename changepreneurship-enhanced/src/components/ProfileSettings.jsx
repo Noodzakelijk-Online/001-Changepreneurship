@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAssessment } from "../contexts/AssessmentContext";
 import { useAuth } from "../contexts/AuthContext";
 import { Input } from "@/components/ui/input.jsx";
@@ -10,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card.jsx";
-import { Upload, Sparkles, FileText } from "lucide-react";
+import { Upload, Sparkles, FileText, Shield, Link2, ChevronRight } from "lucide-react";
 
 const ProfileSettings = () => {
   const { userProfile, updateProfile } = useAssessment();
@@ -296,6 +297,39 @@ const ProfileSettings = () => {
           )}
         </CardContent>
       </Card>
+      </div>
+
+      {/* Privacy & Connections row */}
+      <div className="w-full max-w-5xl mx-auto px-4 grid sm:grid-cols-2 gap-4 pb-8">
+        <Link to="/profile/consent" className="group">
+          <Card className="bg-gray-950 border-gray-800 text-white hover:border-indigo-500 transition-colors">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-2 rounded-lg bg-indigo-500/10">
+                <Shield className="h-5 w-5 text-indigo-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm text-white">Privacy & Consent</div>
+                <div className="text-xs text-gray-400">Manage GDPR consent for each data category</div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-gray-600 group-hover:text-indigo-400 transition-colors" />
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to="/profile/connections" className="group">
+          <Card className="bg-gray-950 border-gray-800 text-white hover:border-indigo-500 transition-colors">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-2 rounded-lg bg-emerald-500/10">
+                <Link2 className="h-5 w-5 text-emerald-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm text-white">Connected Accounts</div>
+                <div className="text-xs text-gray-400">Email, MicroMentor and other external accounts</div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-gray-600 group-hover:text-emerald-400 transition-colors" />
+            </CardContent>
+          </Card>
+        </Link>
       </div>
     </div>
   );

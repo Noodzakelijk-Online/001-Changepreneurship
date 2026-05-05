@@ -21,7 +21,7 @@ changepreneurship.duckdns.org {
     # Admin: Redis GUI — protected with basic auth
     # Generate hash: caddy hash-password --plaintext 'yourpassword'
     handle /redis-ui/* {
-        basicauth {
+        basic_auth {
             admin {$CADDY_ADMIN_HASH}
         }
         uri strip_prefix /redis-ui

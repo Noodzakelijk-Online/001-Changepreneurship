@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request
 from src.models.assessment import User, db
+from src.services.auth_service import AuthService
 from src.utils.auth import verify_session_token
+from src.utils.limiter import limiter
 
 user_bp = Blueprint('user', __name__)
 
@@ -90,3 +92,41 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
     return '', 204
+
+
+@user_bp.route('/users/me', methods=['PATCH'])
+@limiter.limit('10 per minute')
+def update_me():
+    """Update authenticated user's own username. Email changes are not supported."""
+    user, _, error, status_code = verify_session_token()
+    if error:
+        return jsonify(error), status_code
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Request body required'}), 400
+
+    new_username = data.get('username', '').strip()
+    if not new_username:
+        return jsonify({'error': 'username is required'}), 400
+
+    if len(new_username) < AuthService.MIN_USERNAME_LENGTH:
+        return jsonify({'error': f'Username must be at least {AuthService.MIN_USERNAME_LENGTH} characters'}), 422
+
+    if len(new_username) > 64:
+        return jsonify({'error': 'Username must be 64 characters or fewer'}), 422
+
+    # Check uniqueness (excluding own record)
+    conflict = User.query.filter(User.username == new_username, User.id != user.id).first()
+    if conflict:
+        return jsonify({'error': 'Username is already taken'}), 409
+
+    try:
+        user.username = new_username
+        db.session.commit()
+        return jsonify({'success': True, 'user': user.to_dict()})
+    except Exception:
+        db.session.rollback()
+        from flask import current_app
+        current_app.logger.exception('[Users] update_me error user_id=%d', user.id)
+        return jsonify({'error': 'Failed to update profile'}), 500

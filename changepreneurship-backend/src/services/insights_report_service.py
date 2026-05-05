@@ -167,87 +167,15 @@ Return ONLY a valid JSON object (no markdown fences) that strictly follows this 
 }
 """
 
-SYSTEM_PROMPT = """You are the Changepreneurship AI Analyst — an expert business psychologist and venture analyst.
-Your job is to analyze a user's full entrepreneurship assessment and generate a comprehensive AI insights report.
+SYSTEM_PROMPT = """You are the Changepreneurship AI Analyst. Analyze founder assessment data and return a JSON insights report.
 
-The Changepreneurship platform assesses founders across 7 phases:
-  Phase 1 — Self-Discovery & Purpose (entrepreneur psyche: motivation, values, self-awareness)
-  Phase 2 — Passion, Skills & Vision (entrepreneur capabilities + early venture idea formation)
-  Phase 3 — Strategy Development (venture business model and strategic thinking)
-  Phase 4 — Market Intelligence (customer validation, competitors, market sizing)
-  Phase 5 — Leadership & Culture (team building, culture, delegation)
-  Phase 6 — AI & Future-Proofing (technology readiness, AI adoption)
-  Phase 7 — Execution & Growth (planning, operations, scaling)
+7 phases: Self-Discovery, Passion/Skills/Vision, Strategy, Market Intelligence, Leadership, AI Adoption, Execution.
+Scores: 85-100=exceptional, 70-84=strong, 55-69=developing, 40-54=early, <40=not addressed.
 
-SCORING GUIDANCE:
-  - Scores reflect quality of responses, depth of thinking, and readiness level
-  - 85-100: Exceptional / investor-ready
-  - 70-84: Strong / minor gaps
-  - 55-69: Developing / needs focus
-  - 40-54: Early stage / significant work needed
-  - <40: Not yet addressed
+Alignment: 3-5 sweet_spots (founder strength + venture strength), 3-4 risk_zones (weakness compounds weakness, include 'action'), 3 untapped_potential entries.
+Use HTML in insights: <b>bold</b>, <span class='highlight green'>, <span class='highlight red'>, <span class='highlight purple'>. Insights must be 2-3 specific sentences.
 
-ALIGNMENT GUIDANCE:
-  - Sweet Spots: Find at LEAST 3 and up to 5. Where a founder STRENGTH directly reinforces a venture STRENGTH or compensates for a gap. Use verbs: Reinforces / Anchors / Differentiates / Informs / Enables.
-  - Risk Zones: Find at LEAST 3 and up to 4. Where a founder WEAKNESS compounds a venture WEAKNESS (these are critical). Use labels: Critical Gap / Compounding / Bottleneck / Limiting. Each risk_zone MUST include a concrete 'action' field.
-  - Untapped Potential: Find at LEAST 3. Where an unused founder strength could dramatically improve a venture gap. Always end insight with an estimated score impact using the purple highlight span.
-
-INSIGHT TEXT RULES:
-  - Be specific with numbers, percentages, and named dimensions
-  - Insights must be 2-3 full sentences — substantive, not generic
-  - Use HTML: <b>bold key phrases</b> for emphasis
-  - Use <span class='highlight green'>positive callout</span> for wins
-  - Use <span class='highlight red'>red warning text</span> for danger signals  
-  - Use <span class='highlight purple'>purple text</span> for strategic insights and impact estimates
-  - Example: "<b>Your 12-month runway is shorter than the 18 months needed.</b> This creates a <span class='highlight red'>6-month funding gap</span> that must be resolved before launch."
-
-Be specific, honest, and actionable. Scores must be internally consistent.
-
-PHASE CARD GUIDANCE — You MUST generate ALL of these cards for each completed or in-progress phase:
-
-ENTREPRENEUR PHASES:
-  Phase 1 (Self-Discovery & Purpose) — Generate ALL 6 cards:
-    1. "Motivation & Drive" — subs: ["Core Drivers", "Failure Resilience", "Entrepreneurial Readiness"]
-    2. "Personality & Work Style" — subs: ["Risk Tolerance", "Stress Management", "Decision Making"]
-    3. "Values & Ethics" — subs: ["Ethical Standards", "Value Alignment"]
-    4. "Self-Awareness" — subs: ["Strengths Clarity", "Growth Awareness"]
-    5. "Life Impact & Support" — subs: ["Family Support", "Time Commitment", "Work-Life Balance"]
-    6. "Resources & Background" — subs: ["Financial Runway", "Industry Experience", "Professional Network", "Prior Entrepreneurship"]
-
-  Phase 2 (Passion, Skills & Vision) — Generate ALL 3 cards:
-    1. "Passion Intensity" — subs: ["Domain Passion", "Problem Empathy"]
-    2. "Skill Alignment" — subs: ["Technical Skills", "Leadership Skills", "Sales & Communication"]
-    3. "Vision Clarity" — subs: ["Long-term Direction", "Articulation"]
-
-  Phase 5 (Leadership & Culture) — Generate ALL 3 cards:
-    1. "Leadership Style" — subs: ["Delegation", "Inspiration", "Adaptability"]
-    2. "Team Building" — subs: ["Hiring Strategy", "Team Structure"]
-    3. "Culture & Communication" — subs: ["Culture Definition", "Communication Style"]
-
-  Phase 6 & Phase 7 — Generate 2-3 cards per phase relevant to the phase topic.
-
-VENTURE PHASES:
-  Phase 2 (Market Opportunity) — Generate 2 cards:
-    1. "Market Demand Signals" — subs: ["Timing", "Evidence"]
-    2. "Problem-Solution Fit" — subs: ["Problem Clarity", "Solution Uniqueness"]
-
-  Phase 3 (Strategy Development) — Generate ALL 3 cards:
-    1. "Business Model Design" — subs: ["Revenue Model", "Pricing Strategy", "Key Activities"]
-    2. "Strategic Thinking" — subs: ["Scenario Planning", "Adaptability"]
-    3. "Competitive Positioning" — subs: ["Differentiation", "Barriers to Entry"]
-
-  Phase 4 (Market Intelligence) — Generate ALL 3 cards:
-    1. "Customer Validation" — subs: ["Interviews Completed", "Feedback Quality", "Payment Intent"]
-    2. "Competitive Analysis" — subs: ["Direct Competitors", "Indirect Competitors"]
-    3. "Market Sizing & Trends" — subs: ["TAM", "SAM", "SAM/SOM Ratio"]
-
-  Phase 5, Phase 6, Phase 7 — Generate 2-3 relevant cards per completed phase.
-
-CRITICAL RULES FOR CARDS:
-  - Every card MUST have a 'subs' array with 2-4 entries (NEVER empty or missing)
-  - Sub scores must be consistent with the parent card score (±15 range)
-  - Card descriptions must be 1-2 specific sentences — NOT generic filler
-  - For unlocked/not-started phases: set cards=[] and score=null and completed=false
+Cards: Each completed phase needs 2-4 cards. Each card needs 'subs' array (2-3 items). For not-started phases: cards=[], score=null, completed=false.
 """ + REPORT_SCHEMA
 
 
@@ -255,7 +183,7 @@ class InsightsReportService:
   """Generate AI-powered full insights report for a user."""
 
   CACHE_TTL = 3600  # 1 hour
-  ENABLE_CACHE = False
+  ENABLE_CACHE = True
 
   def __init__(self):
     self.groq_key = os.getenv("GROQ_API_KEY")
@@ -328,8 +256,7 @@ class InsightsReportService:
 
     lines = [
       "=== ASSESSMENT OVERVIEW ===",
-      f"Total phases tracked: {len(phases)}",
-      f"Completed phases: {sum(1 for p in phases if p.get('completed'))}",
+      f"Total phases: {len(phases)} | Completed: {sum(1 for p in phases if p.get('completed'))}",
       "",
     ]
 
@@ -339,29 +266,23 @@ class InsightsReportService:
       progress = phase.get("progress", 0)
       completed = phase.get("completed", False)
       lines.append(
-        f"Phase '{pid}' — {pname} | Progress: {progress:.0f}% | "
-        f"{'Completed' if completed else 'In Progress'}"
+        f"Phase '{pid}' ({pname}): {progress:.0f}% {'✓' if completed else '…'}"
       )
       phase_responses = responses.get(pid, [])
       if phase_responses:
-        lines.append(f"  Responses ({len(phase_responses)} answers):")
-        for resp in phase_responses[:30]:  # cap per phase
+        for resp in phase_responses[:4]:  # max 4 responses per phase
           section = resp.get("section_id", "")
           q_text = resp.get("question_text", resp.get("question_id", ""))
           value = resp.get("response_value", "")
           if value is None:
             continue
           val_str = str(value)
-          if len(val_str) > 300:
-            val_str = val_str[:300] + "…"
-          lines.append(f"    [{section}] Q: {q_text[:120]} → A: {val_str}")
-      else:
-        lines.append("  No responses yet for this phase.")
+          if len(val_str) > 80:
+            val_str = val_str[:80] + "…"
+          lines.append(f"  [{section}] {q_text[:50]}: {val_str}")
       lines.append("")
 
-    lines.append(
-      "Based on all the above, generate the complete AI insights report JSON."
-    )
+    lines.append("Generate the complete AI insights report JSON based on the above.")
     return "\n".join(lines)
 
   # ------------------------------------------------------------------

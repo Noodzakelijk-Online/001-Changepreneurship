@@ -15,8 +15,12 @@ class LLMAuditLogger:
         self.log_dir = log_dir or os.path.join(
             os.path.dirname(__file__), '..', '..', 'logs', 'llm'
         )
-        os.makedirs(self.log_dir, exist_ok=True)
-        self.enabled = os.getenv("LLM_AUDIT_LOGGING", "true").lower() == "true"
+        try:
+            os.makedirs(self.log_dir, exist_ok=True)
+            self.enabled = os.getenv("LLM_AUDIT_LOGGING", "true").lower() == "true"
+        except PermissionError:
+            # Running in container as non-root without write access to logs volume — disable file logging
+            self.enabled = False
     
     def log_request(
         self,

@@ -66,14 +66,14 @@ class TestAuthentication:
         client.post('/api/auth/register', json={
             'username': 'logintest',
             'email': 'login@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         
         # Login
         response = client.post('/api/auth/login', json={
             'username': 'logintest',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         assert response.status_code == 200
         data = response.json
@@ -106,12 +106,12 @@ class TestAuthentication:
         client.post('/api/auth/register', json={
             'username': 'authtest',
             'email': 'auth@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         login_response = client.post('/api/auth/login', json={
             'username': 'authtest',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         token = login_response.json['session_token']
         
@@ -126,12 +126,12 @@ class TestAuthentication:
         client.post('/api/auth/register', json={
             'username': 'logouttest',
             'email': 'logout@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         login_response = client.post('/api/auth/login', json={
             'username': 'logouttest',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         token = login_response.json['session_token']
         
@@ -150,12 +150,12 @@ class TestAssessmentPhases:
         client.post('/api/auth/register', json={
             'username': 'assessment_user',
             'email': 'assess@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         response = client.post('/api/auth/login', json={
             'username': 'assessment_user',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         return response.json['session_token']
     
@@ -212,12 +212,12 @@ class TestDashboard:
         client.post('/api/auth/register', json={
             'username': 'dashboard_user',
             'email': 'dashboard@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         response = client.post('/api/auth/login', json={
             'username': 'dashboard_user',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         return response.json['session_token']
     
@@ -258,12 +258,12 @@ class TestAIRecommendations:
         client.post('/api/auth/register', json={
             'username': 'ai_user',
             'email': 'ai@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         response = client.post('/api/auth/login', json={
             'username': 'ai_user',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         return response.json['session_token']
     
@@ -291,12 +291,12 @@ class TestDataIntegrity:
         client.post('/api/auth/register', json={
             'username': 'persist_test',
             'email': 'persist@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         response = client.post('/api/auth/login', json={
             'username': 'persist_test',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         token = response.json['session_token']
         headers = {'Authorization': f'Bearer {token}'}
@@ -318,12 +318,12 @@ class TestDataIntegrity:
         client.post('/api/auth/register', json={
             'username': 'progress_test',
             'email': 'progress@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         response = client.post('/api/auth/login', json={
             'username': 'progress_test',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         token = response.json['session_token']
         headers = {'Authorization': f'Bearer {token}'}
@@ -350,14 +350,14 @@ class TestPerformance:
         client.post('/api/auth/register', json={
             'username': 'perf_test',
             'email': 'perf@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         
         start = time.time()
         response = client.post('/api/auth/login', json={
             'username': 'perf_test',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         duration = (time.time() - start) * 1000
         
@@ -369,12 +369,12 @@ class TestPerformance:
         client.post('/api/auth/register', json={
             'username': 'dash_perf',
             'email': 'dashperf@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         response = client.post('/api/auth/login', json={
             'username': 'dash_perf',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         token = response.json['session_token']
         headers = {'Authorization': f'Bearer {token}'}
@@ -408,8 +408,8 @@ class TestEdgeCases:
         response = client.post('/api/auth/register', json={
             'username': 'testuser',
             'email': 'not-an-email',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         assert response.status_code in [400, 422]
         
@@ -426,8 +426,8 @@ class TestEdgeCases:
         response = client.post('/api/auth/register', json={
             'username': '<script>alert("xss")</script>',
             'email': 'xss@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         # Should either reject or sanitize
         assert response.status_code in [400, 422, 201]

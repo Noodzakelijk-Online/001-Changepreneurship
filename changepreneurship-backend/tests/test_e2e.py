@@ -208,14 +208,14 @@ class TestPartialJourney:
         client.post('/api/auth/register', json={
             'username': 'resume_user',
             'email': 'resume@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         
         # Login
         login1 = client.post('/api/auth/login', json={
             'username': 'resume_user',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         token1 = login1.json['session_token']
         headers1 = {'Authorization': f'Bearer {token1}'}
@@ -236,7 +236,7 @@ class TestPartialJourney:
         # Login again (new session)
         login2 = client.post('/api/auth/login', json={
             'username': 'resume_user',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         token2 = login2.json['session_token']
         headers2 = {'Authorization': f'Bearer {token2}'}
@@ -258,12 +258,12 @@ class TestDataConsistency:
         client.post('/api/auth/register', json={
             'username': 'consistency_test',
             'email': 'consist@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         login = client.post('/api/auth/login', json={
             'username': 'consistency_test',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         token = login.json['session_token']
         headers = {'Authorization': f'Bearer {token}'}
@@ -301,12 +301,12 @@ class TestConcurrentUsers:
         client.post('/api/auth/register', json={
             'username': 'user1',
             'email': 'user1@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         login1 = client.post('/api/auth/login', json={
             'username': 'user1',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         token1 = login1.json['session_token']
         headers1 = {'Authorization': f'Bearer {token1}'}
@@ -315,12 +315,12 @@ class TestConcurrentUsers:
         client.post('/api/auth/register', json={
             'username': 'user2',
             'email': 'user2@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         login2 = client.post('/api/auth/login', json={
             'username': 'user2',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         token2 = login2.json['session_token']
         headers2 = {'Authorization': f'Bearer {token2}'}
@@ -353,12 +353,12 @@ class TestErrorRecovery:
         client.post('/api/auth/register', json={
             'username': 'rollback_test',
             'email': 'rollback@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         login = client.post('/api/auth/login', json={
             'username': 'rollback_test',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         token = login.json['session_token']
         headers = {'Authorization': f'Bearer {token}'}
@@ -391,12 +391,12 @@ class TestFullStackIntegration:
         client.post('/api/auth/register', json={
             'username': 'ai_pipeline',
             'email': 'ai@test.com',
-            'password': 'Pass123!',
-            'password_confirmation': 'Pass123!'
+            'password': 'PassWord1234!',
+            'password_confirmation': 'PassWord1234!'
         })
         login = client.post('/api/auth/login', json={
             'username': 'ai_pipeline',
-            'password': 'Pass123!'
+            'password': 'PassWord1234!'
         })
         token = login.json['session_token']
         headers = {'Authorization': f'Bearer {token}'}

@@ -128,6 +128,7 @@ const MarketResearchTools = () => {
       responses={responses}
       onResponse={handleResponse}
       sectionProgress={sectionProgress}
+      completed={Boolean(marketResearchData.completed)}
       onNext={() => completePhase('market_research', () => updatePhase('business_pillars'))}
       nextLabel="Next Phase: Business Pillars"
     />

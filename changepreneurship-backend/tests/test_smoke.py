@@ -29,8 +29,8 @@ class TestSmokeTests:
         response = client.post('/api/auth/register', json={
             'username': 'smoke_test_user',
             'email': 'smoke@test.com',
-            'password': 'Test123!',
-            'password_confirmation': 'Test123!'
+            'password': 'TestPassword1!',
+            'password_confirmation': 'TestPassword1!'
         })
         assert response.status_code == 201
         assert 'session_token' in response.json
@@ -42,14 +42,14 @@ class TestSmokeTests:
         client.post('/api/auth/register', json={
             'username': 'login_smoke',
             'email': 'login_smoke@test.com',
-            'password': 'Test123!',
-            'password_confirmation': 'Test123!'
+            'password': 'TestPassword1!',
+            'password_confirmation': 'TestPassword1!'
         })
         
         # Try login
         response = client.post('/api/auth/login', json={
             'username': 'login_smoke',
-            'password': 'Test123!'
+            'password': 'TestPassword1!'
         })
         assert response.status_code == 200
         assert 'session_token' in response.json
@@ -61,12 +61,12 @@ class TestSmokeTests:
         client.post('/api/auth/register', json={
             'username': 'dashboard_smoke',
             'email': 'dash@test.com',
-            'password': 'Test123!',
-            'password_confirmation': 'Test123!'
+            'password': 'TestPassword1!',
+            'password_confirmation': 'TestPassword1!'
         })
         login = client.post('/api/auth/login', json={
             'username': 'dashboard_smoke',
-            'password': 'Test123!'
+            'password': 'TestPassword1!'
         })
         token = login.json['session_token']
         headers = {'Authorization': f'Bearer {token}'}
@@ -82,12 +82,12 @@ class TestSmokeTests:
         client.post('/api/auth/register', json={
             'username': 'assess_smoke',
             'email': 'assess@test.com',
-            'password': 'Test123!',
-            'password_confirmation': 'Test123!'
+            'password': 'TestPassword1!',
+            'password_confirmation': 'TestPassword1!'
         })
         login = client.post('/api/auth/login', json={
             'username': 'assess_smoke',
-            'password': 'Test123!'
+            'password': 'TestPassword1!'
         })
         token = login.json['session_token']
         headers = {'Authorization': f'Bearer {token}'}
@@ -110,13 +110,13 @@ class TestSmokeTests:
         client.post('/api/auth/register', json={
             'username': 'perf_smoke',
             'email': 'perf@test.com',
-            'password': 'Test123!',
-            'password_confirmation': 'Test123!'
+            'password': 'TestPassword1!',
+            'password_confirmation': 'TestPassword1!'
         })
         start = time.time()
         client.post('/api/auth/login', json={
             'username': 'perf_smoke',
-            'password': 'Test123!'
+            'password': 'TestPassword1!'
         })
         login_time = (time.time() - start) * 1000
         assert login_time < 500

@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button.jsx";
-import { Brain, Home, ArrowLeft } from "lucide-react";
+import { Brain, Home, ArrowLeft, Map } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 const NavBar = () => {
@@ -39,6 +39,18 @@ const NavBar = () => {
         
         {isAuthenticated && (
           <div className="flex gap-2">
+            <Link to="/dashboard">
+              <Button
+                variant={location.pathname === '/dashboard' ? "default" : "outline"}
+                size="sm"
+                className={location.pathname === '/dashboard'
+                  ? "bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white border-0"
+                  : "border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"}
+              >
+                <Map className="h-4 w-4 mr-2" />
+                My Journey
+              </Button>
+            </Link>
             <Link to="/ai-insights">
               <Button
                 variant={location.pathname.includes('/ai-insights') || location.pathname.includes('/dashboard/executive-summary') ? "default" : "outline"}

@@ -10,21 +10,34 @@ from sqlalchemy import inspect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from src.models.assessment import db
+from src.models.benchmark_data import BenchmarkData  # noqa: F401 — register with SQLAlchemy
+from src.models.external_connection import ExternalConnection  # noqa: F401
+from src.models.data_consent_log import DataConsentLog  # noqa: F401
+from src.models.venture import Venture  # noqa: F401
+from src.models.market_research import CompetitorEntry, MarketContext, MarketValidityReport  # noqa: F401
 from src.utils.limiter import limiter
 from src.routes.user import user_bp
 from src.routes.auth import auth_bp
 from src.routes.assessment import assessment_bp
 from src.routes.analytics import analytics_bp
 from src.routes.principles import principles_bp
-from src.routes.purpose_discovery import purpose_discovery_bp
-from src.routes.mind_mapping import mind_mapping_bp
-from src.routes.value_zone_validator import value_zone_bp
-from src.routes.ai_adoption_roadmap import ai_adoption_bp
-from src.routes.enhanced_assessment import enhanced_assessment_bp
 from src.routes.dashboard import dashboard_bp
 from src.routes.ai_recommendations import ai_recommendations_bp
 from src.routes.ai_routes import ai_bp
 from src.routes.data_import import data_import_bp
+from src.routes.phase1 import phase1_bp
+from src.routes.phase2 import phase2_bp
+from src.routes.phase3 import phase3_bp
+from src.routes.phase4 import phase4_bp
+from src.routes.phase5 import phase5_bp
+from src.routes.phase6 import phase6_bp
+from src.routes.phase7 import phase7_bp
+from src.routes.venture_profile import venture_profile_bp
+from src.routes.account import account_bp
+from src.routes.routing import routing_bp
+from src.routes.actions import actions_bp
+from src.routes.progress import progress_bp
+from src.routes.safety import safety_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), "static"))
 # Trust exactly 1 proxy (Caddy) so get_remote_address returns the real client IP
@@ -109,15 +122,23 @@ app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(assessment_bp, url_prefix="/api/assessment")
 app.register_blueprint(analytics_bp, url_prefix="/api/analytics")
 app.register_blueprint(principles_bp, url_prefix="/api")
-app.register_blueprint(purpose_discovery_bp, url_prefix="/api/purpose-discovery")
-app.register_blueprint(mind_mapping_bp, url_prefix="/api/mind-mapping")
-app.register_blueprint(value_zone_bp, url_prefix="/api/value-zone")
-app.register_blueprint(ai_adoption_bp, url_prefix="/api/ai-adoption")
-app.register_blueprint(enhanced_assessment_bp, url_prefix="/api/enhanced-assessment")
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(ai_recommendations_bp)
 app.register_blueprint(ai_bp, url_prefix="/api/ai")
 app.register_blueprint(data_import_bp, url_prefix="/api/data/import")
+app.register_blueprint(phase1_bp, url_prefix="/api/v1")
+app.register_blueprint(phase2_bp, url_prefix="/api/v1")
+app.register_blueprint(phase3_bp, url_prefix="/api/v1")
+app.register_blueprint(phase4_bp, url_prefix="/api/v1")
+app.register_blueprint(phase5_bp, url_prefix="/api/v1")
+app.register_blueprint(phase6_bp, url_prefix="/api/v1")
+app.register_blueprint(phase7_bp, url_prefix="/api/v1")
+app.register_blueprint(venture_profile_bp, url_prefix="/api/v1")
+app.register_blueprint(account_bp, url_prefix="/api/v1")
+app.register_blueprint(routing_bp, url_prefix="/api/v1")
+app.register_blueprint(actions_bp, url_prefix="/api/v1")
+app.register_blueprint(progress_bp, url_prefix="/api/v1")
+app.register_blueprint(safety_bp, url_prefix="/api/v1")
 
 # Database configuration
 database_url = os.getenv("DATABASE_URL")
@@ -188,5 +209,6 @@ def serve(path):
 
 
 @app.get('/api/health')
+@limiter.exempt
 def health():
     return jsonify({"status": "ok"})

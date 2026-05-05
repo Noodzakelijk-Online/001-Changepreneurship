@@ -43,6 +43,7 @@ services:
     build:
       context: ./changepreneurship-backend
       dockerfile: Dockerfile
+      target: base
     container_name: changepreneurship-backend
     restart: unless-stopped
     environment:
@@ -79,11 +80,11 @@ services:
     networks:
       - changepreneurship-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5000/health', timeout=5)"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
 
   # React Frontend
   frontend:
@@ -92,7 +93,8 @@ services:
       dockerfile: Dockerfile
     container_name: changepreneurship-frontend
     restart: unless-stopped
-    # No direct port exposure — Caddy proxies to this service
+    ports:
+      - "3000:80"
     depends_on:
       backend:
         condition: service_healthy
